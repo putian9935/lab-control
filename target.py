@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 from collections import defaultdict
 
 import asyncio
@@ -10,7 +10,7 @@ class TargetMeta(type):
     def __init__(cls, *args):
         cls.supported_actions: set[Action] = set((None,))
         cls.instances: list[Target] = []
-        cls.default_action : Action = None
+        cls.default_action: Action = None
 
     def take_note(cls, action_cls):
         cls.supported_actions.add(action_cls)
@@ -23,6 +23,7 @@ class TargetMeta(type):
 
 class Target(metaclass=TargetMeta):
     backgrounds = []
+
     def __init__(self) -> None:
         self.actions: defaultdict[Action, list[Action]] = defaultdict(list)
         type(self).instances.append(self)
@@ -40,7 +41,7 @@ class Target(metaclass=TargetMeta):
                 raise ValueError(
                     f"Default action for target {type(self)} is not specified!")
             try:
-                new_action = act(**kwds, signame=f.__name__,retv=f())
+                new_action = act(**kwds, signame=f.__name__, retv=f())
             except TypeError as e:
                 raise TypeError(
                     f'Incorrect argument count for action {type(self).__name__}.{act.__name__}') from e
@@ -56,6 +57,6 @@ class Target(metaclass=TargetMeta):
 
     def clean_up(self) -> None:
         self.actions: defaultdict[Action, list[Action]] = defaultdict(list)
-        
+
     def close(self):
         pass

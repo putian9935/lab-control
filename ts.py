@@ -12,14 +12,15 @@ def merge_seq(*seqs: tuple[ts_mapping]) -> ts_mapping:
             if k not in tmp:
                 tmp[k] = set(v)
                 pols[k] = pol
-                names[k] = name 
+                names[k] = name
             else:
                 tmp[k] = tmp[k].union(v)
                 if pols[k] ^ pol:
                     raise ValueError(
                         f"Contradicting polarity for time sequencer channel {k}!")
                 if name != names[k]:
-                    print(f'[WARNING] Signal {name} and {names[k]} use the same time sequencer channel {k}')
+                    print(
+                        f'[WARNING] Signal {name} and {names[k]} use the same time sequencer channel {k}')
 
     ret: ts_mapping = dict()
     for k in tmp.keys():
@@ -46,8 +47,7 @@ def to_pulse(mapping: ts_mapping, pulse: bool):
     return ret
 
 
-
-def save_sequences(sequences : dict[int, tuple[list[int], bool, str]], fname):
+def save_sequences(sequences: dict[int, tuple[list[int], bool, str]], fname):
     s = set()
     names = dict()
     for k, (seq, p, n) in sequences.items():
@@ -76,13 +76,13 @@ def save_sequences(sequences : dict[int, tuple[list[int], bool, str]], fname):
         if len(seq):
             new_row[inv_f(seq)] = 1
         full_ch.append(init ^ (np.cumsum(new_row) & 1))
+    # save csv 
     np.savetxt(fname, np.array(full_ch).T, delimiter=",",
                fmt="%i", header='\n'.join(headers), comments='')
-    
-    ch_inv = {ch:i+1 for i, ch in enumerate(sequences.keys())}
-    with open('out', 'w'):
-        pass 
-    with open('out', 'a') as f:
+
+    # save out
+    ch_inv = {ch: i+1 for i, ch in enumerate(sequences.keys())}
+    with open('out', 'w') as f:
         f.write('1\n')
         f.write(';'.join(map(lambda _: str(int(_)), full_ch[0]))+'\n')
         for ch in range(1, 65):
@@ -93,9 +93,7 @@ def save_sequences(sequences : dict[int, tuple[list[int], bool, str]], fname):
     return full_ch[0][-1]
 
 
-
-
-
 if __name__ == '__main__':
     print(pulsify([1000, 2000]))
-    print(save_sequences(merge_seq(*({1: ([1, 2, 3], 0, 'a'), 2: ([2, 3, 4],1, 'b')}, {1: ([2, 3, 4],0, 'a')})), 'a'))
+    print(save_sequences(merge_seq(
+        *({1: ([1, 2, 3], 0, 'a'), 2: ([2, 3, 4], 1, 'b')}, {1: ([2, 3, 4], 0, 'a')})), 'a'))

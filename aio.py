@@ -5,6 +5,7 @@ import importlib.util
 import aio_backend.ports
 from aio_backend.csv_reader import tv2wfm, p2r
 
+
 class AIO(Target):
     def __init__(self, *, minpd, maxpd, ts_mapping, port=None, **kwargs) -> None:
         super().__init__()
@@ -18,21 +19,26 @@ class AIO(Target):
         self.minpd = minpd
         self.maxpd = maxpd
 
-def shift_list_by_one(l : list):
+
+def shift_list_by_one(l: list):
+    """ Shift the last element to the front """
     return [l[-1]] + l[:-1]
-def shift_vdt_by_one(retv : tuple[list]):
+
+
+def shift_vdt_by_one(retv: tuple[list]):
     return retv[0], shift_list_by_one(retv[1]), shift_list_by_one(retv[2])
+
 
 @set_pulse
 @AIO.take_note
 class ramp(Action):
     def __init__(self, *, channel, **kwargs) -> None:
-        self.channel = channel
         super().__init__(**kwargs)
+        self.channel = channel
 
     def to_time_sequencer(self, target: AIO):
         if ramp not in target.ts_mapping:
-            raise KeyError("ramp is not in ts_mapping of AIO target") 
+            raise KeyError("ramp is not in ts_mapping of AIO target")
         return {target.ts_mapping[ramp]: (self.retv[0], False, f'{target}.ramp_trig')}
 
     @classmethod
@@ -55,16 +61,16 @@ class ramp(Action):
 @AIO.take_note
 class hsp(Action):
     def __init__(self, *, channel, hsp, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.channel = channel
         self.hsp = hsp
-        super().__init__(**kwargs)
 
     async def run_prerequisite(self, target: AIO):
         target.backend.hsp(self.channel, self.hsp)
 
     def to_time_sequencer(self, target: AIO) -> tuple[dict[int, list[int]], bool]:
         if hsp not in target.ts_mapping:
-            raise KeyError("hsp is not in ts_mapping of AIO target") 
+            raise KeyError("hsp is not in ts_mapping of AIO target")
         return {target.ts_mapping[hsp]: (self.retv, self.polarity, f'{target}.hsp')}
 
 

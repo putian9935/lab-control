@@ -1,9 +1,11 @@
 import asyncio
 from ts import merge_seq
 
+
 def set_pulse(cls):
-    cls.pulse = True 
-    return cls 
+    cls.pulse = True
+    return cls
+
 
 class ActionMeta(type):
     def __init__(cls, *args):
@@ -17,9 +19,9 @@ class ActionMeta(type):
 
     def to_time_sequencer_cls(cls, target):
         return merge_seq(*[inst.to_time_sequencer(target)
-                    for inst in cls.instances
-                    if inst in target.actions[cls]])
-    
+                           for inst in cls.instances
+                           if inst in target.actions[cls]])
+
     def restart(cls):
         cls.instances: list[Action] = []
 
