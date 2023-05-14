@@ -4,7 +4,6 @@ import asyncio
 from action import Action, ActionMeta 
 from run_experiment import * 
 from experiment import Experiment 
-from parse_input import parse_input 
 import traceback 
 
 async def main(lab_name):
