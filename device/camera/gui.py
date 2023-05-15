@@ -1,22 +1,25 @@
 from tkinter import *
 import asyncio
-from .cam_wrapper import init_cam, shutdown_cam, real_time, external_trig, temp_monitor, status_monitor, fps_monitor, plotter, external_start, CamStatus
+from .cam_wrapper import init_cam, shutdown_cam, real_time, external_trig, temp_monitor, status_monitor, fps_monitor, external_start, CamStatus, GetImageArray
 from .common_feeder import get_name_from_file, get_name_from_time
+from .plotter import Plotter 
 
 
 class MyTk(Tk):
     def __init__(self):
         super().__init__()
+        self.plotter = Plotter(GetImageArray())
         self.protocol("WM_DELETE_WINDOW", lambda : print('Please close from the terminal!'))
-        self.task = [
+        self.task: list[asyncio.Task] = [
             asyncio.create_task(self.aupdate()),
             asyncio.create_task(temp_monitor()),
             asyncio.create_task(status_monitor()),
-            asyncio.create_task(plotter.aupdate()),
+            asyncio.create_task(self.plotter.aupdate()),
             asyncio.create_task(fps_monitor()),
         ]
         self.spooling = IntVar(self)
-        self.job = None
+        self.job = None 
+        self.task[0].add_done_callback(self.close)
 
     async def aupdate(self):
         """ the Tk loop """
@@ -27,13 +30,13 @@ class MyTk(Tk):
             except:
                 return
 
-    def close(self):
+    def close(self, tsk):
         if self.job:
             self.job.cancel()
         for t in self.task:
             if not t.cancelled() and not t.done():
                 t.cancel()
-        plotter.destroy()
+        self.plotter.destroy()
         self.destroy()
 
 
@@ -41,6 +44,7 @@ modes = {'internal': real_time, 'external': external_trig,
          'external start': external_start}
 
 exported_funcs = {}
+wait_until_cam_ready = None 
 
 def draw_tk():
     # Create an instance of Tkinter frame or window
@@ -100,6 +104,10 @@ def draw_tk():
 
         while CamStatus.temp_code == 20013:
             await asyncio.sleep(.2)
+            
+    global wait_until_cam_ready
+    wait_until_cam_ready = wait_until_cam_initialized
+
     async def update_banner():
         await wait_until_cam_initialized()
         while True:
@@ -125,9 +133,12 @@ def draw_tk():
 async def main():
     win = draw_tk()
     await asyncio.get_event_loop().run_in_executor(None, init_cam)
-    # wait gui close
-    await win.task[0]
-    await shutdown_cam()
+    try:
+        # wait gui close
+        await win.task[0]
+    finally:
+        await shutdown_cam()
+
     
 if __name__ == '__main__':
     spool_name_func = get_name_from_time 

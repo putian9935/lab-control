@@ -2,6 +2,7 @@ from device import *
 
 
 import numpy as np
+
 AIO0 = AIO(
     port='COM22',
     minpd=np.array([32953., 32757., 29991., 32786.]),

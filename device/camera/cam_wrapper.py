@@ -1,5 +1,4 @@
 from contextlib import contextmanager
-from .plotter import Plotter
 import traceback
 import asyncio
 from .andor_lib import *
@@ -24,7 +23,6 @@ class CamStatus:
 
 setup_backend()
 
-plotter = Plotter(GetImageArray())
 
 
 def error_catch(coro):
@@ -195,6 +193,9 @@ async def shutdown_cam():
 
 
 if __name__ == '__main__':
+    from .plotter import Plotter
+    plotter = Plotter(GetImageArray())
+
     async def main():
         backgrounds = [
             asyncio.create_task(temp_monitor()),

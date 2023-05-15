@@ -9,21 +9,30 @@ def list_actions():
     for cls in Target.__subclasses__():
         print(cls.__name__, ':', *cls.supported_actions)
 
+def list_targets():
+    for cls in Target.__subclasses__():
+        print(cls.__name__, ':', *cls.instances)
 
-async def run_prerequisite():
+async def wait_until_ready():
     await asyncio.gather(*[
-        tar.run_prerequisite()
+        tar.wait_until_ready()
+        for cls in Target.__subclasses__()
+        for tar in cls.instances])
+
+async def run_preprocess():
+    await asyncio.gather(*[
+        tar.run_preprocess()
         for cls in Target.__subclasses__()
         for tar in cls.instances])
 
 
-def clean_up():
+def run_postprocess():
     print('[INFO] cleanup')
     for cls in Action.__subclasses__():
         cls.restart()
     for cls in Target.__subclasses__():
         for inst in cls.instances:
-            inst.clean_up()
+            inst.run_postprocess()
 
 
 def check_channel_clash(*to_seq):

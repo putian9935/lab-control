@@ -33,11 +33,11 @@ def main():
 
 if __name__ == '__main__':
     import asyncio
-    from util.run_experiment import exec_actions, clean_up
+    from util.run_experiment import exec_actions, run_postprocess
     exp()
     asyncio.run(exec_actions())
-    clean_up()
+    run_postprocess()
 
     exp(tof=2*ms)
     asyncio.run(exec_actions())
-    clean_up()
+    run_postprocess()

@@ -12,8 +12,8 @@ class ActionMeta(type):
         cls.instances: list[Action] = []
         cls.pulse = False
 
-    async def run_prerequisite_cls(cls, target):
-        await asyncio.gather(*[inst.run_prerequisite(target)
+    async def run_preprocess_cls(cls, target):
+        await asyncio.gather(*[inst.run_preprocess(target)
                                for inst in cls.instances
                                if inst in target.actions[cls]])
 
@@ -33,7 +33,7 @@ class Action(metaclass=ActionMeta):
         self.polarity = polarity
         type(self).instances.append(self)
 
-    async def run_prerequisite(self, target):
+    async def run_preprocess(self, target):
         print(
             f'[Warning] Action {type(target).__name__}.{type(self).__name__} has no prerequisite to run.')
 

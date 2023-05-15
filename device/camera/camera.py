@@ -9,8 +9,10 @@ class Camera(Target):
     def __init__(self, channel) -> None:
         self.channel = channel
         super().__init__()
-        Target.backgrounds.append(gui.main())
+        type(self).backgrounds.append(gui.main())
 
+    async def wait_until_ready(self):
+        await gui.wait_until_cam_ready() 
 
 @set_pulse
 @Camera.set_default
@@ -22,7 +24,7 @@ class external(Action):
         self.spool_func = spool_func
         ce.save_config(ce.open_config())
 
-    async def run_prerequisite(self, target):
+    async def run_preprocess(self, target):
         return gui.exported_funcs['external'](self.spooling, self.spool_func)()
 
     def to_time_sequencer(self, target: Camera) -> tuple[dict[int, list[int]], bool, str]:
@@ -45,7 +47,7 @@ class external_start(Action):
         ce.save_config(yml)
         self.first_image_at = first_image_at
 
-    async def run_prerequisite(self, target):
+    async def run_preprocess(self, target):
         return gui.exported_funcs['external start'](self.spooling, self.spool_func)()
 
     def to_time_sequencer(self, target: Camera) -> tuple[dict[int, list[int]], bool, str]:
@@ -61,10 +63,10 @@ if __name__ == '__main__':
 
     async def main():
         tasks = []
-        for bg in Target.backgrounds:
+        for bg in Camera.backgrounds:
             tasks.append(asyncio.create_task(bg))
         await asyncio.sleep(5)
-        await cam.run_prerequisite()
+        await cam.run_preprocess()
         print(cam.to_time_sequencer())
         await asyncio.sleep(5)
 
