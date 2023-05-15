@@ -1,7 +1,7 @@
 from yaml import load, Loader, dump, Dumper 
 
 def open_config():
-    with open("camera_backend/camera_setting.yml") as f:
+    with open("device/camera/camera_setting.yml") as f:
         return load(f, Loader)
     
 def get_config(yml, mode, entry):

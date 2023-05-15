@@ -57,7 +57,7 @@ def exp(cam_exposure=5*ms,
 
     @AndorCamera(
         action=external_start,
-        spooling=True,
+        spooling=False,
         spool_func=get_new_name,
         kcc=50e-3, nc=5,
         first_image_at=tof+load-50*ms*3)

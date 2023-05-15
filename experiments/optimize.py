@@ -33,7 +33,7 @@ def main():
 
 if __name__ == '__main__':
     import asyncio
-    from run_experiment import exec_actions, clean_up
+    from util.run_experiment import exec_actions, clean_up
     exp()
     asyncio.run(exec_actions())
     clean_up()

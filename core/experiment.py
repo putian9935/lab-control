@@ -1,6 +1,6 @@
 from typing import Any
 
-from run_experiment import clean_up, run_prerequisite, prepare_sequencer_files, run_sequence
+from util.run_experiment import clean_up, run_prerequisite, prepare_sequencer_files, run_sequence
 import time
 
 

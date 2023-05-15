@@ -1,7 +1,7 @@
 import importlib.util 
 from core import Target, ActionMeta
 import asyncio 
-from run_experiment import * 
+from util.run_experiment import * 
 import traceback 
 
 async def main(lab_name):

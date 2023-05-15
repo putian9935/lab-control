@@ -2,7 +2,7 @@ from core.target import Target
 from core.action import Action
 import asyncio
 import importlib.util
-from ts import save_sequences, merge_seq
+from util.ts import save_sequences, merge_seq
 
 
 def list_actions():
@@ -53,7 +53,7 @@ async def run_sequence(fpga, exp_time: int):
 
 
 async def run_exp(module_fname, attr, **exp_param):
-    spec = importlib.util.find_spec(module_fname)
+    spec = importlib.util.find_spec('experiments.'+module_fname)
     exp = importlib.util.module_from_spec(spec)
     for k, v in attr.items():
         exp.__setattr__(k, v)

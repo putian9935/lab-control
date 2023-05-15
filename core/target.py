@@ -3,7 +3,7 @@ from collections import defaultdict
 
 import asyncio
 from core.action import Action
-from ts import merge_seq, to_pulse
+from util.ts import merge_seq, to_pulse
 
 
 class TargetMeta(type):
