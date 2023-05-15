@@ -23,7 +23,15 @@ async def main(lab_name):
     print('[INFO] Target initialized with success')
     while True: 
         try:
-            exp_name = await asyncio.get_event_loop().run_in_executor(None, input, 'Input experiment file name:')
+            exp_name = (await asyncio.get_event_loop().run_in_executor(None, input, 'Input experiment file name:')).strip()
+            if not len(exp_name):
+                continue 
+            if exp_name.startswith('!'):
+                if exp_name == '!exit':
+                    break
+                else:
+                    print('Unrecognized command!')
+                    continue
             await run_exp(exp_name.strip(), attr, )
         except Exception as e:
             traceback.print_exc()

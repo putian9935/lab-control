@@ -7,7 +7,7 @@ class TimeSequencerFPGA(Target):
         super().__init__(**kwargs)
 
         spec = importlib.util.find_spec(
-            'fpga_communicate_jinchao', '.')
+            'device.ts_fpga.fpga_communicate_jinchao')
         self.backend = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(self.backend)
         self.backend.sequencer.connect(host, port)
