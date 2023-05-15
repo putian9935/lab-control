@@ -22,7 +22,7 @@ class ActionMeta(type):
                            for inst in cls.instances
                            if inst in target.actions[cls]])
 
-    def restart(cls):
+    def run_postprocess_cls(cls):
         cls.instances: list[Action] = []
 
 

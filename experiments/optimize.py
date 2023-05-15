@@ -26,18 +26,6 @@ def main():
     def bfield():
         return [0], [2000], [.65]
 
-    @RawTS(channel=8, polarity=1)
+    @RawTS(channel=8, polarity=0)
     def om_zm_shutter():
-        return [0]
-
-
-if __name__ == '__main__':
-    import asyncio
-    from util.run_experiment import exec_actions, run_postprocess
-    exp()
-    asyncio.run(exec_actions())
-    run_postprocess()
-
-    exp(tof=2*ms)
-    asyncio.run(exec_actions())
-    run_postprocess()
+        return []

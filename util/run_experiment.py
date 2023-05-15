@@ -3,7 +3,7 @@ from core.action import Action
 import asyncio
 import importlib.util
 from util.ts import save_sequences, merge_seq
-
+import typing 
 
 def list_actions():
     for cls in Target.__subclasses__():
@@ -29,7 +29,7 @@ async def run_preprocess():
 def run_postprocess():
     print('[INFO] cleanup')
     for cls in Action.__subclasses__():
-        cls.restart()
+        cls.run_postprocess_cls()
     for cls in Target.__subclasses__():
         for inst in cls.instances:
             inst.run_postprocess()
@@ -67,4 +67,9 @@ async def run_exp(module_fname, attr, **exp_param):
     for k, v in attr.items():
         exp.__setattr__(k, v)
     spec.loader.exec_module(exp)
-    await exp.main(**exp_param)
+    if 'main' not in exp.__dict__:
+        raise AttributeError(f"Cannot find function main() from experiment {module_fname}.")
+    main = exp.main(**exp_param)
+    if not isinstance(main, typing.Coroutine):
+        raise TypeError(f"Cannot execute main() from experiment {module_fname}. Did you forgot to wrap it with Experiment?")
+    await main 

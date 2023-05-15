@@ -12,6 +12,7 @@ async def main(lab_name):
             f"Cannot find lab {lab_name}. Did you put it in lab folder?")
     lab = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(lab)
+    print(f'[INFO] Entered {lab_name}!')
 
     # parse used targets 
     attr = dict()
@@ -23,15 +24,15 @@ async def main(lab_name):
             if isinstance(obj, Target):
                 used_target_types.add(type(obj))
     list_targets()
+
     # start background tasks 
     tasks = [asyncio.create_task(coro)
              for cls in used_target_types
              for coro in cls.backgrounds]
-    
     # wait for targets (e.g., camera) to get ready 
     await wait_until_ready()
-
     print('[INFO] Target initialized with success')
+
     while True:
         try:
             exp_name = (await asyncio.get_event_loop().run_in_executor(None, input, 'Input experiment file name:')).strip()
@@ -44,10 +45,8 @@ async def main(lab_name):
                     print('Unrecognized command!')
                     continue
             await run_exp(exp_name.strip(), attr, )
-        except Exception as e:
+        except Exception:
             traceback.print_exc()
-        except BaseException:
-            break 
 
     for tsk in tasks:
         if not tsk.done() and not tsk.cancelled():
