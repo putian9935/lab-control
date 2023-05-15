@@ -30,9 +30,9 @@ class MonitorProgram(Program):
         while not tsk.done() and not tsk.cancelled():
             await asyncio.sleep(0.01)
         if tsk.cancelled():
-            raise RuntimeError(f"Error in building program for {type(self)}!")
+            raise RuntimeError(f"Error in building program for {type(self).__name__}!")
         self.proc = tsk.result()
-        print(f'[INFO] Running process {self.proc} for {type(self)}')
+        print(f'[INFO] Running monitor program at {self.proc} for {type(self).__name__}')
 
     async def close(self):
         self.proc.kill()

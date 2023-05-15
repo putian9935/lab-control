@@ -20,6 +20,8 @@ async def main(lab_name):
         obj = lab.__getattribute__(x)
         if isinstance(obj, (Target, ActionMeta)):
             attr[x] = obj
+        if isinstance(obj, Target):
+            obj.__name__ = x
     list_targets()
 
     # start background tasks 

@@ -1,4 +1,4 @@
-from typing import Any, Coroutine
+from typing import Any, Coroutine, Optional
 from collections import defaultdict
 
 import asyncio
@@ -28,6 +28,7 @@ class TargetMeta(type):
 class Target(metaclass=TargetMeta):
     def __init__(self) -> None:
         self.actions: defaultdict[Action, list[Action]] = defaultdict(list)
+        self.__name__: Optional[str] = None
         type(self).instances.append(self)
 
     def __call__(self,  action=None, **kwds: Any) -> Any:
@@ -74,3 +75,8 @@ class Target(metaclass=TargetMeta):
 
     async def close(self):
         pass
+
+    def __repr__(self) -> str:
+        if not self.__name__:
+            return super().__repr__()
+        return self.__name__
