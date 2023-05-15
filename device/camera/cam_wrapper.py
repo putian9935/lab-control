@@ -31,7 +31,7 @@ def error_catch(coro):
             await coro(*args, **kwargs)
         except asyncio.CancelledError:
             pass
-        except:
+        except Exception:
             traceback.print_exc()
     return ret
 
@@ -181,14 +181,27 @@ def init_cam(FanMode=0, Temperature=-60, VSSpeed=1, OutputAmplifier=0, HSSpeed=0
 
     SetImage(1, 1, 1, 1024, 1, 1024)  # full image
 
+async def wait_for_q():
+    while True:
+        c = await asyncio.get_event_loop().run_in_executor(None, input())
+        if c.strip() == 'q':
+            break 
 
 async def shutdown_cam():
     print("Cleaning up...")
     CoolerOFF()
     task = asyncio.create_task(temp_monitor())
     print("Waiting for temperature going above -20C")
-    await wait_until_temperature_above(-20)
-    task.cancel()
+    wait_temp = asyncio.create_task(wait_until_temperature_above(-20))
+    wait_q = asyncio.create_task(wait_for_q())
+    print("If this turns out to be too long, you may enter q to abort this process.")
+    while not wait_q.done() and not wait_temp.done():
+        await asyncio.sleep(1)
+    if not wait_q.done():
+        wait_q.cancel() 
+    else: 
+        wait_temp.cancel()
+    task.cancel()    
     ShutDown()
 
 

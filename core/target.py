@@ -60,11 +60,14 @@ class Target(metaclass=TargetMeta):
     def to_time_sequencer(self):
         return merge_seq(*[to_pulse(act.to_time_sequencer_cls(self), act.pulse) for act in type(self).supported_actions if act is not None])
 
-    def run_postprocess(self) -> None:
-        self.actions: defaultdict[Action, list[Action]] = defaultdict(list)
-
     def test_postcondition(self):
         return True 
+    
+    async def run_postprocess(self):
+        await asyncio.gather(*[act.run_postprocess_cls(self) for act in type(self).supported_actions if act is not None])
+
+    def cleanup(self) -> None:
+        self.actions: defaultdict[Action, list[Action]] = defaultdict(list)
     
     def close(self):
         pass

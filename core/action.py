@@ -21,11 +21,21 @@ class ActionMeta(type):
         return merge_seq(*[inst.to_time_sequencer(target)
                            for inst in cls.instances
                            if inst in target.actions[cls]])
-
-    def run_postprocess_cls(cls):
+    
+    async def run_postprocess_cls(cls, target):
+        await asyncio.gather(*[inst.run_postprocess(target)
+                               for inst in cls.instances
+                               if inst in target.actions[cls]])
+    def cleanup(cls):
         cls.instances: list[Action] = []
 
+class NoPreprocess:
+    async def run_preprocess(self, target):
+        pass 
 
+class NoPostprocess:
+    async def run_postprocess(self, target):
+        pass 
 class Action(metaclass=ActionMeta):
     def __init__(self, signame=None, polarity=False, retv=None) -> None:
         self.signame = signame
@@ -35,8 +45,12 @@ class Action(metaclass=ActionMeta):
 
     async def run_preprocess(self, target):
         print(
-            f'[Warning] Action {type(target).__name__}.{type(self).__name__} has no prerequisite to run.')
+            f'[Warning] Action {type(target).__name__}.{type(self).__name__} has no preprocess to run.')
 
     def to_time_sequencer(self, target):
         print(
             f'[Warning] Action {type(target).__name__}.{type(self).__name__} has nothing to transform to time sequencer.')
+    
+    async def run_postprocess(self, target):
+        print(
+            f'[Warning] Action {type(target).__name__}.{type(self).__name__} has no postprocess to run.')
