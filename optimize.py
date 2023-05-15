@@ -4,10 +4,10 @@
 # Edit line 86 in ts_csv_generator.py to something like: from this_sequence_name import *
 # Run ts_csv_generator.py to generate a csv file that include the time-sequence described in this script
 
-from ts_channel import *
+from unit import *
 if __name__ == '__main__':
     from sr_lab import *
-from experiment import Experiment
+from core.experiment import Experiment
 @Experiment(True, ts_sr)
 def main():
     @AIO0(action=ramp, channel=0)

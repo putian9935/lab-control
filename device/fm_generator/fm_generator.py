@@ -1,4 +1,4 @@
-from target import * 
+from core.target import * 
 
 class FMGenerator(Target):
     def __init__(self, port) -> None:

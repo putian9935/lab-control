@@ -1,5 +1,5 @@
-from target import Target 
-from fname_gen_backend.filename_gui import main
+from core.target import Target 
+from .filename_gui import main
 
 class FileNameGenerator(Target):
     def __init__(self) -> None:

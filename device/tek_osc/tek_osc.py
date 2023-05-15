@@ -1,4 +1,4 @@
-from target import * 
+from core.target import * 
 
 class TekOsc(Target):
     def __init__(self, name) -> None:

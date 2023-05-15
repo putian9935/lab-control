@@ -1,5 +1,5 @@
-from target import Target
-from action import Action
+from core.target import Target
+from core.action import Action
 import asyncio
 import importlib.util
 from ts import save_sequences, merge_seq

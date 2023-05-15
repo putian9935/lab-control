@@ -1,4 +1,4 @@
-from target import Target
+from core.target import Target
 import importlib.util
 
 
@@ -7,7 +7,7 @@ class TimeSequencerFPGA(Target):
         super().__init__(**kwargs)
 
         spec = importlib.util.find_spec(
-            '.fpga_communicate_jinchao', 'ts_fpga_backend')
+            'fpga_communicate_jinchao', '.')
         self.backend = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(self.backend)
         self.backend.sequencer.connect(host, port)

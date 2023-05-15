@@ -1,11 +1,10 @@
-from target import Target
-from action import Action, set_pulse
+from core.target import Target
+from core.action import Action, set_pulse
 import asyncio 
 class CameraSolis(Target):
     def __init__(self, channel) -> None:
         self.channel = channel 
         super().__init__() 
-
 
 @set_pulse
 @CameraSolis.set_default

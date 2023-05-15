@@ -1,15 +1,15 @@
-from target import Target
-from action import Action, set_pulse
+from core.target import Target
+from core.action import Action, set_pulse
 import asyncio
-import camera_backend.gui
-import camera_backend.config_editor as ce
+from . import gui
+from . import config_editor as ce
 
 
 class Camera(Target):
     def __init__(self, channel) -> None:
         self.channel = channel
         super().__init__()
-        Target.backgrounds.append(camera_backend.gui.main())
+        Target.backgrounds.append(gui.main())
 
 
 @set_pulse
@@ -23,7 +23,7 @@ class external(Action):
         ce.save_config(ce.open_config())
 
     async def run_prerequisite(self, target):
-        return camera_backend.gui.exported_funcs['external'](self.spooling, self.spool_func)()
+        return gui.exported_funcs['external'](self.spooling, self.spool_func)()
 
     def to_time_sequencer(self, target: Camera) -> tuple[dict[int, list[int]], bool, str]:
         return {target.channel: (self.retv, self.polarity, self.signame)}
@@ -46,7 +46,7 @@ class external_start(Action):
         self.first_image_at = first_image_at
 
     async def run_prerequisite(self, target):
-        return camera_backend.gui.exported_funcs['external start'](self.spooling, self.spool_func)()
+        return gui.exported_funcs['external start'](self.spooling, self.spool_func)()
 
     def to_time_sequencer(self, target: Camera) -> tuple[dict[int, list[int]], bool, str]:
         return {target.channel: ([self.first_image_at], self.polarity, self.signame)}

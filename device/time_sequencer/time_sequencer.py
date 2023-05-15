@@ -1,5 +1,5 @@
-from target import Target
-from action import Action, set_pulse
+from core.target import Target
+from core.action import Action, set_pulse
 
 
 class TimeSequencer(Target):
