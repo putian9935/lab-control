@@ -54,6 +54,9 @@ def save_sequences(sequences: dict[int, tuple[list[int], bool, str]], fname):
         for t in seq:
             s.add(t)
         names[k] = n
+    if not len(s):
+        raise ValueError("Empty sequence detected! Aborted. Did you forgot to set to_fpga=False in the Experiment definition?")
+    
     full_sequence = sorted(list(s))
 
     inv = {k: v for v, k in enumerate(full_sequence)}

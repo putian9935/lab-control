@@ -9,7 +9,7 @@ from unit import *
 from device.fname_gen.filename_gui import get_new_name
 
 if __name__ == '__main__':
-    from sr_lab import *
+    from lab.sr_lab import *
 
 
 @Experiment(True, ts_sr)
@@ -57,7 +57,7 @@ def exp(cam_exposure=5*ms,
 
     @AndorCamera(
         action=external_start,
-        spooling=True,
+        spooling=False,
         spool_func=get_new_name,
         kcc=50e-3, nc=5,
         first_image_at=tof+load-50*ms*3)

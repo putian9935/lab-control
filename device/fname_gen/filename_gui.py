@@ -22,7 +22,7 @@ class MyTk(Tk):
         while True:
             self.update()
             try:
-                await asyncio.sleep(0)
+                await asyncio.sleep(0.01)
             except:
                 return
 
@@ -238,7 +238,7 @@ def create():
     ent_output = Entry(frame_output,width = 50)
     ent_output.grid(row=0, column=0, padx = 10, pady = 5, sticky='nw')
 
-    root.protocol("WM_DELETE_WINDOW", on_closing)
+    root.protocol("WM_DELETE_WINDOW", lambda : print('Please close from the terminal!'))
     return root 
 
 def get_new_name():

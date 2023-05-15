@@ -1,16 +1,20 @@
-from typing import Any
+from typing import Any, Coroutine
 from collections import defaultdict
 
 import asyncio
-from core.action import Action
-from ts import merge_seq, to_pulse
+from core.action import Action, ActionMeta
+from util.ts import merge_seq, to_pulse
 
 
 class TargetMeta(type):
+    instances = []
+
     def __init__(cls, *args):
-        cls.supported_actions: set[Action] = set((None,))
+        cls.supported_actions: set[ActionMeta] = set((None,))
         cls.instances: list[Target] = []
-        cls.default_action: Action = None
+        cls.default_action: ActionMeta = None
+        cls.backgrounds: list[Coroutine] = []
+        TargetMeta.instances.append(cls)
 
     def take_note(cls, action_cls):
         cls.supported_actions.add(action_cls)
@@ -22,8 +26,6 @@ class TargetMeta(type):
 
 
 class Target(metaclass=TargetMeta):
-    backgrounds = []
-
     def __init__(self) -> None:
         self.actions: defaultdict[Action, list[Action]] = defaultdict(list)
         type(self).instances.append(self)
@@ -49,14 +51,26 @@ class Target(metaclass=TargetMeta):
                 self.actions[act].append(new_action)
         return ret
 
-    async def run_prerequisite(self):
-        await asyncio.gather(*[act.run_prerequisite_cls(self) for act in type(self).supported_actions if act is not None])
+    async def wait_until_ready(self):
+        pass
+
+    def test_precondition(self):
+        return True
+
+    async def run_preprocess(self):
+        await asyncio.gather(*[act.run_preprocess_cls(self) for act in type(self).supported_actions if act is not None])
 
     def to_time_sequencer(self):
         return merge_seq(*[to_pulse(act.to_time_sequencer_cls(self), act.pulse) for act in type(self).supported_actions if act is not None])
 
-    def clean_up(self) -> None:
+    def test_postcondition(self):
+        return True
+
+    async def run_postprocess(self):
+        await asyncio.gather(*[act.run_postprocess_cls(self) for act in type(self).supported_actions if act is not None])
+
+    def cleanup(self) -> None:
         self.actions: defaultdict[Action, list[Action]] = defaultdict(list)
 
-    def close(self):
+    async def close(self):
         pass

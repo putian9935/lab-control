@@ -69,7 +69,7 @@ class ramp(Action):
         return {target.ts_mapping[ramp]: (self.retv[0], False, f'{target}.ramp_trig')}
 
     @classmethod
-    async def run_prerequisite_cls(cls, target: AIO):
+    async def run_preprocess_cls(cls, target: AIO):
         extras = []
         chs = []
         for act in target.actions[cls]:
@@ -91,7 +91,7 @@ class hsp(Action):
         self.channel = channel
         self.hsp = hsp
 
-    async def run_prerequisite(self, target: AIO):
+    async def run_preprocess(self, target: AIO):
         target.backend.hsp(self.channel, self.hsp)
 
     def to_time_sequencer(self, target: AIO) -> tuple[dict[int, list[int]], bool]:
@@ -121,18 +121,3 @@ if __name__ == '__main__':
     def a():
         return [1, 2]
 
-    async def main0():
-        await aio.run_prerequisite()
-        await asyncio.sleep(1)
-        await aio.run_prerequisite()
-        await asyncio.sleep(1)
-
-        aio.close()
-
-    async def main():
-        print(ramp.pulse, hsp.pulse)
-        await aio.run_prerequisite()
-        print(aio.to_time_sequencer())
-        aio.close()
-
-    asyncio.run(main())

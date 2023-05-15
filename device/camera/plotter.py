@@ -22,7 +22,7 @@ class Plotter:
                 self.axes_image.set_clim(np.min(self.x), np.max(self.x))
             self.axes_image.stale = True 
             self.fig.canvas.draw()
-            await asyncio.sleep(0)
+            await asyncio.sleep(0.01)
     
     def destroy(self):
         self.fig.canvas.manager.window.destroy()

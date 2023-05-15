@@ -6,7 +6,7 @@
 
 from unit import *
 if __name__ == '__main__':
-    from sr_lab import *
+    from lab.sr_lab import *
 from core.experiment import Experiment
 @Experiment(True, ts_sr)
 def main():
@@ -26,18 +26,6 @@ def main():
     def bfield():
         return [0], [2000], [.65]
 
-    @RawTS(channel=8, polarity=1)
+    @RawTS(channel=8, polarity=0)
     def om_zm_shutter():
-        return [0]
-
-
-if __name__ == '__main__':
-    import asyncio
-    from run_experiment import exec_actions, clean_up
-    exp()
-    asyncio.run(exec_actions())
-    clean_up()
-
-    exp(tof=2*ms)
-    asyncio.run(exec_actions())
-    clean_up()
+        return []
