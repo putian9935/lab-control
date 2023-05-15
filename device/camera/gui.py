@@ -7,7 +7,7 @@ from .common_feeder import get_name_from_file, get_name_from_time
 class MyTk(Tk):
     def __init__(self):
         super().__init__()
-        self.protocol("WM_DELETE_WINDOW", self.close)
+        self.protocol("WM_DELETE_WINDOW", lambda : print('Please close from the terminal!'))
         self.task = [
             asyncio.create_task(self.aupdate()),
             asyncio.create_task(temp_monitor()),
