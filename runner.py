@@ -5,7 +5,9 @@ from run_experiment import *
 import traceback 
 
 async def main(lab_name):
-    spec = importlib.util.find_spec(lab_name)
+    spec = importlib.util.find_spec('lab.'+lab_name)
+    if spec is None: 
+        raise ValueError(f"Cannot find lab {lab_name}. Did you put it in lab folder?")
     lab = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(lab)
     

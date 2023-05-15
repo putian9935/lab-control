@@ -9,7 +9,7 @@ from unit import *
 from device.fname_gen.filename_gui import get_new_name
 
 if __name__ == '__main__':
-    from sr_lab import *
+    from lab.sr_lab import *
 
 
 @Experiment(True, ts_sr)

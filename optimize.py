@@ -6,7 +6,7 @@
 
 from unit import *
 if __name__ == '__main__':
-    from sr_lab import *
+    from lab.sr_lab import *
 from core.experiment import Experiment
 @Experiment(True, ts_sr)
 def main():
