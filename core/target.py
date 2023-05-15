@@ -7,11 +7,14 @@ from util.ts import merge_seq, to_pulse
 
 
 class TargetMeta(type):
+    instances = []
+
     def __init__(cls, *args):
         cls.supported_actions: set[ActionMeta] = set((None,))
         cls.instances: list[Target] = []
         cls.default_action: ActionMeta = None
         cls.backgrounds: list[Coroutine] = []
+        TargetMeta.instances.append(cls)
 
     def take_note(cls, action_cls):
         cls.supported_actions.add(action_cls)
@@ -47,13 +50,13 @@ class Target(metaclass=TargetMeta):
             else:
                 self.actions[act].append(new_action)
         return ret
-    
+
     async def wait_until_ready(self):
         pass
-    
+
     def test_precondition(self):
-        return True 
-    
+        return True
+
     async def run_preprocess(self):
         await asyncio.gather(*[act.run_preprocess_cls(self) for act in type(self).supported_actions if act is not None])
 
@@ -61,13 +64,13 @@ class Target(metaclass=TargetMeta):
         return merge_seq(*[to_pulse(act.to_time_sequencer_cls(self), act.pulse) for act in type(self).supported_actions if act is not None])
 
     def test_postcondition(self):
-        return True 
-    
+        return True
+
     async def run_postprocess(self):
         await asyncio.gather(*[act.run_postprocess_cls(self) for act in type(self).supported_actions if act is not None])
 
     def cleanup(self) -> None:
         self.actions: defaultdict[Action, list[Action]] = defaultdict(list)
-    
-    def close(self):
+
+    async def close(self):
         pass

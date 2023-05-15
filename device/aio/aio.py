@@ -121,18 +121,3 @@ if __name__ == '__main__':
     def a():
         return [1, 2]
 
-    async def main0():
-        await aio.run_preprocess()
-        await asyncio.sleep(1)
-        await aio.run_preprocess()
-        await asyncio.sleep(1)
-
-        aio.close()
-
-    async def main():
-        print(ramp.pulse, hsp.pulse)
-        await aio.run_preprocess()
-        print(aio.to_time_sequencer())
-        aio.close()
-
-    asyncio.run(main())

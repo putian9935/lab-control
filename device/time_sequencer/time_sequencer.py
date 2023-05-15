@@ -1,5 +1,5 @@
 from core.target import Target
-from core.action import Action, set_pulse, NoPreprocess, NoPostprocess
+from core.action import Action, set_pulse
 
 
 class TimeSequencer(Target):
@@ -8,7 +8,7 @@ class TimeSequencer(Target):
 
 @TimeSequencer.set_default
 @TimeSequencer.take_note
-class hold(NoPreprocess, NoPostprocess, Action):
+class hold(Action):
     def __init__(self, *, channel, **kwargs) -> None:
         self.channel = channel
         super().__init__(**kwargs)

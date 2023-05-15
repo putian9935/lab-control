@@ -16,19 +16,17 @@ async def main(lab_name):
 
     # parse used targets 
     attr = dict()
-    used_target_types: set[TargetMeta] = set()
     for x in dir(lab):
         obj = lab.__getattribute__(x)
         if isinstance(obj, (Target, ActionMeta)):
             attr[x] = obj
-            if isinstance(obj, Target):
-                used_target_types.add(type(obj))
     list_targets()
 
     # start background tasks 
-    tasks = [asyncio.create_task(coro)
-             for cls in used_target_types
-             for coro in cls.backgrounds]
+    for cls in TargetMeta.instances:
+        cls.tasks = []
+        for coro in cls.backgrounds:
+            cls.tasks.append(asyncio.create_task(coro))
     # wait for targets (e.g., camera) to get ready 
     await wait_until_ready()
     print('[INFO] Target initialized with success')
@@ -48,9 +46,14 @@ async def main(lab_name):
         except Exception:
             traceback.print_exc()
 
-    for tsk in tasks:
-        if not tsk.done() and not tsk.cancelled():
-            tsk.cancel()
+    for cls in TargetMeta.instances:
+        for tsk in cls.tasks:
+            if not tsk.done() and not tsk.cancelled():
+                tsk.cancel()
+
+    for cls in TargetMeta.instances:
+        for target in cls.instances:
+            await target.close()
 
 if __name__ == '__main__':
     asyncio.run(main('sr_lab'))

@@ -1,4 +1,4 @@
-from core.target import Target
+from core.target import Target, TargetMeta
 from core.action import Action
 import asyncio
 import importlib.util
@@ -7,45 +7,45 @@ import typing
 
 
 def list_actions():
-    for cls in Target.__subclasses__():
+    for cls in TargetMeta.instances:
         print(cls.__name__, ':', *cls.supported_actions)
 
 
 def list_targets():
-    for cls in Target.__subclasses__():
+    for cls in TargetMeta.instances:
         print(cls.__name__, ':', *cls.instances)
 
 
 async def wait_until_ready():
     await asyncio.gather(*[
         tar.wait_until_ready()
-        for cls in Target.__subclasses__()
+        for cls in TargetMeta.instances
         for tar in cls.instances])
 
 
 def test_precondition():
     return all(tar.test_precondition()
-               for cls in Target.__subclasses__()
+               for cls in TargetMeta.instances
                for tar in cls.instances)
 
 
 async def run_preprocess():
     await asyncio.gather(*[
         tar.run_preprocess()
-        for cls in Target.__subclasses__()
+        for cls in TargetMeta.instances
         for tar in cls.instances])
 
 
 def test_postcondition():
     return all(tar.test_postcondition()
-               for cls in Target.__subclasses__()
+               for cls in TargetMeta.instances
                for tar in cls.instances)
 
 
 async def run_postprocess():
     await asyncio.gather(*[
         tar.run_postprocess()
-        for cls in Target.__subclasses__()
+        for cls in TargetMeta.instances
         for tar in cls.instances])
 
 

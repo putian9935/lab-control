@@ -12,3 +12,5 @@ AndorCamera = Camera(channel=2)
 RawTS = TimeSequencer()
 ts_sr = TimeSequencerFPGA('192.168.107.146', 5555)
 fname_gen = FileNameGenerator()
+
+slm = SlaveLockMonitor(r'"C:\Users\strontium_desktop2\miniconda3\python.exe" "C:\Users\strontium_desktop2\Desktop\putian\injection_stabilizer\script\gui.py"')

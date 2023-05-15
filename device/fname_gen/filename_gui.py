@@ -22,7 +22,7 @@ class MyTk(Tk):
         while True:
             self.update()
             try:
-                await asyncio.sleep(0)
+                await asyncio.sleep(0.01)
             except:
                 return
 

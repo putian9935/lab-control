@@ -29,13 +29,7 @@ class ActionMeta(type):
     def cleanup(cls):
         cls.instances: list[Action] = []
 
-class NoPreprocess:
-    async def run_preprocess(self, target):
-        pass 
 
-class NoPostprocess:
-    async def run_postprocess(self, target):
-        pass 
 class Action(metaclass=ActionMeta):
     def __init__(self, signame=None, polarity=False, retv=None) -> None:
         self.signame = signame
