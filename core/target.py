@@ -76,7 +76,7 @@ class Target(metaclass=TargetMeta):
     async def close(self):
         pass
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         if not self.__name__:
             return super().__repr__()
         return self.__name__

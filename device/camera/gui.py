@@ -133,11 +133,7 @@ def draw_tk():
 async def main():
     win = draw_tk()
     await asyncio.get_event_loop().run_in_executor(None, init_cam)
-    try:
-        # wait gui close
-        await win.task[0]
-    finally:
-        await shutdown_cam()
+    await win.task[0]
 
     
 if __name__ == '__main__':

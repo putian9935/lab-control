@@ -29,7 +29,9 @@ class ActionMeta(type):
     def cleanup(cls):
         cls.instances: list[Action] = []
 
-
+    def __str__(cls) -> str:
+        return cls.__name__ 
+    
 class Action(metaclass=ActionMeta):
     def __init__(self, signame=None, polarity=False, retv=None) -> None:
         self.signame = signame

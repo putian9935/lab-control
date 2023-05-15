@@ -14,6 +14,8 @@ class Camera(Target):
     async def wait_until_ready(self):
         await gui.wait_until_cam_ready() 
 
+    async def close(self):
+        await gui.shutdown_cam()
 @set_pulse
 @Camera.set_default
 @Camera.take_note
