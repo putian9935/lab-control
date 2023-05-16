@@ -16,6 +16,9 @@ from .time_sequencer import *
 from . import slave_lock 
 from .slave_lock import *
 
+from . import wlm_lock 
+from .wlm_lock import * 
+
 __all__ = []
 __all__ += aio.__all__
 __all__ += camera.__all__
@@ -23,3 +26,4 @@ __all__ += ts_fpga.__all__
 __all__ += fname_gen.__all__ 
 __all__ += time_sequencer.__all__ 
 __all__ += slave_lock.__all__ 
+__all__ += wlm_lock.__all__ 

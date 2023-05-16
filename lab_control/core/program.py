@@ -1,4 +1,4 @@
-from core.target import Target
+from .target import Target
 import asyncio
 import shlex
 import subprocess

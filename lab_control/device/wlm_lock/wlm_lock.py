@@ -1,4 +1,4 @@
-from core.program import MonitorProgram, check_python_existence
+from ...core.program import MonitorProgram, check_python_existence
 import asyncio
 from collections import deque 
 

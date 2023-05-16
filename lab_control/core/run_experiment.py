@@ -1,8 +1,8 @@
-from core.target import Target, TargetMeta
-from core.action import Action
+from .target import Target, TargetMeta
+from .action import Action
 import asyncio
 import importlib.util
-from util.ts import save_sequences, merge_seq
+from .util.ts import save_sequences, merge_seq
 import typing
 
 
@@ -91,11 +91,11 @@ async def run_sequence(fpga, exp_time: int):
 
 
 async def run_exp(module_fname, attr, **exp_param):
-    spec = importlib.util.find_spec('experiments.'+module_fname)
-    exp = importlib.util.module_from_spec(spec)
-    if exp is None:
+    spec = importlib.util.find_spec("lab_control.experiments."+module_fname)
+    if spec is None:
         raise FileNotFoundError(
             f"Cannot find experiment {module_fname}. Did you forgot to put it under experiments folder?")
+    exp = importlib.util.module_from_spec(spec)
 
     for k, v in attr.items():
         exp.__setattr__(k, v)

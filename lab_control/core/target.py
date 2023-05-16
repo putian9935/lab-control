@@ -2,8 +2,8 @@ from typing import Any, Coroutine, Optional
 from collections import defaultdict
 
 import asyncio
-from core.action import Action, ActionMeta
-from ..util.ts import merge_seq, to_pulse
+from .action import Action, ActionMeta
+from .util.ts import merge_seq, to_pulse
 
 
 class TargetMeta(type):

@@ -1,7 +1,7 @@
-from ..util.unit import *
+from ..core.util.unit import *
 from ..core.experiment import Experiment
 if __name__ == '__main__':
-    from lab.sr_lab import *
+    from ..lab.sr_lab import *
 # --- do not change anything above this line ---
 
 

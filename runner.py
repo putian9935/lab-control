@@ -1,7 +1,7 @@
 import importlib.util
-from core import Target, ActionMeta
+from lab_control.core import Target, ActionMeta
 import asyncio
-from core.run_experiment import *
+from lab_control.core.run_experiment import *
 import traceback
 
 
@@ -60,5 +60,5 @@ async def main(lab_name):
     print('[INFO] Target(s) closed normally. Bye!')
 
 if __name__ == '__main__':
-    asyncio.run(main('sr_lab'))
-    # asyncio.run(main('offline_lab'))
+    # asyncio.run(main('sr_lab'))
+    asyncio.run(main('offline_lab_remote'))
