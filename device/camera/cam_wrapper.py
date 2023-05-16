@@ -68,9 +68,12 @@ async def wait_until_temperature_above(temp):
         await asyncio.sleep(1)
 
 
+def is_temperature_stabilized():
+    return CamStatus.temp_code == 20036
+
 @error_catch
 async def wait_until_temperature_stabilized():
-    while CamStatus.temp_code != 20036:
+    while not is_temperature_stabilized():
         await asyncio.sleep(1)
 
 
@@ -185,9 +188,10 @@ def init_cam(FanMode=0, Temperature=-60, VSSpeed=1, OutputAmplifier=0, HSSpeed=0
 async def wait_for_q():
     while True:
         if msvcrt.kbhit():
-            if msvcrt.getch() == 'q':
+            if msvcrt.getch() == b'q':
                 break 
         await asyncio.sleep(0.1)
+    print('[INFO] Press q detected. Wait aborted.')
 
 async def shutdown_cam():
     print("Cleaning up...")

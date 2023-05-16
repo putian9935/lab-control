@@ -3,6 +3,8 @@ from core.action import Action, set_pulse
 import asyncio
 from . import gui
 from . import config_editor as ce
+import msvcrt
+import time
 
 
 class Camera(Target):
@@ -12,45 +14,60 @@ class Camera(Target):
         type(self).backgrounds.append(gui.main())
 
     async def wait_until_ready(self):
-        await gui.wait_until_cam_ready() 
+        await gui.wait_until_cam_initialized()
+
+    def test_precondition(self):
+        is_stabilized = gui.is_temperature_stabilized()
+        print(is_stabilized)
+        if not is_stabilized:
+            print('[WARNING] Camera temperature is not stablized! Do you want to proceed? Press q to abort and any other key to proceed.')
+            while not msvcrt.kbhit():
+                time.sleep(0.1)
+            if msvcrt.getch() == b'q':
+                print('[INFO] Abort experiment due to non-stabilized temperature.')
+                return False
+        return True
 
     async def close(self):
         await gui.shutdown_cam()
+
+
 @set_pulse
 @Camera.set_default
 @Camera.take_note
 class external(Action):
-    def __init__(self, *, spooling=False, spool_func=None, **kwargs) -> None:
+    def __init__(self, *, spooling=False, spool_func=None, exposure_time=None, emccd_gain=None, **kwargs) -> None:
         super().__init__(**kwargs)
         self.spooling = spooling
         self.spool_func = spool_func
-        ce.save_config(ce.open_config())
+        self.yml = ce.open_config()
+        if exposure_time is not None:
+            if exposure_time > 1:
+                raise ValueError(
+                    "Camera exposure time > 1 second! Did you forget to change unit from microsecond to second?")
+            ce.set_config(self.yml, 'External start',
+                          'ExposureTime', exposure_time)
+        if emccd_gain is not None:
+            ce.set_config(self.yml, 'External start', 'EMCCDGain', emccd_gain)
 
     async def run_preprocess(self, target):
-        return gui.exported_funcs['external'](self.spooling, self.spool_func)()
+        ce.save_config(self.yml)
+        return gui.exported_funcs[type(self).__name__](self.spooling, self.spool_func)()
 
     def to_time_sequencer(self, target: Camera) -> tuple[dict[int, list[int]], bool, str]:
         return {target.channel: (self.retv, self.polarity, self.signame)}
 
 
 @set_pulse
-@Camera.set_default
 @Camera.take_note
-class external_start(Action):
-    def __init__(self, *, spooling=False, spool_func=None, kcc=None, nc=None, first_image_at=None, **kwargs) -> None:
+class external_start(external):
+    def __init__(self, *, first_image_at, kcc=None, nc=None, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.spooling = spooling
-        self.spool_func = spool_func
-        yml = ce.open_config()
         if kcc is not None:
-            ce.set_config(yml, 'External start', 'KineticCycleTime', kcc)
+            ce.set_config(self.yml, 'External start', 'KineticCycleTime', kcc)
         if nc is not None:
-            ce.set_config(yml, 'External start', 'NumKinetics', nc)
-        ce.save_config(yml)
+            ce.set_config(self.yml, 'External start', 'NumKinetics', nc)
         self.first_image_at = first_image_at
-
-    async def run_preprocess(self, target):
-        return gui.exported_funcs['external start'](self.spooling, self.spool_func)()
 
     def to_time_sequencer(self, target: Camera) -> tuple[dict[int, list[int]], bool, str]:
         return {target.channel: ([self.first_image_at], self.polarity, self.signame)}
