@@ -1,12 +1,12 @@
 import importlib.util
-from core import Target, ActionMeta
+from lab_control.core import Target, ActionMeta
 import asyncio
-from core.run_experiment import *
+from lab_control.core.run_experiment import *
 import traceback
 
 
 async def main(lab_name):
-    spec = importlib.util.find_spec('lab.'+lab_name)
+    spec = importlib.util.find_spec('lab_control.lab.'+lab_name)
     if spec is None:
         raise ValueError(
             f"Cannot find lab {lab_name}. Did you put it in lab folder?")
@@ -61,5 +61,4 @@ async def main(lab_name):
 
 if __name__ == '__main__':
     # asyncio.run(main('sr_lab'))
-    asyncio.run(main('in_lab'))
-    # asyncio.run(main('offline_lab'))
+    asyncio.run(main('offline_lab_remote'))

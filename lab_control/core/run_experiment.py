@@ -1,18 +1,18 @@
-from core.target import Target, TargetMeta
-from core.action import Action
+from .target import Target, TargetMeta
+from .action import Action
 import asyncio
 import importlib.util
-from util.ts import save_sequences, merge_seq
+from .util.ts import save_sequences, merge_seq
 import typing
 
 
-def all_target_types():
+def all_target_types() -> typing.Generator[TargetMeta, None, None]:
     """ Generator for all types that are subclassed from Target """
     for cls in TargetMeta.instances:
         yield cls
 
 
-def all_target_instances():
+def all_target_instances() -> typing.Generator[Target, None, None]:
     """ Generator for all instances of type subclassed from Target """
     for cls in all_target_types():
         for tar in cls.instances:
@@ -91,7 +91,7 @@ async def run_sequence(fpga, exp_time: int):
 
 
 async def run_exp(module_fname, attr, **exp_param):
-    spec = importlib.util.find_spec('experiments.'+module_fname)
+    spec = importlib.util.find_spec("lab_control.experiments."+module_fname)
     if spec is None:
         raise FileNotFoundError(
             f"Cannot find experiment {module_fname}. Did you forgot to put it under experiments folder?")

@@ -1,21 +1,5 @@
-from core.program import MonitorProgram
+from ...core.program import MonitorProgram, check_python_existence
 import asyncio
-import subprocess
-import shlex
-
-
-def check_python_existence(substr: str):
-    proc = subprocess.Popen(shlex.split("wmic process where " + '"name like ' +
-                            "'%python%'" + '" get processid,commandline'), stdout=subprocess.PIPE)
-    ret = False
-    while True:
-        l = proc.stdout.readline()
-        if substr.encode() in l:
-            ret = True
-            break
-        if not l:
-            break
-    return ret
 
 
 class SlaveLockMonitor(MonitorProgram):

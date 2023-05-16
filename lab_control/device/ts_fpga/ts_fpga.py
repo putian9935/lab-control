@@ -1,4 +1,4 @@
-from core.target import Target
+from ...core.target import Target
 import importlib.util
 
 

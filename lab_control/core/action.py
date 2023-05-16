@@ -1,5 +1,5 @@
 import asyncio
-from util.ts import merge_seq
+from .util.ts import merge_seq
 
 
 def set_pulse(cls):

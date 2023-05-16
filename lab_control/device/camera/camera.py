@@ -1,5 +1,5 @@
-from core.target import Target
-from core.action import Action, set_pulse
+from ...core.target import Target
+from ...core.action import Action, set_pulse
 import asyncio
 from . import gui
 from . import config_editor as ce

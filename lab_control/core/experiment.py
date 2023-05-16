@@ -1,8 +1,6 @@
-from typing import Any, Callable
-
-from core.run_experiment import cleanup, run_preprocess, prepare_sequencer_files, run_sequence, test_postcondition, test_precondition, run_postprocess
+from .run_experiment import cleanup, run_preprocess, prepare_sequencer_files, run_sequence, test_postcondition, test_precondition, run_postprocess
 import time
-
+from typing import Callable
 
 class Experiment:
     def __init__(self, to_fpga=False, ts_fpga=None) -> None:
@@ -12,7 +10,7 @@ class Experiment:
         self.to_fpga = to_fpga
         self.ts_fpga = ts_fpga
 
-    def __call__(self, f : Callable) -> Any:
+    def __call__(self, f) -> Callable:
         async def ret(*args, **kwds):
             tt = time.perf_counter()
             try:

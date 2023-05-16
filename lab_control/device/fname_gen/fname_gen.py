@@ -1,4 +1,4 @@
-from core.target import Target 
+from ...core.target import Target 
 from .filename_gui import main
 
 class FileNameGenerator(Target):
