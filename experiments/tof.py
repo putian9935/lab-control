@@ -1,9 +1,10 @@
-from core.experiment import Experiment
 from util.unit import *
-from device.fname_gen.filename_gui import get_new_name
-
+from core.experiment import Experiment
 if __name__ == '__main__':
     from lab.sr_lab import *
+# --- do not change anything above this line ---
+
+from device.fname_gen.filename_gui import get_new_name
 
 
 @Experiment(True, ts_sr)
@@ -61,5 +62,5 @@ def exp(cam_exposure=5*ms,
 
 
 async def main():
-    for tof in [1,]:
+    for tof in [1, ]:
         await exp(tof=tof*ms)

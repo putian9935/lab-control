@@ -1,7 +1,8 @@
 from util.unit import *
+from core.experiment import Experiment
 if __name__ == '__main__':
     from lab.sr_lab import *
-from core.experiment import Experiment
+# --- do not change anything above this line ---
 
 
 @Experiment(True, ts_sr)
