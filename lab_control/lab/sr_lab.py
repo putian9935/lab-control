@@ -1,4 +1,4 @@
-from device import *
+from lab_control.device import *
 
 
 import numpy as np

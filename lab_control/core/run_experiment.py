@@ -6,13 +6,13 @@ from util.ts import save_sequences, merge_seq
 import typing
 
 
-def all_target_types():
+def all_target_types() -> typing.Generator[TargetMeta, None, None]:
     """ Generator for all types that are subclassed from Target """
     for cls in TargetMeta.instances:
         yield cls
 
 
-def all_target_instances():
+def all_target_instances() -> typing.Generator[Target, None, None]:
     """ Generator for all instances of type subclassed from Target """
     for cls in all_target_types():
         for tar in cls.instances:

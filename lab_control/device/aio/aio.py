@@ -38,7 +38,7 @@ class AIO(Target):
         super().__init__()
         if not port:
             raise ValueError(f"Must specify a port for {type(self)}")
-        spec = importlib.util.find_spec('device.aio.backend')
+        spec = importlib.util.find_spec('lab_control.device.aio.backend')
         self.backend = importlib.util.module_from_spec(spec)
         self.backend.ser = ports.setup_arduino_port(port)
         spec.loader.exec_module(self.backend)
