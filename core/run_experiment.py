@@ -92,11 +92,10 @@ async def run_sequence(fpga, exp_time: int):
 
 async def run_exp(module_fname, attr, **exp_param):
     spec = importlib.util.find_spec('experiments.'+module_fname)
-    exp = importlib.util.module_from_spec(spec)
-    if exp is None:
+    if spec is None:
         raise FileNotFoundError(
             f"Cannot find experiment {module_fname}. Did you forgot to put it under experiments folder?")
-
+    exp = importlib.util.module_from_spec(spec)
     for k, v in attr.items():
         exp.__setattr__(k, v)
     spec.loader.exec_module(exp)
