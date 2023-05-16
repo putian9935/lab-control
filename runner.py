@@ -1,5 +1,5 @@
 import importlib.util
-from core import Target, ActionMeta, TargetMeta
+from core import Target, ActionMeta
 import asyncio
 from core.run_experiment import *
 import traceback
@@ -22,17 +22,16 @@ async def main(lab_name):
             attr[x] = obj
         if isinstance(obj, Target):
             obj.__name__ = x
-    list_targets()
 
     # start background tasks 
-    for cls in TargetMeta.instances:
+    for cls in all_target_types():
         cls.tasks = []
         for coro in cls.backgrounds:
             cls.tasks.append(asyncio.create_task(coro))
     # wait for targets (e.g., camera) to get ready 
     await wait_until_ready()
-    print('[INFO] Target initialized with success')
-
+    print('[INFO] Target(s) initialized with success')
+    print('[INFO] Special commands: !exit, !ls targets, !ls actions')
     while True:
         try:
             exp_name = (await asyncio.get_event_loop().run_in_executor(None, input, 'Input experiment file name:')).strip()
@@ -41,21 +40,24 @@ async def main(lab_name):
             if exp_name.startswith('!'):
                 if exp_name == '!exit':
                     break
+                elif exp_name == '!ls targets':
+                    list_targets()
+                elif exp_name == '!ls actions':
+                    list_actions()
                 else:
                     print('Unrecognized command!')
-                    continue
-            await run_exp(exp_name.strip(), attr, )
+            else:
+                await run_exp(exp_name.strip(), attr, )
         except Exception:
             traceback.print_exc()
 
-    for cls in TargetMeta.instances:
+    for cls in all_target_types():
         for tsk in cls.tasks:
             if not tsk.done() and not tsk.cancelled():
                 tsk.cancel()
 
-    for cls in TargetMeta.instances:
-        for target in cls.instances:
-            await target.close()
+    await asyncio.gather(*[target.close() for target in all_target_instances()])
+    print('[INFO] Target(s) closed normally. Bye!')
 
 if __name__ == '__main__':
     asyncio.run(main('sr_lab'))

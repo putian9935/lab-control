@@ -60,11 +60,12 @@ def exp(cam_exposure=5*ms,
         spooling=False,
         spool_func=get_new_name,
         kcc=50e-3, nc=5,
+        exposure_time=1e-3,
         first_image_at=tof+load-50*ms*3)
     def camera():
         return []
 
 
 async def main():
-    for tof in [1, 2, 3, 4, 5]:
+    for tof in [1,]:
         await exp(tof=tof*ms)

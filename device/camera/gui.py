@@ -1,6 +1,6 @@
 from tkinter import *
 import asyncio
-from .cam_wrapper import init_cam, shutdown_cam, real_time, external_trig, temp_monitor, status_monitor, fps_monitor, external_start, CamStatus, GetImageArray
+from .cam_wrapper import init_cam, shutdown_cam, real_time, external_trig, temp_monitor, status_monitor, fps_monitor, external_start, CamStatus, GetImageArray, is_temperature_stabilized
 from .common_feeder import get_name_from_file, get_name_from_time
 from .plotter import Plotter 
 
@@ -44,8 +44,14 @@ modes = {'internal': real_time, 'external': external_trig,
          'external start': external_start}
 
 exported_funcs = {}
-wait_until_cam_ready = None 
 
+async def wait_until_cam_initialized():
+    while not CamStatus.status:
+        await asyncio.sleep(.2)
+
+    while CamStatus.temp_code == 20013:
+        await asyncio.sleep(.2)
+        
 def draw_tk():
     # Create an instance of Tkinter frame or window
     win = MyTk()
@@ -78,7 +84,7 @@ def draw_tk():
     win.title('Andor Camera Terminal')
     exported_funcs['internal']  = lambda *args: start('internal', *args)
     exported_funcs['external']  = lambda *args: start('external', *args)
-    exported_funcs['external start']  = lambda *args: start('external start', *args)
+    exported_funcs['external_start']  = lambda *args: start('external start', *args)
     exported_funcs['stop']  = stop
 
     buttons = [
@@ -87,7 +93,7 @@ def draw_tk():
         Button(win, text='External', font=(None, 14),
                command=exported_funcs['external'], state=DISABLED),
         Button(win, text='External start', font=(None, 14),
-               command=exported_funcs['external start'], state=DISABLED),
+               command=exported_funcs['external_start'], state=DISABLED),
         Button(win, text='Stop', font=(None, 14), command=exported_funcs['stop']),
     ]
     for i, b in enumerate(buttons):
@@ -98,16 +104,7 @@ def draw_tk():
         b.grid(row=i+2, columnspan=4, sticky=W)
     banners[0]['text'] = 'Initializing camera...'
 
-    async def wait_until_cam_initialized():
-        while not CamStatus.status:
-            await asyncio.sleep(.2)
-
-        while CamStatus.temp_code == 20013:
-            await asyncio.sleep(.2)
             
-    global wait_until_cam_ready
-    wait_until_cam_ready = wait_until_cam_initialized
-
     async def update_banner():
         await wait_until_cam_initialized()
         while True:
@@ -133,12 +130,10 @@ def draw_tk():
 async def main():
     win = draw_tk()
     await asyncio.get_event_loop().run_in_executor(None, init_cam)
-    try:
-        # wait gui close
-        await win.task[0]
-    finally:
-        await shutdown_cam()
+    await win.task[0]
 
+    if __name__ == '__main__':
+        await shutdown_cam()
     
 if __name__ == '__main__':
     spool_name_func = get_name_from_time 

@@ -21,12 +21,12 @@ def all_target_instances():
 
 def list_actions():
     for cls in all_target_types():
-        print(cls.__name__, ':', *cls.supported_actions)
+        print(cls.__name__, ':', ', '.join(map(str, cls.supported_actions)))
 
 
 def list_targets():
     for cls in all_target_types():
-        print(cls.__name__, ':', *cls.instances)
+        print(cls.__name__, ':', ', '.join(map(str, cls.instances)))
 
 
 async def wait_until_ready():

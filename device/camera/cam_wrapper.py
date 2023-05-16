@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 import traceback
 import asyncio
+import msvcrt 
 from .andor_lib import *
 from .image import *
 
@@ -67,9 +68,12 @@ async def wait_until_temperature_above(temp):
         await asyncio.sleep(1)
 
 
+def is_temperature_stabilized():
+    return CamStatus.temp_code == 20036
+
 @error_catch
 async def wait_until_temperature_stabilized():
-    while CamStatus.temp_code != 20036:
+    while not is_temperature_stabilized():
         await asyncio.sleep(1)
 
 
@@ -183,9 +187,11 @@ def init_cam(FanMode=0, Temperature=-60, VSSpeed=1, OutputAmplifier=0, HSSpeed=0
 
 async def wait_for_q():
     while True:
-        c = await asyncio.get_event_loop().run_in_executor(None, input())
-        if c.strip() == 'q':
-            break 
+        if msvcrt.kbhit():
+            if msvcrt.getch() == b'q':
+                break 
+        await asyncio.sleep(0.1)
+    print('[INFO] Press q detected. Wait aborted.')
 
 async def shutdown_cam():
     print("Cleaning up...")
@@ -203,7 +209,6 @@ async def shutdown_cam():
         wait_temp.cancel()
     task.cancel()    
     ShutDown()
-
 
 if __name__ == '__main__':
     from .plotter import Plotter
