@@ -60,5 +60,6 @@ async def main(lab_name):
     print('[INFO] Target(s) closed normally. Bye!')
 
 if __name__ == '__main__':
-    asyncio.run(main('sr_lab'))
+    # asyncio.run(main('sr_lab'))
+    asyncio.run(main('in_lab'))
     # asyncio.run(main('offline_lab'))
