@@ -117,6 +117,7 @@ def create():
         np.savetxt(f, [fn_list],fmt="%s")
         np.savetxt(f, [fn.split('_')[:-1]],fmt="%s")
         f.close()
+        return fn
 
     def add_para():
         global index,len_given_param,param_box_list1,param_box_list2
