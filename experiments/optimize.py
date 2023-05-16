@@ -7,15 +7,15 @@ from core.experiment import Experiment
 @Experiment(True, ts_sr)
 def main():
     @AIO0(action=ramp, channel=0)
-    def mot():
+    def repumper707():
         return [0], [20], [.95]
 
     @AIO0(action=ramp, channel=1)
-    def repump707():
+    def repump679():
         return [0], [20], [.95]
 
     @AIO0(action=ramp, channel=3)
-    def repump707():
+    def mot():
         return [0], [20], [.95]
 
     @AIO0(action=ramp, channel=2)
