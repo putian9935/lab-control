@@ -1,10 +1,10 @@
-from util.unit import *
-from core.experiment import Experiment
+from ..core.util.unit import *
+from ..core.experiment import Experiment
 if __name__ == '__main__':
     from lab.sr_lab import *
 # --- do not change anything above this line ---
 
-from device.fname_gen.filename_gui import get_new_name
+from ..device.fname_gen.filename_gui import get_new_name
 
 
 @Experiment(True, ts_sr)
@@ -52,7 +52,7 @@ def exp(cam_exposure=5*ms,
 
     @AndorCamera(
         action=external_start,
-        spooling=False,
+        spooling=True,
         spool_func=get_new_name,
         kcc=50e-3, nc=5,
         exposure_time=1e-3,
