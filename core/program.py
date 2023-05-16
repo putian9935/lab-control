@@ -37,3 +37,4 @@ class MonitorProgram(Program):
     async def close(self):
         self.proc.kill()
         await self.proc.wait()
+        print(f'[INFO] Monitor program {self.proc} for {type(self).__name__} closed!')

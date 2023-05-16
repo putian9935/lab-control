@@ -1,5 +1,5 @@
 import importlib.util
-from core import Target, ActionMeta, TargetMeta
+from core import Target, ActionMeta
 import asyncio
 from core.run_experiment import *
 import traceback
@@ -24,7 +24,7 @@ async def main(lab_name):
             obj.__name__ = x
 
     # start background tasks 
-    for cls in TargetMeta.instances:
+    for cls in all_target_types():
         cls.tasks = []
         for coro in cls.backgrounds:
             cls.tasks.append(asyncio.create_task(coro))
@@ -51,14 +51,12 @@ async def main(lab_name):
         except Exception:
             traceback.print_exc()
 
-    for cls in TargetMeta.instances:
+    for cls in all_target_types():
         for tsk in cls.tasks:
             if not tsk.done() and not tsk.cancelled():
                 tsk.cancel()
 
-    for cls in TargetMeta.instances:
-        for target in cls.instances:
-            await target.close()
+    await asyncio.gather(*[target.close() for target in all_target_instances()])
     print('[INFO] Target(s) closed normally. Bye!')
 
 if __name__ == '__main__':
