@@ -1,11 +1,5 @@
-# This script is not expected to run alone
-# This script is used to specify a time sequence described in python language
-# This script is to be used with ts_csv_generator.py
-# Edit line 86 in ts_csv_generator.py to something like: from this_sequence_name import *
-# Run ts_csv_generator.py to generate a csv file that include the time-sequence described in this script
-
 from core.experiment import Experiment
-from unit import *
+from util.unit import *
 from device.fname_gen.filename_gui import get_new_name
 
 if __name__ == '__main__':
