@@ -5,7 +5,7 @@ from . import gui
 from . import config_editor as ce
 import msvcrt
 import time
-
+from typing import Tuple, Dict, List
 
 class Camera(Target):
     def __init__(self, channel) -> None:
@@ -54,7 +54,7 @@ class external(Action):
         ce.save_config(self.yml)
         return gui.exported_funcs[type(self).__name__](self.spooling, self.spool_func)()
 
-    def to_time_sequencer(self, target: Camera) -> tuple[dict[int, list[int]], bool, str]:
+    def to_time_sequencer(self, target: Camera) -> Tuple[Dict[int, List[int]], bool, str]:
         return {target.channel: (self.retv, self.polarity, self.signame)}
 
 
@@ -69,7 +69,7 @@ class external_start(external):
             ce.set_config(self.yml, 'External start', 'NumKinetics', nc)
         self.first_image_at = first_image_at
 
-    def to_time_sequencer(self, target: Camera) -> tuple[dict[int, list[int]], bool, str]:
+    def to_time_sequencer(self, target: Camera) -> Tuple[Dict[int, List[int]], bool, str]:
         return {target.channel: ([self.first_image_at], self.polarity, self.signame)}
 
 

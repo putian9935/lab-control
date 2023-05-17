@@ -1,3 +1,5 @@
+from typing import List 
+
 def binarise(x, y):
     return int(x).to_bytes(4, 'little', signed=False)+int(y).to_bytes(2, 'little', signed=False)
 
@@ -11,7 +13,7 @@ def tv2wfm(time, val):
     bs = b''.join(binarise(*_) for _ in zip(time, val))
     return len(bs).to_bytes(4, 'little') + bs
 
-def p2r(val: list[str], maxpd: float, minpd: float):
+def p2r(val: List[str], maxpd: float, minpd: float):
     """ Translate percentage to raw. """
     span = maxpd - minpd
     return (int(float(_)*span + minpd) for _ in val)

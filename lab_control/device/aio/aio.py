@@ -1,12 +1,11 @@
 from ...core.target import Target
 from ...core.action import Action, set_pulse
-import asyncio
 import importlib.util
 from . import ports
 from .csv_reader import tv2wfm, p2r
+from typing import List, Tuple, Dict
 
-
-def merge_seq_aio(ts: list[list[int]] = None, dts: list[list] = None, dvs: list[list] = None):
+def merge_seq_aio(ts: List[List[int]] = None, dts: List[list] = None, dvs: List[list] = None):
     ret = []
     if ts is None or not len(ts):
         return ret
@@ -52,7 +51,7 @@ def shift_list_by_one(l: list):
     return [l[-1]] + l[:-1]
 
 
-def shift_vdt_by_one(retv: tuple[list]):
+def shift_vdt_by_one(retv: Tuple[list]):
     return retv[0], shift_list_by_one(retv[1]), shift_list_by_one(retv[2])
 
 
@@ -94,7 +93,7 @@ class hsp(Action):
     async def run_preprocess(self, target: AIO):
         target.backend.hsp(self.channel, self.hsp)
 
-    def to_time_sequencer(self, target: AIO) -> tuple[dict[int, list[int]], bool]:
+    def to_time_sequencer(self, target: AIO) -> Tuple[Dict[int, List[int]], bool]:
         if hsp not in target.ts_mapping:
             raise KeyError("hsp is not in ts_mapping of AIO target")
         return {target.ts_mapping[hsp]: (self.retv, self.polarity, f'{target}.hsp')}

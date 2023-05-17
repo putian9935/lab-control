@@ -1,6 +1,7 @@
 from ...core.target import Target
 from ...core.action import Action, set_pulse
 
+from typing import Tuple, Dict, List
 
 class TimeSequencer(Target):
     pass
@@ -13,7 +14,7 @@ class hold(Action):
         self.channel = channel
         super().__init__(**kwargs)
 
-    def to_time_sequencer(self, target: TimeSequencer) -> tuple[dict[int, list[int]], bool]:
+    def to_time_sequencer(self, target: TimeSequencer) -> Tuple[Dict[int, List[int]], bool]:
         return {self.channel: (self.retv, self.polarity, self.signame)}
 
 
