@@ -40,8 +40,9 @@ class Experiment:
                 if not test_postcondition():
                     raise RuntimeError("Postcondition test failed!")
             except:
+                cleanup()
                 raise
-            finally:
+            else:
                 cleanup()
                 return ret
 

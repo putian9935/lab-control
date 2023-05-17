@@ -1,9 +1,9 @@
-from typing import Dict
+from typing import Dict, Tuple, List
 import numpy as np
-ts_mapping = tuple[Dict[int, list[int]], bool]
+ts_mapping = Tuple[Dict[int, List[int]], bool]
 
 
-def merge_seq(*seqs: tuple[ts_mapping]) -> ts_mapping:
+def merge_seq(*seqs: Tuple[ts_mapping]) -> ts_mapping:
     tmp: Dict[int, set] = dict()
     pols = dict()
     names = dict()
@@ -47,7 +47,7 @@ def to_pulse(mapping: ts_mapping, pulse: bool):
     return ret
 
 
-def save_sequences(sequences: dict[int, tuple[list[int], bool, str]], fname):
+def save_sequences(sequences: Dict[int, Tuple[List[int], bool, str]], fname):
     s = set()
     names = dict()
     for k, (seq, p, n) in sequences.items():
