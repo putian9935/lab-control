@@ -20,17 +20,27 @@ class ToRemote:
 
     @cache
     def __call__(self, cls):
-        def new(remote_target, *args):
+        def init(this, *args, **kwds):
             remote_device = self.conn.modules.lab_control.device
+            remote_server = self.conn.modules.lab_control.server
             if cls.__name__ not in remote_device.__dict__:
                 raise TypeError(
                     f"Cannot find device {cls.__name__} in module {lab_control.device}! Did you forget to include them?\nIf so,\n1. shutdown the rpyc slave on the remote\n2. edit the local files\n3. restart the slave on the remote")
-            remote_target = remote_device.__dict__[cls.__name__](*args)
-            return remote_target
-
+            this.loop, this.proxy, this.thread = remote_server.init(remote_device.__dict__[cls.__name__], *args, **kwds)
+            type(this).instances.append(this)
+        async def wait_until_ready(this):
+            pass
+        def test_precondition(this):
+            return this.proxy.test_precondition()
+        async def close(this):
+            remote_server = self.conn.modules.lab_control.server
+            remote_server.close(this.loop, this.proxy, this.thread)
         d = dict(cls.__dict__)
-        d["__new__"] = new
+        d["__init__"] = init
+        d["wait_until_ready"] = wait_until_ready
+        d["test_precondition"] = test_precondition
+        d["close"] = close
         return type(cls.__name__+'_r', (cls,), d)
 
-to_local = ToRemote()
-# to_sr_remote = ToRemote("192.168.107.200")
+# to_local = ToRemote()
+to_sr_remote = ToRemote("192.168.107.200")

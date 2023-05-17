@@ -62,4 +62,4 @@ async def main(lab_name):
 if __name__ == '__main__':
     # asyncio.run(main('sr_lab'))
     # asyncio.run(main('offline_lab_remote'))
-    asyncio.run(main('remote'))
+    asyncio.run(main('remote_test'))
