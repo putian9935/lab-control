@@ -1,18 +1,12 @@
 import rpyc
 import rpyc.utils.classic as classic
 import lab_control
-import socket 
 from functools import cache 
 class ToRemote:
     uploaded = False
 
-    def __init__(self, remote_hostname=None):
-        if remote_hostname is None:
-            remote_hostname = "localhost"
-        try:
-            self.conn = rpyc.classic.connect(remote_hostname)
-        except (socket.timeout, ConnectionRefusedError) as e:
-            raise type(e)(f"Cannot connect to {remote_hostname}. Did you forget to start rpyc slave?") from e
+    def __init__(self, daemon : lab_control.device.RPyCSlaveDaemon):
+        self.conn = rpyc.classic.connect(daemon.addr)
             
         if not ToRemote.uploaded:
             classic.upload_package(self.conn, lab_control)
@@ -32,6 +26,8 @@ class ToRemote:
             pass
         def test_precondition(this):
             return this.proxy.test_precondition()
+        def test_postcondition(this):
+            return this.proxy.test_postcondition()
         async def close(this):
             remote_server = self.conn.modules.lab_control.server
             remote_server.close(this.loop, this.proxy, this.thread)
@@ -39,8 +35,11 @@ class ToRemote:
         d["__init__"] = init
         d["wait_until_ready"] = wait_until_ready
         d["test_precondition"] = test_precondition
+        d["test_postcondition"] = test_postcondition
         d["close"] = close
         return type(cls.__name__+'_r', (cls,), d)
 
 # to_local = ToRemote()
-to_sr_remote = ToRemote("192.168.107.200")
+to_sr_remote = ToRemote(lab_control.RPyCSlaveDaemon("strontium_remote1", "192.168.107.200"))
+
+
