@@ -1,5 +1,5 @@
-from util.unit import *
-from core.experiment import Experiment
+from ..core.util.unit import *
+from ..core.experiment import Experiment
 if __name__ == '__main__':
     from lab.in_lab import *
 # --- do not change anything above this line ---
