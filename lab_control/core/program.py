@@ -42,15 +42,18 @@ class MonitorProgram(Program):
         print(f'[INFO] Monitor program {self.proc} for {type(self).__name__} closed!')
 
 
-def check_python_existence(substr: str):
-    proc = subprocess.Popen(shlex.split("wmic process where " + '"name like ' +
-                            "'%python%'" + '" get processid,commandline'), stdout=subprocess.PIPE)
-    ret = False
+def check_existence(substr: str) -> str:
+    proc = subprocess.Popen("wmic process where " + '"name like ' + "'%python%'" + '" get processid,commandline',
+                            stdout=subprocess.PIPE)
     while True:
         l = proc.stdout.readline()
         if substr.encode() in l:
-            ret = True
-            break
+            return list(l.decode().strip().split())[-1]
         if not l:
             break
-    return ret
+    proc.kill()
+    proc.wait()
+
+
+def kill_proc(pid: str):
+    subprocess.run((rf'taskkill /F /PID {pid}'))

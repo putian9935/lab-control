@@ -1,12 +1,14 @@
-from ...core.program import MonitorProgram, check_python_existence
+from ...core.program import MonitorProgram, check_existence, kill_proc
 import asyncio
 
 
 class SlaveLockMonitor(MonitorProgram):
     def __init__(self, arg) -> None:
-        if check_python_existence("injection"):
-            raise RuntimeError(
-                "There is already an injection lock monitor running! Shut it down before attempting to run this one.")
+        pid = check_existence("injection")
+        if pid is not None:
+            print(
+                "[WARNING] There is already an injection lock monitor running! Shut it down before attempting to run this one.")
+            kill_proc(pid)
         super().__init__(arg)
         self.slave_state = [0, 0]
         self.slave_lock_state = [0, 0]

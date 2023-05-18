@@ -1,4 +1,4 @@
-from ...core.program import MonitorProgram, check_python_existence
+from ...core.program import MonitorProgram, check_existence, kill_proc
 import asyncio
 from collections import deque
 from typing import List
@@ -9,9 +9,11 @@ print = partial(print, flush=True)
 
 class WaveLengthMeterLock(MonitorProgram):
     def __init__(self, arg, name_mapping: List[str], ch_mapping, unlock_threshold=1e-8) -> None:
-        if check_python_existence("wlm"):
-            raise RuntimeError(
-                "There is already an injection lock monitor running! Shut it down before attempting to run this one.")
+        pid = check_existence("wlm")
+        if pid is not None:
+            print(
+                "[WARNING] There is already an wavelength meter lock monitor running! Shutting it down.")
+            kill_proc(pid)
         super().__init__(arg)
         self.name_mapping = name_mapping
         self.ch_mapping = ch_mapping

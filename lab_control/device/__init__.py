@@ -22,6 +22,10 @@ from .wlm_lock import *
 from . import rpyc_slave_daemon 
 from .rpyc_slave_daemon import * 
 
+from . import oven_controller
+from .oven_controller import * 
+
+
 __all__ = []
 __all__ += aio.__all__
 __all__ += camera.__all__
@@ -31,3 +35,4 @@ __all__ += time_sequencer.__all__
 __all__ += slave_lock.__all__ 
 __all__ += wlm_lock.__all__ 
 __all__ += rpyc_slave_daemon.__all__
+__all__ += oven_controller.__all__
