@@ -17,15 +17,22 @@ class Program(Target):
 class MonitorProgram(Program):
     """ Target for running external program """
 
-    def __init__(self, args) -> None:
+    def __init__(self, args, shell=False, cout=asyncio.subprocess.PIPE) -> None:
         """ args is the same as the first argument in subprocess.run """
         super().__init__(args)
         self.proc_handle = len(type(self).backgrounds)
-        type(self).backgrounds.append(
-            asyncio.create_subprocess_exec(
-                *shlex.split(args),
-                stdout=asyncio.subprocess.PIPE,
-                stdin=asyncio.subprocess.PIPE))
+        if not shell:
+            type(self).backgrounds.append(
+                asyncio.create_subprocess_exec(
+                    *shlex.split(args),
+                    stdout=cout,
+                    stdin=asyncio.subprocess.PIPE))
+        else:
+            type(self).backgrounds.append(
+                asyncio.create_subprocess_shell(
+                    args,
+                    stdout=cout,
+                    stdin=asyncio.subprocess.PIPE))
 
     async def wait_until_ready(self):
         tsk = type(self).tasks[self.proc_handle]
