@@ -41,9 +41,11 @@ def get_action_usage(act: ActionMeta):
         print(', '.join(
             code.co_varnames[code.co_argcount+code.co_posonlyargcount:][:code.co_kwonlyargcount]))
 
+
 def to_action(s: str) -> ActionMeta:
     if s in ActionMeta.instances:
-        return ActionMeta.instances[s] 
+        return ActionMeta.instances[s]
+
 
 def list_targets():
     for cls in all_target_types():
@@ -115,7 +117,7 @@ async def run_exp(module_fname, attr, **exp_param):
     spec = importlib.util.find_spec("lab_control.experiments."+module_fname)
     if spec is None:
         raise FileNotFoundError(
-            f"Cannot find experiment {module_fname}. Did you forgot to put it under experiments folder?")
+            f"Cannot find experiment {module_fname}. Did you forgot to \n1. put it under experiments folder;\n2. use period (e.g. play.exp) instead of slash (e.g. play/exp) to delimit the path?")
     exp = importlib.util.module_from_spec(spec)
     for k, v in attr.items():
         exp.__setattr__(k, v)
