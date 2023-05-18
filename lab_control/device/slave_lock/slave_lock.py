@@ -44,7 +44,7 @@ class SlaveLockMonitor(MonitorProgram):
         for i, (state, lock_state) in enumerate(zip(self.slave_state, self.slave_lock_state)):
             if state == 0:
                 ret = False
-                print(f'[WARNING] Slave {i+2} is not locked! To pass the test, at least "sweep" the cavity!')
+                print(f'[ERROR] Slave {i+2} is not locked! To pass the test, at least "sweep" the cavity!')
             elif state == 1:
                 print(f'[WARNING] Slave {i+2} is sweeping, use your discretion!')
             else:
