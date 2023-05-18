@@ -37,10 +37,12 @@ class ActionMeta(type):
         return cls.__name__ 
     
 class Action(metaclass=ActionMeta):
-    def __init__(self, signame=None, polarity=False, retv=None) -> None:
+    def __init__(self, signame=None, polarity=False, retv=None, init_state=None) -> None:
         self.signame = signame
         self.retv = retv
         self.polarity = polarity
+        if init_state is not None:
+            self.polarity = init_state
         type(self).instances.append(self)
 
     async def run_preprocess(self, target):
