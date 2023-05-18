@@ -5,7 +5,7 @@ print = partial(print, flush=True)
 
 
 class OvenController(MonitorProgram):
-    def __init__(self, arg) -> None:
+    def __init__(self, arg, no_check=False) -> None:
         while True:
             pid = check_existence("oven")
             if pid is not None:
@@ -18,6 +18,7 @@ class OvenController(MonitorProgram):
         super().__init__(arg, shell=True, cout=None)
         self.oven_temp = None
         self.viewp_temp = None
+        self.no_check = no_check
         self.proc: asyncio.subprocess.Process = None
 
     async def temp_monitor(self, f):
@@ -53,6 +54,9 @@ class OvenController(MonitorProgram):
                 self.temp_monitor(f))
 
     def test_precondition(self):
+        if self.oven_temp < 350:
+            print('[ERROR] Oven temperature too low!')
+            return self.no_check 
         return True
 
     async def close(self):    
