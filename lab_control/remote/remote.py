@@ -24,10 +24,10 @@ class ToRemote:
             if cls.__name__ not in remote_device.__dict__:
                 raise TypeError(
                     f"Cannot find device {cls.__name__} in module {lab_control.device}! Did you forget to include them?\nIf so,\n1. shutdown the rpyc slave on the remote\n2. edit the local files\n3. restart the slave on the remote")
+
             this.loop, this.proxy, this.thread = remote_server.init(
                 remote_device.__dict__[cls.__name__], *args, **kwds)
             type(this).instances.append(this)
-
             async def keep_running():
                 # seems like RPyC forgets the event loop if we are not working with it
                 # therefore poll remote something cheap
@@ -40,16 +40,24 @@ class ToRemote:
             pass
 
         def test_precondition(this):
-            return this.proxy.test_precondition()
+            ret = this.proxy.test_precondition()
+            if not ret:
+                print(f'[ERROR] Precondition failed for {cls.__name__}')
+            return ret 
 
         def test_postcondition(this):
-            return this.proxy.test_postcondition()
+            ret = this.proxy.test_postcondition()
+            if not ret:
+                print(f'[ERROR] Postcondition failed for {cls.__name__}')
+            return ret 
+
 
         async def close(this):
-            this.keep_alive.cancel()
             remote_server = self.conn.modules.lab_control.server
-            remote_server.close(this.loop, this.proxy, this.thread)
-
+            await asyncio.get_running_loop().run_in_executor(None, remote_server.close, this.loop, this.proxy, this.thread)
+            await asyncio.sleep(.2) # wait for remote shutdown
+            if not this.keep_alive.cancelled() and not this.keep_alive.done():
+                this.keep_alive.cancel()
         d = dict(cls.__dict__)
         d["__init__"] = init
         d["wait_until_ready"] = wait_until_ready
