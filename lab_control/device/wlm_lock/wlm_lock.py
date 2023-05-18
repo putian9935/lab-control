@@ -42,7 +42,7 @@ class WaveLengthMeterLock(MonitorProgram):
             traceback.print_exc()
             raise e
 
-    async def wait_until_ready(self, loop=None):
+    async def wait_until_ready(self):
         async def wait_file(f):
             while True:
                 cout = await asyncio.get_running_loop().run_in_executor(None, f.readline)
