@@ -18,6 +18,7 @@ class TargetMeta(type):
 
     def take_note(cls, action_cls):
         cls.supported_actions.add(action_cls)
+        ActionMeta.targets[action_cls.__name__] = cls.__name__
         return action_cls
 
     def set_default(cls, action_cls):

@@ -1,6 +1,6 @@
 import asyncio
 from .util.ts import merge_seq
-
+from collections import defaultdict
 
 def set_pulse(cls):
     cls.pulse = True
@@ -8,9 +8,13 @@ def set_pulse(cls):
 
 
 class ActionMeta(type):
+    instances = {}
+    targets = defaultdict(str)
+
     def __init__(cls, *args):
         cls.instances: list[Action] = []
         cls.pulse = False
+        ActionMeta.instances[cls.__name__] = cls
 
     async def run_preprocess_cls(cls, target):
         await asyncio.gather(*[inst.run_preprocess(target)

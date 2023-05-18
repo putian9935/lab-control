@@ -30,6 +30,7 @@ async def main(lab_name):
             cls.tasks.append(asyncio.create_task(coro))
     # wait for targets (e.g., camera) to get ready 
     await wait_until_ready()
+
     print('[INFO] Target(s) initialized with success')
     print('[INFO] Special commands: !exit, !ls targets, !ls actions')
     while True:
@@ -44,6 +45,13 @@ async def main(lab_name):
                     list_targets()
                 elif exp_name == '!ls actions':
                     list_actions()
+                elif exp_name.startswith('!help'):
+                    name = exp_name[5:].strip()
+                    act = to_action(name)
+                    if act is None: 
+                        print(f'Unknown action type {name}. Did you include the correpsonding target type in the lab file? ')
+                    else:
+                        get_action_usage(act)
                 else:
                     print('Unrecognized command!')
             else:
@@ -61,6 +69,6 @@ async def main(lab_name):
 
 if __name__ == '__main__':
     # asyncio.run(main('sr_lab'))
-    # asyncio.run(main('offline_lab_remote'))
-    asyncio.run(main('remote_test'))
+    asyncio.run(main('offline_lab'))
+    # asyncio.run(main('remote_test'))
     # asyncio.run(main('remote'))

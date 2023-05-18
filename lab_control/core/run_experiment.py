@@ -1,5 +1,5 @@
 from .target import Target, TargetMeta
-from .action import Action
+from .action import Action, ActionMeta
 import asyncio
 import importlib.util
 from .util.ts import save_sequences, merge_seq
@@ -23,6 +23,27 @@ def list_actions():
     for cls in all_target_types():
         print(cls.__name__, ':', ', '.join(map(str, cls.supported_actions)))
 
+
+def get_action_usage(act: ActionMeta):
+    print('>- Action name:', act.__name__)
+    print('>- Parent target type:', ActionMeta.targets[act.__name__])
+    code = act.__init__.__code__
+    print('>- Arguments:')
+    if code.co_argcount > 1:
+        print('>--- Normal argument(s):', end=' ')
+        print(', '.join(code.co_varnames[1:code.co_argcount]))
+    if code.co_posonlyargcount > 0:
+        print('>--- Positional only argument(s):', end=' ')
+        print(
+            ', '.join(code.co_varnames[code.co_argcount:][:code.co_posonlyargcount]))
+    if code.co_kwonlyargcount > 0:
+        print('>--- Keyword only argument(s):', end=' ')
+        print(', '.join(
+            code.co_varnames[code.co_argcount+code.co_posonlyargcount:][:code.co_kwonlyargcount]))
+
+def to_action(s: str) -> ActionMeta:
+    if s in ActionMeta.instances:
+        return ActionMeta.instances[s] 
 
 def list_targets():
     for cls in all_target_types():
