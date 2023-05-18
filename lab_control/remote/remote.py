@@ -2,12 +2,17 @@ import rpyc
 import rpyc.utils.classic as classic
 import lab_control
 from functools import cache 
+import traceback
+
 class ToRemote:
     uploaded = False
 
     def __init__(self, daemon : lab_control.device.RPyCSlaveDaemon):
-        self.conn = rpyc.classic.connect(daemon.addr)
-            
+        try:
+            self.conn = rpyc.classic.connect(daemon.addr)
+        except Exception as e:
+            traceback.print_exc()
+            raise
         if not ToRemote.uploaded:
             classic.upload_package(self.conn, lab_control)
             ToRemote.uploaded = True
@@ -25,6 +30,7 @@ class ToRemote:
         async def wait_until_ready(this):
             pass
         def test_precondition(this):
+            print(this.proxy.errors)
             return this.proxy.test_precondition()
         def test_postcondition(this):
             return this.proxy.test_postcondition()
@@ -40,6 +46,7 @@ class ToRemote:
         return type(cls.__name__+'_r', (cls,), d)
 
 # to_local = ToRemote()
-to_sr_remote = ToRemote(lab_control.RPyCSlaveDaemon("strontium_remote1", "192.168.107.200"))
+to_sr_remote = ToRemote(lab_control.RPyCSlaveDaemon("192.168.107.200"))
+# to_sr_remote = ToRemote("192.168.107.200")
 
 

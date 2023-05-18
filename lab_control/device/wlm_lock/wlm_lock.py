@@ -2,6 +2,8 @@ from ...core.program import MonitorProgram, check_python_existence
 import asyncio
 from collections import deque
 from typing import List
+from functools import partial
+print = partial(print, flush=True)
 
 
 class WaveLengthMeterLock(MonitorProgram):
@@ -25,19 +27,15 @@ class WaveLengthMeterLock(MonitorProgram):
             channel, error = message.split(': ')
             if int(channel) not in self.ch_mapping:
                 raise ValueError("Too few channels in name_mapping!")
+            if len(self.errors[self.ch_mapping[int(channel)]]) == 50:
+                self.errors[self.ch_mapping[int(channel)]].pop(-1)
             self.errors[self.ch_mapping[int(channel)]].append(float(error))
             await asyncio.sleep(0.1)
 
-    async def wait_until_ready(self):
+    async def wait_until_ready(self, loop=None):
         await super().wait_until_ready()
         self.proc.stdin.write(b'lock\r\n\n')
         await self.proc.stdin.drain()
-        # this skips the first error
-        while True:
-            cout = await self.proc.stdout.readline()
-            message = cout.strip().decode()
-            if message[1:3] == ': ':
-                break
         self.tsk = asyncio.create_task(self.state_monitor())
 
     def test_precondition(self):

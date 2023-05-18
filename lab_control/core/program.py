@@ -2,7 +2,9 @@ from .target import Target
 import asyncio
 import shlex
 import subprocess
+from functools import partial 
 
+print = partial(print, flush=True)
 class Program(Target):
     """ Target for running external program """
 

@@ -16,8 +16,9 @@ def init(cls, *args, **kwds):
             for coro in cls.backgrounds:
                 cls.tasks.append(asyncio.create_task(coro))
             ret.done = False
-            await ret.wait_until_ready()
+            await ret.wait_until_ready(l)
             obj_ready = True
+            
             while not ret.done:
                 await asyncio.sleep(1)
             await ret.close() 
