@@ -3,7 +3,7 @@ import asyncio
 import threading
 import traceback
 import queue
-
+import time 
 exc_queue = queue.Queue()
 
 
@@ -11,6 +11,7 @@ def init(cls, *args, **kwds):
     def thread(l):
         async def main():
             nonlocal ret, obj_ready
+            tt = time.perf_counter()
             ret = cls(*args, **kwds)
             if 'tasks' not in cls.__dict__:
                 cls.tasks = []
@@ -19,6 +20,7 @@ def init(cls, *args, **kwds):
             ret.done = False
             await ret.wait_until_ready()
             obj_ready = True
+            print(f'[INFO] Remote monitor program {cls.__name__} ready in {time.perf_counter() - tt} second(s).')
             try:
                 while not ret.done:
                     await asyncio.sleep(.01)
