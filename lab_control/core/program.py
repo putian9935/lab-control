@@ -2,9 +2,10 @@ from .target import Target
 import asyncio
 import shlex
 import subprocess
-from functools import partial 
-
+from functools import partial
 print = partial(print, flush=True)
+
+
 class Program(Target):
     """ Target for running external program """
 
@@ -39,14 +40,29 @@ class MonitorProgram(Program):
         while not tsk.done() and not tsk.cancelled():
             await asyncio.sleep(0.01)
         if tsk.cancelled():
-            raise RuntimeError(f"Error in building program for {type(self).__name__}!")
-        self.proc = tsk.result()
-        print(f'[INFO] Running monitor program at {self.proc} for {type(self).__name__}')
+            raise RuntimeError(
+                f"Error in building program for {type(self).__name__}!")
+        self.proc: asyncio.subprocess.Process = tsk.result()
+        if self.proc.returncode is not None:
+            raise RuntimeError(
+                f"Process {self.proc} is done with return code {self.proc.returncode}")
+        print(
+            f'[INFO] Running monitor program at {self.proc} for {type(self).__name__}')
+
+    def test_precondition(self):
+        if self.proc.returncode is not None:
+            raise RuntimeError(
+                f"Process {self.proc} is done with return code {self.proc.returncode}")
+        return True
+
+    def test_postcondition(self):
+        return self.test_precondition()
 
     async def close(self):
         self.proc.kill()
         await self.proc.wait()
-        print(f'[INFO] Monitor program {self.proc} for {type(self).__name__} closed!')
+        print(
+            f'[INFO] Monitor program {self.proc} for {type(self).__name__} closed!')
 
 
 def check_existence(substr: str) -> str:

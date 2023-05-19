@@ -66,6 +66,9 @@ class WaveLengthMeterLock(MonitorProgram):
                     self.state_monitor(f)))  # clean content
 
     def test_precondition(self):
+        if not super().test_precondition():
+            return False
+
         def get_std(dq: deque) -> float:
             ret = 0.
             for x in dq:

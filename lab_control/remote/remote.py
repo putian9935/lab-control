@@ -51,16 +51,10 @@ class ToRemote:
             this.loop, this.proxy, this.thread = this.result.value
 
         def test_precondition(this):
-            ret = this.proxy.test_precondition()
-            if not ret:
-                print(f'[ERROR] Precondition failed for {cls.__name__}')
-            return ret
+            return this.proxy.test_precondition()
 
         def test_postcondition(this):
-            ret = this.proxy.test_postcondition()
-            if not ret:
-                print(f'[ERROR] Postcondition failed for {cls.__name__}')
-            return ret
+            return this.proxy.test_postcondition()
 
         async def close(this):
             await asyncio.get_running_loop().run_in_executor(None, remote_server.close, this.loop, this.proxy, this.thread)
