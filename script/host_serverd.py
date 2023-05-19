@@ -39,34 +39,40 @@ class RPyCSlaveDaemon():
     async def handle(self, conn, port=None):
         if port is None:
             port = 18812
-        with conn:
-            data = (await self.loop.run_in_executor(None, lambda: conn.recv(100))).strip()
-            if data == b'start':
-                proc = await asyncio.subprocess.create_subprocess_exec(
-                    shlex.split(rf"C:\Users\strontium_remote1\AppData\Local\Programs\Python\Python39\Python C:\Users\strontium_remote1\Desktop\launch_slave.py --host 0.0.0.0 -p {port}",
-                                stdin=asyncio.subprocess.PIPE
-                                ))
-                conn.sendall(b'done')
-            elif data == b'stop':
-                proc.stdin.close()
-                proc.kill()
-                conn.sendall(b'done')
-            else:
-                raise RuntimeError(f"unknown data {data}")
-            
+        try:
+            with conn:
+                data = (await self.loop.run_in_executor(None, lambda: conn.recv(100))).strip()
+                if data == b'start':
+                    proc = await asyncio.subprocess.create_subprocess_exec(
+                        shlex.split(rf"C:\Users\strontium_remote1\AppData\Local\Programs\Python\Python39\Python C:\Users\strontium_remote1\Desktop\launch_slave.py --host 0.0.0.0 -p {port}",
+                                    stdin=asyncio.subprocess.PIPE
+                                    ))
+                    conn.sendall(b'done')
+                elif data == b'stop':
+                    proc.stdin.close()
+                    proc.kill()
+                    conn.sendall(b'done')
+                else:
+                    raise RuntimeError(f"unknown data {data}")
+        except asyncio.CancelledError:
+            proc.stdin.close()
+            proc.kill()
+
     async def serve(self):
         print('Waiting for connection...')
-        tasks = []
+        task = None
         try:
             conn, addr = await self.loop.run_in_executor(None, self.s.accept)
             conn.sendall(b'good')
-            tasks.append(asyncio.create_task(self.handle(conn)))
+            if task is not None:
+                if not task.cancelled() and not task.done():
+                    task.cancel()
+            task = asyncio.create_task(self.handle(conn))
         except Exception:
             traceback.print_exc()
         except:
-            for t in tasks:
-                if not t.cancelled() and not t.done():
-                    t.cancel()
+            if not task.cancelled() and not task.done():
+                task.cancel()
 
 
 async def main():
