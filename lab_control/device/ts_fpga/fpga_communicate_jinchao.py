@@ -7,9 +7,8 @@ Last modified on May 14, 2-23
 @author: stephan, wei hong
 """
 import numpy as np
-import sys
-import time
 import socket
+
 
 class socket_s():
     # initiates connection once called.
@@ -19,13 +18,13 @@ class socket_s():
 
     def connect(self, host, port):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.settimeout(1)
         try:
             self.socket.connect((host, port))
             self.connected = True
         except Exception as e:
             raise ConnectionError(f"Could not connect to {host}") from e
         return 0
-
 
     def write(self, data):
         errcode = self.socket.send(data.encode())
@@ -35,7 +34,7 @@ class socket_s():
             print('Sent data successfully.')
         return errcode
 
-    def write_trigger(self, data): #write and trigger wavemeter
+    def write_trigger(self, data):  # write and trigger wavemeter
         errcode = self.socket.send(data.encode())
         if errcode < 0:
             self.connected = False
@@ -54,13 +53,15 @@ def read_file(textfile):
     and the setting for each output as well as the specified number of repetitions."""
     f = open(textfile)
     n_rep = int(f.readline())
-    timestamps = np.asarray(list(map(int, f.readline().rstrip().split(';'))), dtype=np.int)
+    timestamps = np.asarray(
+        list(map(int, f.readline().rstrip().split(';'))), dtype=np.int)
     time_interval = timestamps[1:] - timestamps[:-1]
     time_interval = np.insert(time_interval, 0, 100)
     f.close()
 
-    read_array2 = np.loadtxt(textfile, dtype='int', delimiter=';', unpack=True, skiprows=2)
-    data_list2 = np.roll(read_array2,1,0)
+    read_array2 = np.loadtxt(textfile, dtype='int',
+                             delimiter=';', unpack=True, skiprows=2)
+    data_list2 = np.roll(read_array2, 1, 0)
 
     return n_rep, time_interval, data_list2
 
@@ -90,9 +91,13 @@ def prep_sequence(data_list, time_interval):
     seq_str = ''
     for i in range(len(data_list)):
         delay = int(time_interval[i] * 50 - 2)
-        bits = np.array2string(np.flip(data_list[i][:],0), max_line_width=1000, separator='')[1:-1]
-        seq_str += 'm' + _convert_int(i, 4) + _convert_int(delay, 8) + _convert_bits(bits) + '\r\n'
-    seq_str += 'r%s-----+++++-----+++++----\r\n' % _convert_int(len(data_list)-1, 4)
+        bits = np.array2string(
+            np.flip(data_list[i][:], 0), max_line_width=1000, separator='')[1:-1]
+        seq_str += 'm' + \
+            _convert_int(i, 4) + _convert_int(delay, 8) + \
+            _convert_bits(bits) + '\r\n'
+    seq_str += 'r%s-----+++++-----+++++----\r\n' % _convert_int(
+        len(data_list)-1, 4)
     return seq_str
 
 
@@ -105,15 +110,16 @@ def write_line(nrep):
 def main(textfile):
     n_rep, time_interval, data_list = read_file(textfile)
     if __name__ == '__main__':
-        print('data_list = \n',data_list)
-        print('data_list[0] = \n',data_list[0])
-        print('len(data_list[0]) = \n',len(data_list[0]))
+        print('data_list = \n', data_list)
+        print('data_list[0] = \n', data_list[0])
+        print('len(data_list[0]) = \n', len(data_list[0]))
 
     sequence = prep_sequence(data_list, time_interval)
     sequencer.write(sequence)
 
     start_line = write_line(n_rep)
     sequencer.write(start_line)
+
 
 # takes care of the connection to the FPGA and provides methods to write to it
 sequencer = socket_s()

@@ -1,7 +1,8 @@
 from typing import Dict, Tuple, List
 import numpy as np
 ts_mapping = Tuple[Dict[int, List[int]], bool]
-
+from datetime import datetime  
+import os
 
 def merge_seq(*seqs: Tuple[ts_mapping]) -> ts_mapping:
     tmp: Dict[int, set] = dict()
@@ -82,7 +83,12 @@ def save_sequences(sequences: Dict[int, Tuple[List[int], bool, str]], fname):
     # save csv 
     np.savetxt(fname, np.array(full_ch).T, delimiter=",",
                fmt="%i", header='\n'.join(headers), comments='')
-
+    
+    if not os.path.exists('saved_sequences'):
+        os.mkdir('saved_sequences')
+    np.savetxt(f'saved_sequences/{datetime.now():%Y%m%d%H%M%S}.csv', np.array(full_ch).T, delimiter=",",
+               fmt="%i", header='\n'.join(headers), comments='')
+    
     # save out
     ch_inv = {ch: i+1 for i, ch in enumerate(sequences.keys())}
     with open('out', 'w') as f:
