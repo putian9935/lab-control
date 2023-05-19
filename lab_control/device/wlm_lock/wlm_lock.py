@@ -14,7 +14,7 @@ class WaveLengthMeterLock(MonitorProgram):
             print(
                 "[WARNING] There is already an wavelength meter lock monitor running! Shutting it down.")
             kill_proc(pid)
-        super().__init__(arg)
+        super().__init__(arg, cout=asyncio.subprocess.DEVNULL)
         self.name_mapping = name_mapping
         self.ch_mapping = ch_mapping
         self.errors = [deque(maxlen=50) for _ in range(len(self.name_mapping))]
@@ -27,7 +27,6 @@ class WaveLengthMeterLock(MonitorProgram):
                 cout = await asyncio.get_running_loop().run_in_executor(None, f.readline)
                 message = cout.strip()
                 if len(message) < 2 or message[1] != ',':
-                    await asyncio.sleep(.01)
                     continue
                 lst = list(message.split(', '))
                 channel = int(lst[0])
@@ -37,7 +36,6 @@ class WaveLengthMeterLock(MonitorProgram):
                 if len(self.errors[self.ch_mapping[channel]]) == 50:
                     self.errors[self.ch_mapping[channel]].popleft()
                 self.errors[self.ch_mapping[channel]].append(err)
-                await asyncio.sleep(0.01)
         except Exception as e:
             traceback.print_exc()
             raise e
@@ -49,12 +47,10 @@ class WaveLengthMeterLock(MonitorProgram):
                 message = cout.strip()
                 if len(message):
                     return
-                await asyncio.sleep(.2)
 
         await super().wait_until_ready()
         for ch in self.ch_mapping.keys():
             open("log%d.txt" % ch, "w").close()  # clean content
-        await asyncio.sleep(.2)
         self.proc.stdin.write(b'lock\r\n\n')
         await self.proc.stdin.drain()
         self.tsks = []
