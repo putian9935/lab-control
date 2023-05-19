@@ -18,18 +18,23 @@ def init(cls, *args, **kwds):
             ret.done = False
             await ret.wait_until_ready()
             obj_ready = True
-            try:
-                while not ret.done:
-                    await asyncio.sleep(.01)
-            except Exception:
-                traceback.print_exc() 
-            except asyncio.CancelledError:
-                pass
+            cnt = 0 
+            # try:
+            while not ret.done:
+                await asyncio.sleep(.01)
+                cnt += 1
+                if cnt > 200:
+                    raise RuntimeError("dfgrsvtytr")
+            # except Exception:
+            #     traceback.print_exc() 
+            # except asyncio.CancelledError:
+            #     pass
             await ret.close()
         try:
             asyncio.set_event_loop(l)
             l.run_until_complete(main())
         except Exception as e:
+            print('got_errorr!!!')
             exc_queue.put(e)
 
     loop = asyncio.new_event_loop()

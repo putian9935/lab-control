@@ -20,6 +20,14 @@ class ToRemote:
     @cache
     def __call__(self, cls):
         def init(this, *args, **kwds):
+            async def check_for_exc():
+                while True:
+                    if not remote_server.exc_queue.empty():
+                        e = remote_server.exc_queue.get()
+                        print(e) 
+                    await asyncio.sleep(.1)
+            if ToRemote.exc_check is None:
+                ToRemote.exc_check = asyncio.create_task(check_for_exc())
             remote_device = self.conn.modules.lab_control.device
             remote_server = self.conn.modules.lab_control.server
             if cls.__name__ not in remote_device.__dict__:
@@ -35,15 +43,8 @@ class ToRemote:
                 while True:
                     this.loop.is_running()
                     await asyncio.sleep(0)
-            async def check_for_exc():
-                while True:
-                    if not remote_server.exc_queue.empty():
-                        e = remote_server.get()
-                        print(e) 
-                    await asyncio.sleep(.1)
             this.keep_alive = asyncio.create_task(keep_running())
-            if ToRemote.exc_check is None:
-                ToRemote.exc_check = asyncio.create_task(check_for_exc())
+   
         async def wait_until_ready(this):
             pass
 
