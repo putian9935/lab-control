@@ -10,8 +10,7 @@ class OvenController(MonitorProgram):
             pid = check_existence("oven")
             if pid is not None:
                 print(
-                    "[WARNING] There is already an oven controller running! Shut it down before attempting to run this one.")
-                print(pid)
+                    f"[WARNING] There is already an oven controller running at <Process {pid}>! Shutting it down ..")
                 kill_proc(pid)
             else:
                 break
@@ -40,30 +39,29 @@ class OvenController(MonitorProgram):
                 message = cout.strip()
                 if len(message):
                     if word in message:
-                        return 
+                        return
                 await asyncio.sleep(.2)
 
         await super().wait_until_ready()
-        open("oven_log.txt", "w").close()  # clean content
-        await asyncio.sleep(.2)
+        await asyncio.sleep(.3)
         self.proc.stdin.write(b'heat_both\r\n\n\n')
         await self.proc.stdin.drain()
         f = open("oven_log.txt")
         await wait_word(f, 'help')
-        self.tsk= asyncio.create_task(
-                self.temp_monitor(f))
+        self.tsk = asyncio.create_task(
+            self.temp_monitor(f))
 
     def test_precondition(self):
         if self.oven_temp < 350:
             print('[ERROR] Oven temperature too low!')
-            return self.no_check 
+            return self.no_check
         return True
 
-    async def close(self):    
+    async def close(self):
         self.tsk.cancel()
         self.proc.stdin.write(b'cool_delay\r\n\n\n')
         await self.proc.stdin.drain()
         # here we don't close the background process
-        # because the viewport will be cooled down two hours later 
+        # because the viewport will be cooled down two hours later
         # return await super().close()
         print('[INFO] Oven controller is running in the background')

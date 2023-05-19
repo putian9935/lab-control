@@ -6,6 +6,14 @@ from .action import Action, ActionMeta
 from .util.ts import merge_seq, to_pulse
 
 
+class PreconditionFail(Exception):
+    pass
+
+
+class PostconditionFail(Exception):
+    pass
+
+
 class TargetMeta(type):
     instances = []
 

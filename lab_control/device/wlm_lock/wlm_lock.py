@@ -72,6 +72,7 @@ class WaveLengthMeterLock(MonitorProgram):
                 ret += x ** 2
             ret /= 50 ** .5
             return ret
+
         return all(get_std(dq) < self.unlock_threshold for dq in self.errors)
 
     async def close(self):
