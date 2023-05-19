@@ -7,6 +7,7 @@ import asyncio
 
 class ToRemote:
     uploaded = False
+    exc_check = None 
 
     def __init__(self, daemon: lab_control.device.RPyCSlaveDaemon):
         self.conn = rpyc.classic.connect(daemon.addr)
@@ -34,8 +35,15 @@ class ToRemote:
                 while True:
                     this.loop.is_running()
                     await asyncio.sleep(0)
+            async def check_for_exc():
+                while True:
+                    if not remote_server.exc_queue.empty():
+                        e = remote_server.get()
+                        print(e) 
+                    await asyncio.sleep(.1)
             this.keep_alive = asyncio.create_task(keep_running())
-
+            if ToRemote.exc_check is None:
+                ToRemote.exc_check = asyncio.create_task(check_for_exc())
         async def wait_until_ready(this):
             pass
 

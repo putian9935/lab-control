@@ -2,6 +2,9 @@ import time
 import asyncio
 import threading
 import traceback
+import queue 
+
+exc_queue = queue.Queue()
 
 def init(cls, *args, **kwds):
     def thread(l):
@@ -23,9 +26,11 @@ def init(cls, *args, **kwds):
             except asyncio.CancelledError:
                 pass
             await ret.close()
-
-        asyncio.set_event_loop(l)
-        l.run_until_complete(main())
+        try:
+            asyncio.set_event_loop(l)
+            l.run_until_complete(main())
+        except Exception as e:
+            exc_queue.put(e)
 
     loop = asyncio.new_event_loop()
     obj_ready = False
