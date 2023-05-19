@@ -20,11 +20,13 @@ def all_target_instances() -> typing.Generator[Target, None, None]:
 
 
 def list_actions():
+    """ Shows supported action types for each target type """
     for cls in all_target_types():
         print(cls.__name__, ':', ', '.join(map(str, cls.supported_actions)))
 
 
 def get_action_usage(act: ActionMeta):
+    """ Displays details of actions types """
     print('>- Action name:', act.__name__)
     print('>- Parent target type:', ActionMeta.targets[act.__name__])
     code = act.__init__.__code__
@@ -40,14 +42,17 @@ def get_action_usage(act: ActionMeta):
         print('>--- Keyword only argument(s):', end=' ')
         print(', '.join(
             code.co_varnames[code.co_argcount+code.co_posonlyargcount:][:code.co_kwonlyargcount]))
+    print('>- Doc string:', act.__init__.__doc__)
 
 
 def to_action(s: str) -> ActionMeta:
+    """ Convert string to the corresponding action type"""
     if s in ActionMeta.instances:
         return ActionMeta.instances[s]
 
 
 def list_targets():
+    """ Shows all target types """
     for cls in all_target_types():
         print(cls.__name__, ':', ', '.join(map(str, cls.instances)))
 
@@ -114,6 +119,7 @@ async def run_sequence(fpga, exp_time: int):
 
 
 async def run_exp(module_fname, attr, **exp_param):
+    """ Run an experiment from file. The file is dynamically loaded. """
     spec = importlib.util.find_spec("lab_control.experiments."+module_fname)
     if spec is None:
         raise FileNotFoundError(

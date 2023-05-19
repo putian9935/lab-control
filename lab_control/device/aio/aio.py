@@ -59,6 +59,7 @@ def shift_vdt_by_one(retv: Tuple[list]):
 @AIO.take_note
 class ramp(Action):
     def __init__(self, *, channel, **kwargs) -> None:
+        'Ramp action.\n    Changes the servo setpoint by specifying the ramp time and ramp voltage change. \n    The return value must be a tuple of three lists of the trigger start time, ramp time, and ramp voltage change.'
         super().__init__(**kwargs)
         self.channel = channel
 
@@ -86,6 +87,7 @@ class ramp(Action):
 @AIO.take_note
 class hsp(Action):
     def __init__(self, *, channel, hsp, **kwargs) -> None:
+        'Hold setpoint action.\n    When the pin 35 is pulled high, the output of the corresponding channel immediately changes to the number set in hsp.\n    The return value must be a list of time for the transition edges of the TTL signal. '
         super().__init__(**kwargs)
         self.channel = channel
         self.hsp = hsp
