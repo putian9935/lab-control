@@ -79,4 +79,6 @@ def check_existence(substr: str) -> str:
 
 
 def kill_proc(pid: str):
+    if not pid: return 
     subprocess.run((rf'taskkill /F /PID {pid}'))
+    return pid

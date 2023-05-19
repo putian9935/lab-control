@@ -30,7 +30,6 @@ class OvenController(MonitorProgram):
                 _, d = d.split('= ')
                 self.viewp_temp = float(a.rstrip('C').strip())
                 self.oven_temp = float(d.rstrip('C').strip())
-            await asyncio.sleep(.2)
 
     async def wait_until_ready(self):
         async def wait_word(f, word):
@@ -40,7 +39,6 @@ class OvenController(MonitorProgram):
                 if len(message):
                     if word in message:
                         return
-                await asyncio.sleep(.2)
 
         await super().wait_until_ready()
         await asyncio.sleep(.3)

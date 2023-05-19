@@ -47,7 +47,7 @@ class ToRemote:
 
         async def wait_until_ready(this):
             while not this.result.ready:
-                await asyncio.sleep(.1)
+                await asyncio.sleep(0.01)
             this.loop, this.proxy, this.thread = this.result.value
 
         def test_precondition(this):
