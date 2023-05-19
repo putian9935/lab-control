@@ -1,5 +1,5 @@
 import importlib.util
-from lab_control.core import Target, ActionMeta
+from lab_control.core import Target, ActionMeta, PreconditionFail, PostconditionFail
 import asyncio
 from lab_control.core.run_experiment import *
 import traceback
@@ -14,7 +14,7 @@ async def main(lab_name):
     spec.loader.exec_module(lab)
     print(f'[INFO] Entered {lab_name}!')
 
-    # parse used targets 
+    # parse used targets
     attr = dict()
     for x in dir(lab):
         obj = lab.__getattribute__(x)
@@ -23,12 +23,12 @@ async def main(lab_name):
         if isinstance(obj, Target):
             obj.__name__ = x
 
-    # start background tasks 
+    # start background tasks
     for cls in all_target_types():
         cls.tasks = []
         for coro in cls.backgrounds:
             cls.tasks.append(asyncio.create_task(coro))
-    # wait for targets (e.g., camera) to get ready 
+    # wait for targets (e.g., camera) to get ready
     await wait_until_ready()
 
     print('[INFO] Target(s) initialized with success')
@@ -48,14 +48,18 @@ async def main(lab_name):
                 elif exp_name.startswith('!help'):
                     name = exp_name[5:].strip()
                     act = to_action(name)
-                    if act is None: 
-                        print(f'Unknown action type {name}. Did you include the correpsonding target type in the lab file? ')
+                    if act is None:
+                        print(
+                            f'Unknown action type {name}. Did you include the correpsonding target type in the lab file? ')
                     else:
                         get_action_usage(act)
                 else:
                     print('Unrecognized command!')
             else:
                 await run_exp(exp_name.strip(), attr, )
+        except (PreconditionFail, PostconditionFail):
+            print('[ERROR] Pre- or Post-condiction failed! Please go over through the messages starting with [ERROR] and fix them.')
+            pass
         except Exception:
             traceback.print_exc()
 
@@ -68,7 +72,7 @@ async def main(lab_name):
     print('[INFO] Target(s) closed normally. Bye!')
 
 if __name__ == '__main__':
-    # asyncio.run(main('sr_lab'))
+    asyncio.run(main('sr_lab'))
     # asyncio.run(main('offline_lab'))
-    asyncio.run(main('remote_test'))
+    # asyncio.run(main('remote_test'))
     # asyncio.run(main('remote'))

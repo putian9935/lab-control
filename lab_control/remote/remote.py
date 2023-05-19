@@ -17,6 +17,8 @@ class ToRemote:
             classic.upload_package(self.conn, lab_control)
             ToRemote.uploaded = True
         print('[INFO] Waiting slave to spawn all tasks..')
+        self.rs = rpyc.classic.redirected_stdio(self.conn)
+        self.rs.__enter__()
 
     @cache
     def __call__(self, cls):
@@ -27,7 +29,7 @@ class ToRemote:
                 if not remote_server.exc_queue.empty():
                     e = remote_server.exc_queue.get()
                     print(e)
-                await asyncio.sleep(.1)
+                await asyncio.sleep(.001)
         if self.exc_check is None:
             self.exc_check = asyncio.create_task(check_for_exc())
 
