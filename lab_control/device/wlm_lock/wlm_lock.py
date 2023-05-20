@@ -1,23 +1,27 @@
 from ...core.program import MonitorProgram, check_existence, kill_proc
 import asyncio
+from .json_load import load_settings
 from collections import deque
-from typing import List
+import os
 import traceback
+import shlex
 from functools import partial
 print = partial(print, flush=True)
 
 
 class WaveLengthMeterLock(MonitorProgram):
-    def __init__(self, arg, name_mapping: List[str], ch_mapping, unlock_threshold=1e-8) -> None:
+    def __init__(self, arg, unlock_threshold=1e-8) -> None:
         pid = check_existence("wlm")
         if pid is not None:
             print(
                 "[WARNING] There is already an wavelength meter lock monitor running! Shutting it down.")
             kill_proc(pid)
-        super().__init__(arg, cout=asyncio.subprocess.DEVNULL)
-        self.name_mapping = name_mapping
-        self.ch_mapping = ch_mapping
-        self.errors = [deque(maxlen=50) for _ in range(len(self.name_mapping))]
+        dirname = os.path.dirname(__file__)
+        fname = os.path.join(dirname, 'wlm.json')
+        self.lasers = load_settings(fname)
+        super().__init__(shlex.join(arg, fname), cout=asyncio.subprocess.DEVNULL)
+        self.ch_mapping = {l['WaveMeterChannel']: i for i, l in enumerate(self.lasers)}
+        self.errors = [deque(maxlen=50) for _ in range(len(self.lasers))]
         self.unlock_threshold = unlock_threshold
         self.proc: asyncio.subprocess.Process = None
 
@@ -30,12 +34,11 @@ class WaveLengthMeterLock(MonitorProgram):
                     continue
                 lst = list(message.split(', '))
                 channel = int(lst[0])
-                if channel not in self.ch_mapping:
-                    raise ValueError("Too few channels in name_mapping!")
                 err = float(lst[2])
-                if len(self.errors[self.ch_mapping[channel]]) == 50:
-                    self.errors[self.ch_mapping[channel]].popleft()
-                self.errors[self.ch_mapping[channel]].append(err)
+                idx = self.ch_mapping[channel]
+                if len(self.errors[idx]) == 50:
+                    self.errors[idx].popleft()
+                self.errors[idx].append(err)
         except Exception as e:
             traceback.print_exc()
             raise e
@@ -72,7 +75,12 @@ class WaveLengthMeterLock(MonitorProgram):
             ret /= 50 ** .5
             return ret
 
-        return all(get_std(dq) < self.unlock_threshold for dq in self.errors)
+        ret = True 
+        for i, dq in enumerate(self.errors):
+            if get_std(dq) > self.unlock_threshold:
+                ret = False 
+                print(f'[ERROR] Laser %s at wavemeter channel %d is unlocked!'(self.lasers[i]['Name'], self.lasers[i]['WaveMeterChannel']))
+        return ret 
 
     async def close(self):
         for tsk in self.tsks:

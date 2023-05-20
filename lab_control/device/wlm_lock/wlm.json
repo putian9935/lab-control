@@ -1,0 +1,25 @@
+{
+    "ArduinoPort": "",
+    "Lasers": [
+        {
+            "Name": "679",
+            "ArduinoPin": 10,
+            "SetWaveLength": 679.28898,
+            "WaveMeterChannel": 4,
+            "ArduinoPort": "COM16",
+            "Kp": -1200.0,
+            "Ki": -25000.0,
+            "Kd": -0.0
+        },
+        {
+            "Name": "707",
+            "ArduinoPin": 10,
+            "SetWaveLength": 707.20162,
+            "WaveMeterChannel": 3,
+            "ArduinoPort": "COM18",
+            "Kp": -1200.0,
+            "Ki": -25000.0,
+            "Kd": -0.0
+        }
+    ]
+}
