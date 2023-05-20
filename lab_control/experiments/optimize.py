@@ -23,6 +23,6 @@ def main():
     def bfield():
         return [0], [2000], [.65]
 
-    @RawTS(channel=8, polarity=0)
+    @RawTS(channel=8, polarity=1)
     def om_zm_shutter():
         return []

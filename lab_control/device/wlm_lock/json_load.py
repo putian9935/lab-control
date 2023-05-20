@@ -18,7 +18,7 @@ def load_settings(fname=None):
         parent = os.path.dirname(dirname)
         settings = json.load(open(os.path.join(parent, 'wlm.json')))
     else:
-        settings = json.load(fname)
+        settings = json.load(open(fname))
         
     lasers = settings['Lasers']
     fill_missing_attr(lasers)

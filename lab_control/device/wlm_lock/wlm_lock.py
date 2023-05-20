@@ -19,7 +19,7 @@ class WaveLengthMeterLock(MonitorProgram):
         dirname = os.path.dirname(__file__)
         fname = os.path.join(dirname, 'wlm.json')
         self.lasers = load_settings(fname)
-        super().__init__(shlex.join(arg, fname), cout=asyncio.subprocess.DEVNULL)
+        super().__init__(arg + ' ' + shlex.quote(fname), cout=asyncio.subprocess.DEVNULL)
         self.ch_mapping = {l['WaveMeterChannel']: i for i, l in enumerate(self.lasers)}
         self.errors = [deque(maxlen=50) for _ in range(len(self.lasers))]
         self.unlock_threshold = unlock_threshold
@@ -79,7 +79,7 @@ class WaveLengthMeterLock(MonitorProgram):
         for i, dq in enumerate(self.errors):
             if get_std(dq) > self.unlock_threshold:
                 ret = False 
-                print(f'[ERROR] Laser %s at wavemeter channel %d is unlocked!'(self.lasers[i]['Name'], self.lasers[i]['WaveMeterChannel']))
+                print(f'[ERROR] Laser %s at wavemeter channel %d is unlocked!' % (self.lasers[i]['Name'], self.lasers[i]['WaveMeterChannel']))
         return ret 
 
     async def close(self):
