@@ -1,10 +1,15 @@
+from __future__ import annotations
 import asyncio
 from .util.ts import merge_seq
 from collections import defaultdict
 from .stage import Stage
 from typing import List, Callable, Optional, Dict, Tuple
 from functools import wraps
+from .types import *
 
+import typing 
+if typing.TYPE_CHECKING:
+    from .target import Target 
 
 def set_pulse(cls):
     cls.pulse = True
@@ -21,7 +26,7 @@ class ActionMeta(type):
     def __init__(cls, new, bases, attr, offset=False):
         cls.instances: list[Action] = []
         cls.pulse = False
-        cls._offset = offset  # the library writer may override the default behavior  
+        cls._offset: bool = offset  # the library writer may override the default behavior  
         ActionMeta.instances[cls.__name__] = cls
 
         def add_offset(f: Callable):
@@ -45,17 +50,17 @@ class ActionMeta(type):
             return ret_func
         cls.to_time_sequencer = add_offset(cls.to_time_sequencer)
 
-    async def run_preprocess_cls(cls, target):
+    async def run_preprocess_cls(cls, target: 'Target'):
         await asyncio.gather(*[inst.run_preprocess(target)
                                for inst in cls.instances
                                if inst in target.actions[cls]])
 
-    def to_time_sequencer_cls(cls, target):
+    def to_time_sequencer_cls(cls, target: 'Target'):
         return merge_seq(*[inst.to_time_sequencer(target)
                            for inst in cls.instances
                            if inst in target.actions[cls]])
 
-    async def run_postprocess_cls(cls, target):
+    async def run_postprocess_cls(cls, target: 'Target'):
         await asyncio.gather(*[inst.run_postprocess(target)
                                for inst in cls.instances
                                if inst in target.actions[cls]])
@@ -80,14 +85,14 @@ class Action(metaclass=ActionMeta):
     def add_offset(self, l: List):
         return [x + self._offset for x in l]
 
-    async def run_preprocess(self, target):
+    async def run_preprocess(self, target: 'Target'):
         print(
             f'[Warning] Action {type(target).__name__}.{type(self).__name__} has no preprocess to run.')
 
-    def to_time_sequencer(self, target):
+    def to_time_sequencer(self, target: 'Target') -> Optional[ts_map]:
         print(
             f'[Warning] Action {type(target).__name__}.{type(self).__name__} has nothing to transform to time sequencer.')
 
-    async def run_postprocess(self, target):
+    async def run_postprocess(self, target: 'Target'):
         print(
             f'[Warning] Action {type(target).__name__}.{type(self).__name__} has no postprocess to run.')

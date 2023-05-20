@@ -1,4 +1,4 @@
-from typing import Any, List, Callable
+from typing import Any, List, Callable, Optional
 
 
 class Stage:
@@ -12,7 +12,7 @@ class Stage:
         Stage.cur = 0
         Stage.stages = []
 
-    def __init__(self, *, duration=None, start_at=None) -> None:
+    def __init__(self, *, duration: Optional[int] = None, start_at: Optional[int] = None) -> None:
         if duration is None:
             duration = 0
         self.duration = duration
@@ -20,12 +20,12 @@ class Stage:
             start_at = Stage.cur
         self.start_at = start_at
 
-    def __call__(self, f) -> Any:
+    def __call__(self, f: Callable) -> Any:
         if self.start_at < 0:
             raise ValueError(
                 "Cannot start at a time sequence from negative time! ")
         Stage.cur = self.start_at
-        # invoke the function 
+        # invoke the function
         f()
         f.start = self.start_at
         f.end = self.start_at + self.duration
