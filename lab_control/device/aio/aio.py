@@ -1,9 +1,13 @@
 from ...core.target import Target
-from ...core.action import Action, set_pulse
+from ...core.action import Action, set_pulse, ActionMeta
 import importlib.util
 from . import ports
 from .csv_reader import tv2wfm, p2r
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
+from ...core.types import *
+
+aio_ts_mapping = Dict[ActionMeta, int]
+
 
 def merge_seq_aio(ts: List[List[int]] = None, dts: List[list] = None, dvs: List[list] = None):
     ret = []
@@ -33,7 +37,7 @@ if __name__ == '__main__':
 
 
 class AIO(Target):
-    def __init__(self, *, minpd, maxpd, ts_mapping, port=None, **kwargs) -> None:
+    def __init__(self, *, minpd: List[int], maxpd: List[int], ts_mapping: aio_ts_mapping, port: Optional[str] = None, **kwargs) -> None:
         super().__init__()
         if not port:
             raise ValueError(f"Must specify a port for {type(self)}")
@@ -58,20 +62,20 @@ def shift_vdt_by_one(retv: Tuple[list]):
 @set_pulse
 @AIO.take_note
 class ramp(Action):
-    def __init__(self, *, channel, **kwargs) -> None:
+    def __init__(self, *, channel: int, **kwargs) -> None:
         'Ramp action.\n    Changes the servo setpoint by specifying the ramp time and ramp voltage change. \n    The return value must be a tuple of three lists of the trigger start time, ramp time, and ramp voltage change.'
         super().__init__(**kwargs)
         self.channel = channel
 
-    def to_time_sequencer(self, target: AIO):
+    def to_time_sequencer(self, target: AIO) -> ts_map:
         if ramp not in target.ts_mapping:
-            raise KeyError("ramp is not in ts_mapping of AIO target")
+            raise KeyError(f"ramp is not in ts_mapping of AIO target {target}")
         return {target.ts_mapping[ramp]: (self.retv[0], False, f'{target}.ramp_trig')}
 
     @classmethod
     async def run_preprocess_cls(cls, target: AIO):
         extras = []
-        chs = []
+        chs: List[int] = []
         for act in target.actions[cls]:
             extras.append(act.retv)
             chs.append(act.channel)
@@ -85,17 +89,18 @@ class ramp(Action):
 
 
 @AIO.take_note
-class hsp(Action):
-    def __init__(self, *, channel, hsp, **kwargs) -> None:
+class hsp(ramp):
+    def __init__(self, *, channel: int, hsp: int, **kwargs) -> None:
         'Hold setpoint action.\n    When the pin 35 is pulled high, the output of the corresponding channel immediately changes to the number set in hsp.\n    The return value must be a list of time for the transition edges of the TTL signal. '
-        super().__init__(**kwargs)
-        self.channel = channel
+        super().__init__(channel=channel, **kwargs)
         self.hsp = hsp
 
     async def run_preprocess(self, target: AIO):
+        if hsp not in target.ts_mapping:
+            raise KeyError(f"hsp is not in ts_mapping of AIO target {target}")
         target.backend.hsp(self.channel, self.hsp)
 
-    def to_time_sequencer(self, target: AIO) -> Tuple[Dict[int, List[int]], bool]:
+    def to_time_sequencer(self, target: AIO) -> ts_map:
         if hsp not in target.ts_mapping:
             raise KeyError("hsp is not in ts_mapping of AIO target")
         return {target.ts_mapping[hsp]: (self.retv, self.polarity, f'{target}.hsp')}
@@ -121,4 +126,3 @@ if __name__ == '__main__':
     @aio(hsp, channel=0, hsp=20, polarity=True)
     def a():
         return [1, 2]
-

@@ -1,9 +1,10 @@
-from typing import Any, Coroutine, Optional
+from typing import Any, Coroutine, Optional, Callable
 from collections import defaultdict
 
 import asyncio
 from .action import Action, ActionMeta
 from .util.ts import merge_seq, to_pulse
+from types import *
 
 
 class PreconditionFail(Exception):
@@ -20,16 +21,16 @@ class TargetMeta(type):
     def __init__(cls, *args):
         cls.supported_actions: set[ActionMeta] = set((None,))
         cls.instances: list[Target] = []
-        cls.default_action: ActionMeta = None
+        cls.default_action: Optional[ActionMeta] = None
         cls.backgrounds: list[Coroutine] = []
         TargetMeta.instances.append(cls)
 
-    def take_note(cls, action_cls):
+    def take_note(cls, action_cls: Action):
         cls.supported_actions.add(action_cls)
         ActionMeta.targets[action_cls.__name__] = cls.__name__
         return action_cls
 
-    def set_default(cls, action_cls):
+    def set_default(cls, action_cls: Action):
         cls.default_action = action_cls
         return action_cls
 
@@ -40,7 +41,7 @@ class Target(metaclass=TargetMeta):
         self.__name__: Optional[str] = None
         type(self).instances.append(self)
 
-    def __call__(self,  action=None, **kwds: Any) -> Any:
+    def __call__(self,  action: ActionMeta = None, **kwds: Any) -> Callable:
         if action not in type(self).supported_actions:
             raise ValueError(f"Unsupported action {action} for {type(self)}")
 

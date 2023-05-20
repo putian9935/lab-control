@@ -1,10 +1,10 @@
 from typing import Dict, Tuple, List
 import numpy as np
-ts_mapping = Tuple[Dict[int, List[int]], bool]
 from datetime import datetime  
 import os
+from ..types import *
 
-def merge_seq(*seqs: Tuple[ts_mapping]) -> ts_mapping:
+def merge_seq(*seqs: Tuple[ts_map]) -> ts_map:
     tmp: Dict[int, set] = dict()
     pols = dict()
     names = dict()
@@ -23,32 +23,33 @@ def merge_seq(*seqs: Tuple[ts_mapping]) -> ts_mapping:
                     print(
                         f'[WARNING] Signal {name} and {names[k]} use the same time sequencer channel {k}')
 
-    ret: ts_mapping = dict()
+    ret: ts_map = dict()
     for k in tmp.keys():
         ret[k] = (sorted(tmp[k]), pols[k], names[k])
     return ret
 
 
-def pulsify(l: list, width=50):
+def pulsify(l: List[int], width=50):
     state = 1
 
-    def f(x):
+    def f(x: int):
         nonlocal state
         state ^= 1
         return x if not state else x + width
     return [f(x) for x in l for _ in range(2)]
 
 
-def to_pulse(mapping: ts_mapping, pulse: bool):
+def to_pulse(mapping: ts_map, pulse: bool):
     if not pulse:
         return mapping
-    ret: ts_mapping = dict()
+    ret: ts_map = dict()
     for k, (l, p, n) in mapping.items():
         ret[k] = pulsify(l), p, n
     return ret
 
 
-def save_sequences(sequences: Dict[int, Tuple[List[int], bool, str]], fname):
+def save_sequences(sequences: ts_map, fname: str):
+    """ Returns the full experiment time """
     s = set()
     names = dict()
     for k, (seq, p, n) in sequences.items():
@@ -58,7 +59,7 @@ def save_sequences(sequences: Dict[int, Tuple[List[int], bool, str]], fname):
     if not len(s):
         raise ValueError("Empty sequence detected! Aborted. Did you forgot to set to_fpga=False in the Experiment definition?")
     
-    full_sequence = sorted(list(s))
+    full_sequence: list[int] = sorted(list(s))
 
     inv = {k: v for v, k in enumerate(full_sequence)}
 

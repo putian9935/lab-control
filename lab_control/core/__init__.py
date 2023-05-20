@@ -3,3 +3,4 @@ __all__ = ["Action", "Target", "ActionMeta", "TargetMeta", "Experiment", "Precon
 from .action import Action, ActionMeta  
 from .target import Target, TargetMeta, PreconditionFail, PostconditionFail 
 from .experiment import Experiment
+from .stage import Stage

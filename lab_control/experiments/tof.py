@@ -7,6 +7,10 @@ if __name__ == '__main__':
 from ..device.fname_gen.filename_gui import get_new_name
 
 
+class Stage:
+    pass
+
+
 @Experiment(True, ts_sr)
 def exp(cam_exposure=5*ms,
         load=4*s,
@@ -14,41 +18,45 @@ def exp(cam_exposure=5*ms,
         tof=4*ms,
         hs=1100):
 
-    @RawTS(channel=1, polarity=0)
-    def fast707():
-        return []
+    @Stage(duration=load)
+    def load():
+        @AIO0(action=ramp, channel=0)
+        def repumper707():
+            return [0, load - mot_mag_delay], [20, 20], [.95, .05]
 
-    @AIO0(action=ramp, channel=0)
-    def repumper707():
-        return [0, load - mot_mag_delay], [20, 20], [.95, .05]
+        @AIO0(action=ramp, channel=1)
+        def repumper679():
+            return [0, load - mot_mag_delay], [20, 20], [.95, .05]
 
-    @AIO0(action=ramp, channel=1)
-    def repumper679():
-        return [0, load - mot_mag_delay], [20, 20], [.95, .05]
+        @RawTS(channel=8, polarity=1)
+        def om_zm_shutter():
+            return [0, load]
 
-    @AIO0(action=hsp, channel=0, hsp=hs)
-    def repumper707():
-        return [load+tof, load+tof+cam_exposure]
+        @AIO0(action=ramp, channel=2)
+        def bfield():
+            return [0, load], [2*ms, 500], [.60, .95]
+        
+        @AIO0(action=ramp, channel=3)
+        def mot():
+            return [0, load - mot_mag_delay], [20, 20], [.95, .05]
 
-    @AIO0(action=hsp, channel=1, hsp=hs)
-    def repumper679():
-        return [load+tof, load+tof+cam_exposure]
+    @Stage(duration=tof)
+    def TOF():
+        pass
 
-    @RawTS(channel=8, polarity=1)
-    def om_zm_shutter():
-        return [0, load]
+    @Stage(start=TOF.end)
+    def take_pic():
+        @AIO0(action=hsp, channel=0, hsp=hs)
+        def repumper707():
+            return [0, cam_exposure]
 
-    @AIO0(action=ramp, channel=2)
-    def bfield():
-        return [0, load], [2*ms, 500], [.60, .95]
+        @AIO0(action=hsp, channel=1, hsp=hs)
+        def repumper679():
+            return [0, cam_exposure]
 
-    @AIO0(action=hsp, channel=3, hsp=hs)
-    def mot():
-        return [load+tof, load+tof+cam_exposure]
-
-    @AIO0(action=ramp, channel=3)
-    def mot():
-        return [0, load - mot_mag_delay], [20, 20], [.95, .05]
+        @AIO0(action=hsp, channel=3, hsp=hs)
+        def mot():
+            return [0, 0cam_exposure]
 
     @AndorCamera(
         action=external_start,

@@ -4,7 +4,7 @@ import asyncio
 import importlib.util
 from .util.ts import save_sequences, merge_seq
 import typing
-
+from typing import Dict
 
 def all_target_types() -> typing.Generator[TargetMeta, None, None]:
     """ Generator for all types that are subclassed from Target """
@@ -118,7 +118,7 @@ async def run_sequence(fpga, exp_time: int):
     await asyncio.sleep(exp_time * 1e-6 + .5)
 
 
-async def run_exp(module_fname, attr, **exp_param):
+async def run_exp(module_fname: str, attr: Dict, **exp_param):
     """ Run an experiment from file. The file is dynamically loaded. """
     spec = importlib.util.find_spec("lab_control.experiments."+module_fname)
     if spec is None:
