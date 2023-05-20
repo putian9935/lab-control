@@ -7,6 +7,7 @@ if __name__ == '__main__':
 
 @Experiment()
 def main():
+    @sta
     @RawTS(channel=8, polarity=0)
     def om_zm_shutter():
         return []
