@@ -3,6 +3,7 @@ from .util.ts import merge_seq
 from collections import defaultdict
 from .stage import Stage
 from typing import List, Callable, Optional, Dict, Tuple
+from functools import wraps
 
 
 def set_pulse(cls):
@@ -14,18 +15,33 @@ class ActionMeta(type):
     instances = {}
     targets = defaultdict(str)
 
-    def __init__(cls, *args):
+    def __new__(cls, name, bases, attr, **kwds):
+        return type.__new__(cls, name, bases, attr)
+
+    def __init__(cls, new, bases, attr, offset=False):
         cls.instances: list[Action] = []
         cls.pulse = False
+        cls._offset = offset  # the library writer may override the default behavior  
         ActionMeta.instances[cls.__name__] = cls
+
         def add_offset(f: Callable):
+            # special case for Action
+            if cls.__base__ is object:
+                return f
+            # handle inheritance: if the base class is offset, then the subclass needs not to
+            if not cls._offset and cls.__base__._offset:
+                cls._offset = True
+                return f
+            cls._offset = True
+
+            @wraps(f)
             def ret_func(self, *args, **kwds):
-                _ret = f(self, *args, **kwds) 
+                _ret = f(self, *args, **kwds)
                 ret = {}
                 if isinstance(_ret, dict):
                     for k, v in _ret.items():
                         ret[k] = self.add_offset(v[0]), v[1], v[2]
-                return ret 
+                return ret
             return ret_func
         cls.to_time_sequencer = add_offset(cls.to_time_sequencer)
 

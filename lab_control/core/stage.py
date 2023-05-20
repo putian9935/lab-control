@@ -8,7 +8,7 @@ class Stage:
     stages: List[Callable] = []
 
     @staticmethod
-    def clean_stage():
+    def clear():
         Stage.cur = 0
         Stage.stages = []
 
@@ -25,15 +25,13 @@ class Stage:
             raise ValueError(
                 "Cannot start at a time sequence from negative time! ")
         Stage.cur = self.start_at
-
-        def ret(*args, **kwargs):
-            f(*args, **kwargs)
-
-        ret.start = self.start_at
-        ret.end = self.start_at + self.duration
-        Stage.stages.append(ret)
+        # invoke the function 
+        f()
+        f.start = self.start_at
+        f.end = self.start_at + self.duration
+        Stage.stages.append(f)
         Stage.cur += self.duration
-        return ret
+        return f
 
 
 if __name__ == '__main__':

@@ -1,4 +1,5 @@
 from .run_experiment import cleanup, run_preprocess, prepare_sequencer_files, run_sequence, test_postcondition, test_precondition, run_postprocess
+from .stage import Stage
 import time
 from .target import PostconditionFail, PreconditionFail
 from typing import Callable
@@ -14,6 +15,7 @@ class Experiment:
 
     def __call__(self, f) -> Callable:
         async def ret(*args, **kwds):
+            Stage.clear()
             tt = time.perf_counter()
             try:
                 ret = f(*args, **kwds)
