@@ -33,7 +33,7 @@ def init(cls, *args, **kwds):
             asyncio.set_event_loop(l)
             l.run_until_complete(main())
         except Exception as e:
-            print(e)
+            traceback.print_exc(e)
             exc_queue.put(e)
 
     loop = asyncio.new_event_loop()
