@@ -3,7 +3,7 @@ from collections import defaultdict
 
 import asyncio
 from .action import Action, ActionMeta
-from .util.ts import merge_seq, to_pulse
+from .util.ts import merge_seq, to_pulse, merge_plot_maps
 from types import *
 
 
@@ -25,12 +25,12 @@ class TargetMeta(type):
         cls.backgrounds: list[Coroutine] = []
         TargetMeta.instances.append(cls)
 
-    def take_note(cls, action_cls: Action):
+    def take_note(cls, action_cls: ActionMeta):
         cls.supported_actions.add(action_cls)
         ActionMeta.targets[action_cls.__name__] = cls.__name__
         return action_cls
 
-    def set_default(cls, action_cls: Action):
+    def set_default(cls, action_cls: ActionMeta):
         cls.default_action = action_cls
         return action_cls
 
@@ -72,7 +72,10 @@ class Target(metaclass=TargetMeta):
         await asyncio.gather(*[act.run_preprocess_cls(self) for act in type(self).supported_actions if act is not None])
 
     def to_time_sequencer(self):
-        return merge_seq(*[to_pulse(act.to_time_sequencer_cls(self), act.pulse) for act in type(self).supported_actions if act is not None])
+        return merge_seq(*[to_pulse(act_t.to_time_sequencer_cls(self), act_t.pulse) for act_t in type(self).supported_actions if act_t is not None])
+
+    def to_plot(self, expand_pulse=False):
+        return merge_plot_maps(*[act_t.to_plot_cls(self, expand_pulse) for act_t in type(self).supported_actions if act_t is not None])
 
     def test_postcondition(self):
         return True

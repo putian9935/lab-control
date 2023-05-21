@@ -1,5 +1,5 @@
 from lab_control.core.target import Target
-from lab_control.core.util.ts import pulsify
+from lab_control.core.util.ts import pulsify, square, to_plot
 from lab_control.core import types
 from ...core.target import Target
 from ...core.action import Action, set_pulse
@@ -10,20 +10,6 @@ from typing import Optional, Tuple, Dict, List
 
 class TimeSequencer(Target):
     pass
-
-
-def square(init_s, n):
-    for _ in range(n):
-        yield init_s
-        yield init_s ^ 1
-        yield init_s ^ 1
-        yield init_s
-
-
-def to_plot(init_s, seq):
-    x = [0] + list(_ for _ in seq for __ in range(2))
-    y = [init_s] + list(square(init_s, len(seq)//2))
-    return x, y
 
 
 @TimeSequencer.set_default
@@ -72,4 +58,3 @@ if __name__ == '__main__':
         return [2000]
 
     print(hold.to_plot_cls(raw_ts))
-

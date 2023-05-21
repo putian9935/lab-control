@@ -1,8 +1,8 @@
-from typing import Dict, Tuple, List
 import numpy as np
-from datetime import datetime  
+from datetime import datetime
 import os
 from ..types import *
+
 
 def merge_seq(*seqs: Tuple[ts_map]) -> ts_map:
     tmp: Dict[int, set] = dict()
@@ -48,6 +48,32 @@ def to_pulse(mapping: ts_map, pulse: bool):
     return ret
 
 
+def square(init_s, n):
+    for _ in range(n):
+        yield init_s
+        yield init_s ^ 1
+        yield init_s ^ 1
+        yield init_s
+
+
+def to_plot(init_s, seq):
+    x = [0] + list(_ for _ in seq for __ in range(2))
+    y = [init_s] + list(square(init_s, len(seq)//2))
+    return x, y
+
+def merge_plot_maps(*pms: plot_map) -> plot_map:
+    ret: plot_map = dict()
+    for pm in pms:
+        for k, (x, y) in pm.items():
+            if k in pm:
+                # don't use +=, error with tuples
+                ret[k][0].extend(x) 
+                ret[k][1].extend(y) 
+            else:
+                ret[k] = x, y
+    return ret 
+
+
 def save_sequences(sequences: ts_map, fname: str):
     """ Returns the full experiment time """
     s = set()
@@ -57,8 +83,9 @@ def save_sequences(sequences: ts_map, fname: str):
             s.add(t)
         names[k] = n
     if not len(s):
-        raise ValueError("Empty sequence detected! Aborted. Did you forgot to set to_fpga=False in the Experiment definition?")
-    
+        raise ValueError(
+            "Empty sequence detected! Aborted. Did you forgot to set to_fpga=False in the Experiment definition?")
+
     full_sequence: list[int] = sorted(list(s))
 
     inv = {k: v for v, k in enumerate(full_sequence)}
@@ -81,15 +108,15 @@ def save_sequences(sequences: ts_map, fname: str):
         if len(seq):
             new_row[inv_f(seq)] = 1
         full_ch.append(init ^ (np.cumsum(new_row) & 1))
-    # save csv 
+    # save csv
     np.savetxt(fname, np.array(full_ch).T, delimiter=",",
                fmt="%i", header='\n'.join(headers), comments='')
-    
+
     if not os.path.exists('saved_sequences'):
         os.mkdir('saved_sequences')
     np.savetxt(f'saved_sequences/{datetime.now():%Y%m%d%H%M%S}.csv', np.array(full_ch).T, delimiter=",",
                fmt="%i", header='\n'.join(headers), comments='')
-    
+
     # save out
     ch_inv = {ch: i+1 for i, ch in enumerate(sequences.keys())}
     with open('out', 'w') as f:

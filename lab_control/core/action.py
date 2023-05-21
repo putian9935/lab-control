@@ -1,6 +1,6 @@
 from __future__ import annotations
 import asyncio
-from .util.ts import merge_seq
+from .util.ts import merge_seq, merge_plot_maps
 from collections import defaultdict
 from .stage import Stage
 from typing import List, Callable, Optional, Dict, Tuple
@@ -53,21 +53,19 @@ class ActionMeta(type):
 
     async def run_preprocess_cls(cls, target: 'Target'):
         await asyncio.gather(*[inst.run_preprocess(target)
-                               for inst in cls.instances
-                               if inst in target.actions[cls]])
+                               for inst in target.actions[cls]])
 
     def to_time_sequencer_cls(cls, target: 'Target'):
-        pass 
+        return merge_seq(*[inst.to_time_sequencer(target)
+                           for inst in target.actions[cls]])
 
-    def to_plot_cls(cls, target: 'Target'):
-        return merge_seq(*[inst.to_plot(target)
-                           for inst in cls.instances
-                           if inst in target.actions[cls]])
+    def to_plot_cls(cls, target: 'Target', expand_pulse):
+        return merge_plot_maps(*[inst.to_plot(target, expand_pulse)
+                                 for inst in target.actions[cls]])
 
     async def run_postprocess_cls(cls, target: 'Target'):
         await asyncio.gather(*[inst.run_postprocess(target)
-                               for inst in cls.instances
-                               if inst in target.actions[cls]])
+                               for inst in target.actions[cls]])
 
     def cleanup(cls):
         cls.instances: list[Action] = []
