@@ -7,9 +7,10 @@ from typing import List, Callable, Optional, Dict, Tuple
 from functools import wraps
 from .types import *
 
-import typing 
+import typing
 if typing.TYPE_CHECKING:
-    from .target import Target 
+    from .target import Target
+
 
 def set_pulse(cls):
     cls.pulse = True
@@ -26,7 +27,7 @@ class ActionMeta(type):
     def __init__(cls, new, bases, attr, offset=False):
         cls.instances: list[Action] = []
         cls.pulse = False
-        cls._offset: bool = offset  # the library writer may override the default behavior  
+        cls._offset: bool = offset  # the library writer may override the default behavior
         ActionMeta.instances[cls.__name__] = cls
 
         def add_offset(f: Callable):
@@ -56,7 +57,10 @@ class ActionMeta(type):
                                if inst in target.actions[cls]])
 
     def to_time_sequencer_cls(cls, target: 'Target'):
-        return merge_seq(*[inst.to_time_sequencer(target)
+        pass 
+
+    def to_plot_cls(cls, target: 'Target'):
+        return merge_seq(*[inst.to_plot(target)
                            for inst in cls.instances
                            if inst in target.actions[cls]])
 
@@ -92,6 +96,10 @@ class Action(metaclass=ActionMeta):
     def to_time_sequencer(self, target: 'Target') -> Optional[ts_map]:
         print(
             f'[Warning] Action {type(target).__name__}.{type(self).__name__} has nothing to transform to time sequencer.')
+
+    def to_plot(self, target: 'Target') -> Optional[plot_map]:
+        print(
+            f'[Warning] Action {type(target).__name__}.{type(self).__name__} has nothing to plot.')
 
     async def run_postprocess(self, target: 'Target'):
         print(

@@ -1,4 +1,4 @@
-from .run_experiment import cleanup, run_preprocess, prepare_sequencer_files, run_sequence, test_postcondition, test_precondition, run_postprocess
+from .run_experiment import cleanup, run_preprocess, prepare_sequencer_files, run_sequence, test_postcondition, test_precondition, run_postprocess, all_target_instances
 from .stage import Stage
 import time
 from .target import PostconditionFail, PreconditionFail
@@ -32,6 +32,11 @@ class Experiment:
                     f'[INFO] Prerequisite done in {time.perf_counter()-tt} second(s)!')
                 if not test_precondition():
                     raise PreconditionFail()
+                for tar in all_target_instances():
+                    for t, v in tar.actions.items():
+                        print('<t>',t, t.to_plot_cls(tar))
+                        for act in v:
+                            print('<a>', act, act.to_plot(tar))
                 if self.to_fpga:
                     tt = time.perf_counter()
                     exp_time = prepare_sequencer_files()

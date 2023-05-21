@@ -37,7 +37,7 @@ class TargetMeta(type):
 
 class Target(metaclass=TargetMeta):
     def __init__(self) -> None:
-        self.actions: defaultdict[Action, list[Action]] = defaultdict(list)
+        self.actions: defaultdict[ActionMeta, list[Action]] = defaultdict(list)
         self.__name__: Optional[str] = None
         type(self).instances.append(self)
 
