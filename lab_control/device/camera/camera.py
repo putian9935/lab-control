@@ -18,7 +18,6 @@ class Camera(Target):
 
     def test_precondition(self):
         is_stabilized = gui.is_temperature_stabilized()
-        print(is_stabilized)
         if not is_stabilized:
             print('[WARNING] Camera temperature is not stablized! Do you want to proceed? Press q to abort and any other key to proceed.')
             while not msvcrt.kbhit():
