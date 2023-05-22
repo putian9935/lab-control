@@ -8,7 +8,7 @@ if __name__ == '__main__':
 @Experiment()
 def main():
     @Stage(start_at=2, duration=7)
-    def stage1():
+    def load():
         @RawTS(channel=8, polarity=0)
         def om_zm_shutter():
             return [1,2,3,4,]
@@ -17,7 +17,7 @@ def main():
             return [0, 200], [30, 20], [.9, .1]
 
     @Stage(start_at=2*ms, duration=700)
-    def stage2():
+    def wait():
         @RawTS(pulse, channel=9, polarity=0)
         def om_zm_shutter():
             return [1,2,3,4,]
@@ -25,8 +25,8 @@ def main():
         def om_zm_shutter():
             return [-100,200]
              
-    @Stage(start_at=stage2.end)
-    def stage3():
+    @Stage(start_at=wait.end)
+    def measure():
         @RawTS(channel=8, polarity=0)
         def om_zm_shutter():
             return [4,500]
