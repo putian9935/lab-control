@@ -64,6 +64,7 @@ def to_plot(init_s, seq):
 def merge_plot_maps(*pms: plot_map) -> plot_map:
     ret: plot_map = dict()
     for pm in pms:
+        if pm is None: continue
         for k, (x, y) in pm.items():
             if k in ret:
                 # don't use +=, error with tuples

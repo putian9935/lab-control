@@ -22,9 +22,9 @@ class hold(Action):
         return {self.channel: (self.retv, self.polarity, self.signame)}
 
     @classmethod
-    def to_plot_cls(cls, target: Target, expand_pulse):
+    def to_plot_cls(cls, target: Target, expand_pulse, *args, **kwargs):
         if cls is not hold:
-            return ActionMeta.to_plot_cls(cls, target, expand_pulse)
+            return ActionMeta.to_plot_cls(cls, target, expand_pulse, *args, **kwargs)
         edges = defaultdict(list)
         init_state = defaultdict()
         for act in target.actions[cls]:
@@ -44,7 +44,7 @@ class hold(Action):
 @set_pulse
 @TimeSequencer.take_note
 class pulse(hold):
-    def to_plot(self, target, *, expand_pulse=False):
+    def to_plot(self, target, expand_pulse=False, *args, **kwargs):
         if not expand_pulse:
             return {(self.channel, self.signame): to_plot(self.polarity, pulsify(self.retv, width=0))}
         else:

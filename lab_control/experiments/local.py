@@ -12,7 +12,16 @@ def main():
         @RawTS(channel=8, polarity=0)
         def om_zm_shutter():
             return [1,2,3,4,]
-        
+        @AIO0(ramp, channel=0)
+        def repumper():
+            return [0, 200], [30, 20], [.5, .9]
+
+    @Stage(start_at=2, duration=7)
+    def stage1():
+        @RawTS(pulse, channel=5, polarity=0)
+        def om_zm_shutter():
+            return [1,2,3,4,]
+             
     @Stage()
     def stage3():
         @RawTS(channel=2, polarity=0)

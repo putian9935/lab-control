@@ -59,8 +59,8 @@ class ActionMeta(type):
         return merge_seq(*[inst.to_time_sequencer(target)
                            for inst in target.actions[cls]])
 
-    def to_plot_cls(cls, target: 'Target', expand_pulse):
-        return merge_plot_maps(*[inst.to_plot(target, expand_pulse)
+    def to_plot_cls(cls, target: 'Target', *args, **kwargs):
+        return merge_plot_maps(*[inst.to_plot(target, *args, **kwargs)
                                  for inst in target.actions[cls]])
 
     async def run_postprocess_cls(cls, target: 'Target'):
@@ -95,7 +95,7 @@ class Action(metaclass=ActionMeta):
         print(
             f'[Warning] Action {type(target).__name__}.{type(self).__name__} has nothing to transform to time sequencer.')
 
-    def to_plot(self, target: 'Target') -> Optional[plot_map]:
+    def to_plot(self, target: 'Target', *args, **kwargs) -> Optional[plot_map]:
         print(
             f'[Warning] Action {type(target).__name__}.{type(self).__name__} has nothing to plot.')
 

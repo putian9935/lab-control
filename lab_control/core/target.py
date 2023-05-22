@@ -74,8 +74,8 @@ class Target(metaclass=TargetMeta):
     def to_time_sequencer(self):
         return merge_seq(*[to_pulse(act_t.to_time_sequencer_cls(self), act_t.pulse) for act_t in type(self).supported_actions if act_t is not None])
 
-    def to_plot(self, expand_pulse=False):
-        return merge_plot_maps(*[act_t.to_plot_cls(self, expand_pulse) for act_t in type(self).supported_actions if act_t is not None])
+    def to_plot(self, expand_pulse=False, raw=False):
+        return merge_plot_maps(*[act_t.to_plot_cls(self, expand_pulse, raw) for act_t in type(self).supported_actions if act_t is not None])
 
     def test_postcondition(self):
         return True
