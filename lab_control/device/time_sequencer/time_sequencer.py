@@ -1,10 +1,9 @@
 from lab_control.core.target import Target
+from lab_control.core.types import *
 from lab_control.core.util.ts import pulsify, square, to_plot
-from lab_control.core import types
 from ...core.target import Target
 from ...core.action import Action, set_pulse, ActionMeta
 from collections import defaultdict
-from typing import Optional, Tuple, Dict, List
 
 
 class TimeSequencer(Target):
@@ -28,8 +27,9 @@ class hold(Action):
         edges = defaultdict(list)
         init_state = defaultdict()
         for act in target.actions[cls]:
-            edges[act.channel, act.signame] += act.retv
-            init_state[act.channel, act.signame] = act.polarity
+            k = act.channel, act.signame, 'hold'
+            edges[k] += act.retv
+            init_state[k] = act.polarity
         ret = dict()
         for k, data in edges.items():
             if k not in ret:
@@ -40,15 +40,19 @@ class hold(Action):
                 ret[k][1].extend(new[1])
         return ret
 
+    def to_plot(self, target: Target = None, *args, **kwargs):
+        return {(self.channel, self.signame, 'hold'): to_plot(self.polarity, self.retv)}
+
 
 @set_pulse
 @TimeSequencer.take_note
 class pulse(hold):
-    def to_plot(self, target, expand_pulse=False, *args, **kwargs):
+    def to_plot(self, target=None, expand_pulse=False, *args, **kwargs):
+        key = self.channel, self.signame, 'pulse'
         if not expand_pulse:
-            return {(self.channel, self.signame): to_plot(self.polarity, pulsify(self.retv, width=0))}
+            return {key: to_plot(self.polarity, pulsify(self.retv, width=0))}
         else:
-            return {(self.channel, self.signame): to_plot(self.polarity, pulsify(self.retv))}
+            return {key: to_plot(self.polarity, pulsify(self.retv))}
 
 
 if __name__ == '__main__':

@@ -1,10 +1,13 @@
+from lab_control.core.target import Target
+from lab_control.core.types import plot_map
 from ...core.target import Target
 from ...core.action import Action, set_pulse, ActionMeta
 import importlib.util
 from . import ports
 from .csv_reader import tv2wfm, p2r
-from typing import List, Tuple, Dict, Optional
 from ...core.types import *
+from lab_control.core.util.ts import to_plot, pulsify
+from ..time_sequencer import hold 
 
 aio_ts_mapping = Dict[ActionMeta, int]
 
@@ -66,6 +69,7 @@ class ramp(Action):
         'Ramp action.\n    Changes the servo setpoint by specifying the ramp time and ramp voltage change. \n    The return value must be a tuple of three lists of the trigger start time, ramp time, and ramp voltage change.'
         super().__init__(**kwargs)
         self.channel = channel
+        self.retv: Tuple[List[int], List[int], List[reals]]
 
     def to_time_sequencer(self, target: AIO) -> ts_map:
         if ramp not in target.ts_mapping:
@@ -88,11 +92,26 @@ class ramp(Action):
                 tv2wfm(dt, p2r(v, target.maxpd[ch], target.minpd[ch])))
 
 
+    def to_plot(self, target: AIO, raw: bool, *args, **kwargs) -> plot_map:
+        if raw:
+            return {(target.ts_mapping[ramp], self.signame): to_plot(self.polarity, self.retv[0])}
+        else:
+            ret_data: plot_value = [0,], [self.retv[2][-1]]
+            for i, (t, dt, v) in enumerate(zip(*self.retv)):
+                ret_data[0].append(t)
+                ret_data[0].append(t+dt)
+                ret_data[1].append(self.retv[2][i-1])
+                ret_data[1].append(v)
+            return {(target.ts_mapping[ramp], self.signame, 'ramp'): ret_data}
+
+
+
 @AIO.take_note
-class hsp(ramp):
+class hsp(Action):
     def __init__(self, *, channel: int, hsp: int, **kwargs) -> None:
         'Hold setpoint action.\n    When the pin 35 is pulled high, the output of the corresponding channel immediately changes to the number set in hsp.\n    The return value must be a list of time for the transition edges of the TTL signal. '
-        super().__init__(channel=channel, **kwargs)
+        super().__init__(**kwargs)
+        self.channel = channel
         self.hsp = hsp
 
     async def run_preprocess(self, target: AIO):
@@ -105,6 +124,11 @@ class hsp(ramp):
             raise KeyError("hsp is not in ts_mapping of AIO target")
         return {target.ts_mapping[hsp]: (self.retv, self.polarity, f'{target}.hsp')}
 
+    def to_plot(self, target: AIO, raw: bool, *args, **kwargs) -> plot_map:
+        x, y = to_plot(self.polarity, self.retv)
+        if not raw:
+            y = [_ * self.hsp for _ in y]
+        return {(target.ts_mapping[hsp], self.signame, 'hsp'): (x, y)}
 
 if __name__ == '__main__':
     import numpy as np

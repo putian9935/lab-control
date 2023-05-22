@@ -42,14 +42,15 @@ class ActionMeta(type):
 
             @wraps(f)
             def ret_func(self, *args, **kwds):
-                _ret = f(self, *args, **kwds)
-                ret = {}
-                if isinstance(_ret, dict):
-                    for k, v in _ret.items():
-                        ret[k] = self.add_offset(v[0]), v[1], v[2]
-                return ret
+                f(self, *args, **kwds)
+                if self.retv is not None:
+                    if isinstance(self.retv, tuple):
+                        self.retv = self.add_offset(
+                            self.retv[0]), *self.retv[1:]
+                    else:
+                        self.retv = self.add_offset(self.retv)
             return ret_func
-        cls.to_time_sequencer = add_offset(cls.to_time_sequencer)
+        cls.__init__ = add_offset(cls.__init__)
 
     async def run_preprocess_cls(cls, target: 'Target'):
         await asyncio.gather(*[inst.run_preprocess(target)
@@ -75,14 +76,15 @@ class ActionMeta(type):
 
 
 class Action(metaclass=ActionMeta):
-    def __init__(self, signame=None, polarity=False, retv=None, init_state=None) -> None:
+    def __init__(self, signame=None, polarity=False, retv=None, init_state=None, is_temp=False) -> None:
         self.signame = signame
         self.retv = retv
         self.polarity = polarity
         self._offset = Stage.cur  # offset in time marked by Stage
         if init_state is not None:
             self.polarity = init_state
-        type(self).instances.append(self)
+        if not is_temp:
+            type(self).instances.append(self)
 
     def add_offset(self, l: List):
         return [x + self._offset for x in l]
