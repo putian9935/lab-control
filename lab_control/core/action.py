@@ -77,6 +77,7 @@ class Action(metaclass=ActionMeta):
                     return
             type(self).instances.append(self)
 
+
     def add_offset(self, l: List):
         # handle offset
         cls = type(self)

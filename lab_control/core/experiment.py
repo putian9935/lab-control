@@ -25,7 +25,7 @@ class Experiment:
                 cleanup()
                 raise type(e)(
                     "Cannot parse the Python file. Did you define everything in the lab file?") from e
-            Stage.clear()
+            # Stage.clear()
             print(
                 f'[INFO] Experiment {f.__name__} parsed in {time.perf_counter()-tt} second(s)!')
             try:

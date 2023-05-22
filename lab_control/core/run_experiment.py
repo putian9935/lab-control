@@ -97,9 +97,9 @@ async def run_postprocess():
 
 def cleanup():
     print('[INFO] cleanup')
-    for cls in Action.__subclasses__():
-        cls.cleanup()
     for tar in all_target_instances():
+        for act in tar.actions.keys():
+            act.cleanup()
         tar.cleanup()
 
 
