@@ -2,9 +2,8 @@ from lab_control.core.target import Target
 from lab_control.core.util.ts import pulsify, square, to_plot
 from lab_control.core import types
 from ...core.target import Target
-from ...core.action import Action, set_pulse
+from ...core.action import Action, set_pulse, ActionMeta
 from collections import defaultdict
-
 from typing import Optional, Tuple, Dict, List
 
 
@@ -23,16 +22,22 @@ class hold(Action):
         return {self.channel: (self.retv, self.polarity, self.signame)}
 
     @classmethod
-    def to_plot_cls(cls, target: Target):
+    def to_plot_cls(cls, target: Target, expand_pulse):
+        if cls is not hold:
+            return ActionMeta.to_plot_cls(cls, target, expand_pulse)
         edges = defaultdict(list)
         init_state = defaultdict()
-        for act in target.actions[hold]:
+        for act in target.actions[cls]:
             edges[act.channel, act.signame] += act.retv
             init_state[act.channel, act.signame] = act.polarity
-        ret = defaultdict(list)
-        for (ch, name), data in edges.items():
-            ret[ch, name].append(
-                to_plot(init_state[ch, name], sorted(data)))
+        ret = dict()
+        for k, data in edges.items():
+            if k not in ret:
+                ret[k] = to_plot(init_state[k], sorted(data))
+            else:
+                new = to_plot(init_state[k], sorted(data))
+                ret[k][0].extend(new[0])
+                ret[k][1].extend(new[1])
         return ret
 
 

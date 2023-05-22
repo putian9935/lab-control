@@ -65,7 +65,7 @@ def merge_plot_maps(*pms: plot_map) -> plot_map:
     ret: plot_map = dict()
     for pm in pms:
         for k, (x, y) in pm.items():
-            if k in pm:
+            if k in ret:
                 # don't use +=, error with tuples
                 ret[k][0].extend(x) 
                 ret[k][1].extend(y) 
