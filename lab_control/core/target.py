@@ -59,7 +59,8 @@ class Target(metaclass=TargetMeta):
                 raise TypeError(
                     f'Incorrect argument count for action {type(self).__name__}.{act.__name__}') from e
             else:
-                self.actions[act].append(new_action)
+                if not new_action._used:
+                    self.actions[act].append(new_action)
         return ret
 
     async def wait_until_ready(self):
@@ -75,7 +76,7 @@ class Target(metaclass=TargetMeta):
         return merge_seq(*[to_pulse(act_t.to_time_sequencer_cls(self), act_t.pulse) for act_t in type(self).supported_actions if act_t is not None])
 
     def to_plot(self, expand_pulse=False, raw=False):
-        return merge_plot_maps(*[act_t.to_plot_cls(self, expand_pulse, raw) for act_t in type(self).supported_actions if act_t is not None])
+        return merge_plot_maps(*[act_t.to_plot_cls(self, expand_pulse=expand_pulse, raw=raw) for act_t in type(self).supported_actions if act_t is not None])
 
     def test_postcondition(self):
         return True

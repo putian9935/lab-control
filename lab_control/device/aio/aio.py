@@ -6,8 +6,8 @@ import importlib.util
 from . import ports
 from .csv_reader import tv2wfm, p2r
 from ...core.types import *
-from lab_control.core.util.ts import to_plot, pulsify
-from ..time_sequencer import hold 
+from lab_control.core.util.ts import to_plot, pulsify, merge_plot_maps
+from ..time_sequencer import hold
 
 aio_ts_mapping = Dict[ActionMeta, int]
 
@@ -67,8 +67,8 @@ def shift_vdt_by_one(retv: Tuple[list]):
 class ramp(Action):
     def __init__(self, *, channel: int, **kwargs) -> None:
         'Ramp action.\n    Changes the servo setpoint by specifying the ramp time and ramp voltage change. \n    The return value must be a tuple of three lists of the trigger start time, ramp time, and ramp voltage change.'
-        super().__init__(**kwargs)
         self.channel = channel
+        super().__init__(**kwargs)
         self.retv: Tuple[List[int], List[int], List[reals]]
 
     def to_time_sequencer(self, target: AIO) -> ts_map:
@@ -91,19 +91,21 @@ class ramp(Action):
                 ch,
                 tv2wfm(dt, p2r(v, target.maxpd[ch], target.minpd[ch])))
 
+    def __eq__(self, __value: object) -> bool:
+        super().__eq__(__value)
+        return self.channel == __value.channel
 
     def to_plot(self, target: AIO, raw: bool, *args, **kwargs) -> plot_map:
         if raw:
             return {(target.ts_mapping[ramp], self.signame): to_plot(self.polarity, self.retv[0])}
         else:
-            ret_data: plot_value = [0,], [self.retv[2][-1]]
+            ret_data: plot_value = [0, ], [self.retv[2][-1]]
             for i, (t, dt, v) in enumerate(zip(*self.retv)):
                 ret_data[0].append(t)
                 ret_data[0].append(t+dt)
                 ret_data[1].append(self.retv[2][i-1])
                 ret_data[1].append(v)
             return {(target.ts_mapping[ramp], self.signame, 'ramp'): ret_data}
-
 
 
 @AIO.take_note
@@ -129,6 +131,7 @@ class hsp(Action):
         if not raw:
             y = [_ * self.hsp for _ in y]
         return {(target.ts_mapping[hsp], self.signame, 'hsp'): (x, y)}
+
 
 if __name__ == '__main__':
     import numpy as np

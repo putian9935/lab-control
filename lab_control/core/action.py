@@ -30,28 +30,6 @@ class ActionMeta(type):
         cls._offset: bool = offset  # the library writer may override the default behavior
         ActionMeta.instances[cls.__name__] = cls
 
-        def add_offset(f: Callable):
-            # special case for Action
-            if cls.__base__ is object:
-                return f
-            # handle inheritance: if the base class is offset, then the subclass needs not to
-            if not cls._offset and cls.__base__._offset:
-                cls._offset = True
-                return f
-            cls._offset = True
-
-            @wraps(f)
-            def ret_func(self, *args, **kwds):
-                f(self, *args, **kwds)
-                if self.retv is not None:
-                    if isinstance(self.retv, tuple):
-                        self.retv = self.add_offset(
-                            self.retv[0]), *self.retv[1:]
-                    else:
-                        self.retv = self.add_offset(self.retv)
-            return ret_func
-        cls.__init__ = add_offset(cls.__init__)
-
     async def run_preprocess_cls(cls, target: 'Target'):
         await asyncio.gather(*[inst.run_preprocess(target)
                                for inst in target.actions[cls]])
@@ -60,8 +38,8 @@ class ActionMeta(type):
         return merge_seq(*[inst.to_time_sequencer(target)
                            for inst in target.actions[cls]])
 
-    def to_plot_cls(cls, target: 'Target', *args, **kwargs):
-        return merge_plot_maps(*[inst.to_plot(target, *args, **kwargs)
+    def to_plot_cls(cls, target: 'Target', **kwargs):
+        return merge_plot_maps(*[inst.to_plot(target, **kwargs)
                                  for inst in target.actions[cls]])
 
     async def run_postprocess_cls(cls, target: 'Target'):
@@ -78,16 +56,37 @@ class ActionMeta(type):
 class Action(metaclass=ActionMeta):
     def __init__(self, signame=None, polarity=False, retv=None, init_state=None, is_temp=False) -> None:
         self.signame = signame
+
         self.retv = retv
+        if self.retv is not None:
+            if isinstance(self.retv, tuple):
+                self.retv = self.add_offset(
+                    self.retv[0]), *self.retv[1:]
+            else:
+                self.retv = self.add_offset(self.retv)
+
         self.polarity = polarity
-        self._offset = Stage.cur  # offset in time marked by Stage
         if init_state is not None:
             self.polarity = init_state
         if not is_temp:
+            self._used = False
+            for x in type(self).instances:
+                if self == x:
+                    self._used = True
+                    x.extend(self)
+                    return
             type(self).instances.append(self)
 
     def add_offset(self, l: List):
-        return [x + self._offset for x in l]
+        # handle offset
+        cls = type(self)
+        if cls.__base__ is object:
+            return l
+        # handle inheritance: if the base class is offset, then the subclass needs not to
+        elif not cls._offset and cls.__base__._offset:
+            cls._offset = True
+            return l
+        return [x + Stage.cur for x in l]
 
     async def run_preprocess(self, target: 'Target'):
         print(
@@ -104,3 +103,17 @@ class Action(metaclass=ActionMeta):
     async def run_postprocess(self, target: 'Target'):
         print(
             f'[Warning] Action {type(target).__name__}.{type(self).__name__} has no postprocess to run.')
+
+    def extend(self, new):
+        if type(self) != type(new):
+            raise TypeError("Non-comparable type!")
+        if isinstance(self.retv, tuple):
+            for l, ll in zip(self.retv, new.retv):
+                l.extend(ll)
+        elif isinstance(self.retv, list):
+            self.retv.extend(new.retv)
+
+    def __eq__(self, __value: object) -> bool:
+        if type(self) == type(__value):
+            return self.signame == __value.signame
+        raise TypeError("Non-comparable type!")

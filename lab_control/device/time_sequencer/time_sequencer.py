@@ -20,28 +20,12 @@ class hold(Action):
     def to_time_sequencer(self, target: TimeSequencer) -> Tuple[Dict[int, List[int]], bool]:
         return {self.channel: (self.retv, self.polarity, self.signame)}
 
-    @classmethod
-    def to_plot_cls(cls, target: Target, expand_pulse, *args, **kwargs):
-        if cls is not hold:
-            return ActionMeta.to_plot_cls(cls, target, expand_pulse, *args, **kwargs)
-        edges = defaultdict(list)
-        init_state = defaultdict()
-        for act in target.actions[cls]:
-            k = act.channel, act.signame, 'hold'
-            edges[k] += act.retv
-            init_state[k] = act.polarity
-        ret = dict()
-        for k, data in edges.items():
-            if k not in ret:
-                ret[k] = to_plot(init_state[k], sorted(data))
-            else:
-                new = to_plot(init_state[k], sorted(data))
-                ret[k][0].extend(new[0])
-                ret[k][1].extend(new[1])
-        return ret
-
     def to_plot(self, target: Target = None, *args, **kwargs):
         return {(self.channel, self.signame, 'hold'): to_plot(self.polarity, self.retv)}
+
+    def __eq__(self, __value: object) -> bool:
+        super().__eq__(__value)
+        return self.channel == __value.channel 
 
 
 @set_pulse
