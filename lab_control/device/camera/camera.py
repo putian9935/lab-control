@@ -6,6 +6,8 @@ from . import config_editor as ce
 import msvcrt
 import time
 from typing import Tuple, Dict, List
+from ...core.util.ts import to_plot, pulsify
+
 
 class Camera(Target):
     def __init__(self, channel) -> None:
@@ -45,7 +47,7 @@ class external(Action):
                 raise ValueError(
                     "Camera exposure time > 1 second! Did you forget to change unit from microsecond to second?")
             ce.set_config(self.yml, 'External start',
-                          'ExposureTime', exposure_time)
+                          'ExposureTime', exposure_time/1e3)
         if emccd_gain is not None:
             ce.set_config(self.yml, 'External start', 'EMCCDGain', emccd_gain)
 
@@ -56,6 +58,9 @@ class external(Action):
     def to_time_sequencer(self, target: Camera) -> Tuple[Dict[int, List[int]], bool, str]:
         return {target.channel: (self.retv, self.polarity, self.signame)}
 
+    def to_plot(self, target=None, **kwargs):
+        return {(target.channel, self.signame, 'external'): to_plot(self.polarity, pulsify(self.retv, width=0))}
+
 
 @set_pulse
 @Camera.take_note
@@ -63,13 +68,24 @@ class external_start(external):
     def __init__(self, *, first_image_at, kcc=None, nc=None, **kwargs) -> None:
         super().__init__(**kwargs)
         if kcc is not None:
-            ce.set_config(self.yml, 'External start', 'KineticCycleTime', kcc)
+            ce.set_config(self.yml, 'External start',
+                          'KineticCycleTime', kcc/1e3)
         if nc is not None:
-            ce.set_config(self.yml, 'External start', 'NumKinetics', nc)
+            ce.set_config(self.yml, 'External start', 'NumKinetics', nc/1e3)
         self.first_image_at = first_image_at
 
     def to_time_sequencer(self, target: Camera) -> Tuple[Dict[int, List[int]], bool, str]:
         return {target.channel: ([self.first_image_at], self.polarity, self.signame)}
+
+    def to_plot(self, target=None, **kwargs):
+        # display all actual fires, NOTE up to 50us delay 
+        return {
+            (target.channel, self.signame, 'external_start'):
+            to_plot(self.polarity,
+                    pulsify([
+                        self.first_image_at + _ * self.nc
+                        for _ in range(self.kcc)],
+                        width=0))}
 
 
 if __name__ == '__main__':

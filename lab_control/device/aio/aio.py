@@ -92,8 +92,7 @@ class ramp(Action):
                 tv2wfm(dt, p2r(v, target.maxpd[ch], target.minpd[ch])))
 
     def __eq__(self, __value: object) -> bool:
-        super().__eq__(__value)
-        return self.channel == __value.channel
+        return super().__eq__(__value) and self.channel == __value.channel
 
     def to_plot(self, target: AIO, raw: bool, *args, **kwargs) -> plot_map:
         if raw:
@@ -131,6 +130,9 @@ class hsp(Action):
         if not raw:
             y = [_ * self.hsp for _ in y]
         return {(target.ts_mapping[hsp], self.signame, 'hsp'): (x, y)}
+
+    def __eq__(self, __value: object) -> bool:
+        return super().__eq__(__value) and self.channel == __value.channel
 
 
 if __name__ == '__main__':

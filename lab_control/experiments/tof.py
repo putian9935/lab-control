@@ -62,8 +62,8 @@ def exp(cam_exposure=5*ms,
         action=external_start,
         spooling=True,
         spool_func=get_new_name,
-        kcc=50e-3, nc=5,
-        exposure_time=1e-3,
+        kcc=50*ms, nc=5,
+        exposure_time=1*ms,
         first_image_at=tof+load-50*ms*3)
     def camera():
         return []

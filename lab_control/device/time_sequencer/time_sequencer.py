@@ -3,7 +3,6 @@ from lab_control.core.types import *
 from lab_control.core.util.ts import pulsify, square, to_plot
 from ...core.target import Target
 from ...core.action import Action, set_pulse, ActionMeta
-from collections import defaultdict
 
 
 class TimeSequencer(Target):
@@ -24,14 +23,13 @@ class hold(Action):
         return {(self.channel, self.signame, 'hold'): to_plot(self.polarity, self.retv)}
 
     def __eq__(self, __value: object) -> bool:
-        super().__eq__(__value)
-        return self.channel == __value.channel 
+        return super().__eq__(__value) and self.channel == __value.channel 
 
 
 @set_pulse
 @TimeSequencer.take_note
 class pulse(hold):
-    def to_plot(self, target=None, expand_pulse=False, *args, **kwargs):
+    def to_plot(self, target=None, expand_pulse=False, **kwargs):
         key = self.channel, self.signame, 'pulse'
         if not expand_pulse:
             return {key: to_plot(self.polarity, pulsify(self.retv, width=0))}
