@@ -118,7 +118,7 @@ class hsp(Action):
     async def run_preprocess(self, target: AIO):
         if hsp not in target.ts_mapping:
             raise KeyError(f"hsp is not in ts_mapping of AIO target {target}")
-        target.backend.hsp(self.channel, self.hsp)
+        target.backend.hsp(self.channel, tv2wfm([1],[self.hsp]))
 
     def to_time_sequencer(self, target: AIO) -> ts_map:
         if hsp not in target.ts_mapping:
