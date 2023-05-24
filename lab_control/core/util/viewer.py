@@ -41,6 +41,7 @@ class Viewer:
                           rotation_mode='anchor',
                           labelpad=100,
                           )
+            ax.margins(0, .1)
             if not self.real_time:
                 for x in self.xtick:
                     ax.axvline(x, color='k', ls='dashed', lw=1, alpha=.5)
@@ -48,10 +49,20 @@ class Viewer:
         ax.set_xticks(self.xtick)
         ax.set_xticklabels(self.xlabel, rotation=90,
                            ha='right', rotation_mode='anchor')
+        self.remove_middle_spines(axes)
         fig.suptitle(title)
         plt.tight_layout()
         plt.subplots_adjust(hspace=.0)
         return self
+
+    def remove_middle_spines(self, axes: List[matplotlib.axes.Axes]):
+        if len(axes) == 1:
+            return
+        axes[0].spines['bottom'].set_visible(False)
+        for ax in axes[1:-1]:
+            ax.spines['top'].set_visible(False)
+            ax.spines['bottom'].set_visible(False)
+        axes[-1].spines['top'].set_visible(False)
 
     def show(self):
         plt.savefig('1.pdf', bbox_inches='tight')
