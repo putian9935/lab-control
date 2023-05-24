@@ -38,14 +38,14 @@ class Experiment:
                 show_sequences(
                     merge_plot_maps(*[tar.to_plot()
                                       for tar in all_target_instances()]))
+                tt = time.perf_counter()
+                exp_time = prepare_sequencer_files()
+                print(
+                    f'[INFO] Sequence prepared in {time.perf_counter()-tt} '
+                    'second(s)!')
+                print(
+                    f'[INFO] Experiment cycle time: {exp_time/1e6} second(s)')
                 if self.to_fpga:
-                    tt = time.perf_counter()
-                    exp_time = prepare_sequencer_files()
-                    print(
-                        f'[INFO] Sequence prepared in {time.perf_counter()-tt} '
-                        'second(s)!')
-                    print(
-                        f'[INFO] Experiment cycle time: {exp_time/1e6} second(s)')
                     await run_sequence(self.ts_fpga, exp_time)
                     print(f'[INFO] Experiment {f.__name__} sequence done!')
                 await run_postprocess()
