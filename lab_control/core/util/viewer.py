@@ -71,5 +71,5 @@ class Viewer:
 
 def show_sequences(pm):
     # TODO: add attribute for command line input
-    Viewer(pm, True).plot().show()
+    Viewer(pm).plot().show()
 
