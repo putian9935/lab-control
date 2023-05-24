@@ -62,7 +62,6 @@ def to_plot(init_s, seq):
     for _ in seq:
         y.append(y[-1])
         y.append(y[-1]^1)
-    print(x, y)
     return x, y
 
 def merge_plot_maps(*pms: plot_map) -> plot_map:

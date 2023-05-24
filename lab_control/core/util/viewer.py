@@ -25,7 +25,8 @@ class Viewer:
 
     def plot(self):
         _, axes = plt.subplots(
-            len(self.pm.keys()), 1, sharex=True, figsize=(15, 10))
+            len(self.pm.keys()), 1, sharex=True, figsize=(15, 10), squeeze=False)
+        axes = axes[:, 0]
         self.normalize_x()
         for ax, ((channel, name, act_name), (x, y)) in zip(axes, self.pm.items()):
             ax: matplotlib.axes.Axes
