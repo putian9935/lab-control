@@ -42,12 +42,6 @@ class Experiment:
                     f'[INFO] Prerequisite done in {time.perf_counter()-tt} second(s)!')
                 if not test_precondition():
                     raise PreconditionFail()
-                ba = signature.bind(*args, **kwds)
-                ba.apply_defaults()
-                show_sequences(
-                    merge_plot_maps(*[tar.to_plot()
-                                      for tar in all_target_instances()]),
-                    title=param2title(ba.arguments))
                 tt = time.perf_counter()
                 exp_time = prepare_sequencer_files()
                 print(
@@ -55,6 +49,12 @@ class Experiment:
                     'second(s)!')
                 print(
                     f'[INFO] Experiment cycle time: {exp_time/1e6} second(s)')
+                ba = signature.bind(*args, **kwds)
+                ba.apply_defaults()
+                show_sequences(
+                    merge_plot_maps(*[tar.to_plot()
+                                      for tar in all_target_instances()]),
+                    title=param2title(ba.arguments))
                 if self.to_fpga:
                     await run_sequence(self.ts_fpga, exp_time)
                     print(f'[INFO] Experiment {f.__name__} sequence done!')
