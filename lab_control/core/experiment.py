@@ -4,7 +4,13 @@ from .util.ts import merge_plot_maps
 from .stage import Stage
 import time
 from .target import PostconditionFail, PreconditionFail
-from typing import Callable
+from typing import Callable, Dict
+import inspect
+
+
+def param2title(param: Dict):
+    """ Convert parameter dict to k=v string"""
+    return ', '.join(f'{k}={v}' for k, v in param.items())
 
 
 class Experiment:
@@ -16,6 +22,7 @@ class Experiment:
         self.ts_fpga = ts_fpga
 
     def __call__(self, f) -> Callable:
+        signature = inspect.signature(f)
         async def ret(*args, **kwds):
             Stage.clear()
             tt = time.perf_counter()
@@ -35,9 +42,12 @@ class Experiment:
                     f'[INFO] Prerequisite done in {time.perf_counter()-tt} second(s)!')
                 if not test_precondition():
                     raise PreconditionFail()
+                ba = signature.bind(*args, **kwds)
+                ba.apply_defaults()
                 show_sequences(
                     merge_plot_maps(*[tar.to_plot()
-                                      for tar in all_target_instances()]))
+                                      for tar in all_target_instances()]),
+                    title=param2title(ba.arguments))
                 tt = time.perf_counter()
                 exp_time = prepare_sequencer_files()
                 print(

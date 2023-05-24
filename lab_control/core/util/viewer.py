@@ -2,10 +2,10 @@ import matplotlib.pyplot as plt
 import matplotlib.axes
 from ..types import *
 from ..stage import Stage
-import matplotlib.text as text
+
 
 class Viewer:
-    def __init__(self, pm: plot_map, real_time=False) -> None:
+    def __init__(self, pm: plot_map, real_time) -> None:
         times = set(xx for x, y in pm.values() for xx in x)
         # if not real_time:
         for st in Stage.stages:
@@ -23,8 +23,8 @@ class Viewer:
             self.xtick = list(range(len(self.all_x)))
         self.xlabel = list(map(str, self.all_x))
 
-    def plot(self):
-        _, axes = plt.subplots(
+    def plot(self, title):
+        fig, axes = plt.subplots(
             len(self.pm.keys()), 1, sharex=True, figsize=(20, 13), squeeze=False)
         axes = axes[:, 0]
         self.normalize_x()
@@ -35,10 +35,10 @@ class Viewer:
             channel, name, act_name = keys[k]
             x, y = self.pm[keys[k]]
             ax.plot(x, y, lw=2)
-            ax.get_yaxis().set_label_coords(-.1,.5)
+            ax.get_yaxis().set_label_coords(-.1, .5)
             ax.set_ylabel(f'{name}\n{act_name}@{channel}',
                           rotation=0, ha='left',
-                          rotation_mode='anchor', 
+                          rotation_mode='anchor',
                           labelpad=100,
                           )
             if not self.real_time:
@@ -48,6 +48,7 @@ class Viewer:
         ax.set_xticks(self.xtick)
         ax.set_xticklabels(self.xlabel, rotation=90,
                            ha='right', rotation_mode='anchor')
+        fig.suptitle(title)
         plt.tight_layout()
         plt.subplots_adjust(hspace=.0)
         return self
@@ -80,6 +81,6 @@ class Viewer:
                 ax.set_ylim(*lim)
 
 
-def show_sequences(pm):
+def show_sequences(pm, *, real_time=False, title=None):
     # TODO: add attribute for command line input
-    Viewer(pm).plot().show()
+    Viewer(pm, real_time).plot(title).show()
