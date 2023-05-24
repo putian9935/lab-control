@@ -58,7 +58,11 @@ def square(init_s, n):
 
 def to_plot(init_s, seq):
     x = [0] + list(_ for _ in seq for __ in range(2))
-    y = [init_s] + list(square(init_s, len(seq)//2))
+    y = [init_s] 
+    for _ in seq:
+        y.append(y[-1])
+        y.append(y[-1]^1)
+    print(x, y)
     return x, y
 
 def merge_plot_maps(*pms: plot_map) -> plot_map:
