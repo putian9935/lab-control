@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib.axes
 from ..types import *
 from ..stage import Stage
-
+import matplotlib.text as text
 
 class Viewer:
     def __init__(self, pm: plot_map, real_time=False) -> None:
@@ -25,25 +25,35 @@ class Viewer:
 
     def plot(self):
         _, axes = plt.subplots(
-            len(self.pm.keys()), 1, sharex=True, figsize=(15, 10), squeeze=False)
+            len(self.pm.keys()), 1, sharex=True, figsize=(20, 13), squeeze=False)
         axes = axes[:, 0]
         self.normalize_x()
-        for ax, ((channel, name, act_name), (x, y)) in zip(axes, self.pm.items()):
+        keys = list(self.pm.keys())
+        order = sorted(range(len(self.pm)), key=lambda _: keys[_])
+        for ax, k in zip(axes, order):
             ax: matplotlib.axes.Axes
+            channel, name, act_name = keys[k]
+            x, y = self.pm[keys[k]]
             ax.plot(x, y, lw=2)
-            ax.set_ylabel(f'{name}\n{act_name}@{channel}')
+            ax.get_yaxis().set_label_coords(-.1,.5)
+            ax.set_ylabel(f'{name}\n{act_name}@{channel}',
+                          rotation=0, ha='left',
+                          rotation_mode='anchor', 
+                          labelpad=100,
+                          )
             if not self.real_time:
                 for x in self.xtick:
                     ax.axvline(x, color='k', ls='dashed', lw=1, alpha=.5)
         self.annotate_stage(axes)
         ax.set_xticks(self.xtick)
-        ax.set_xticklabels(self.xlabel)
+        ax.set_xticklabels(self.xlabel, rotation=90,
+                           ha='right', rotation_mode='anchor')
         plt.tight_layout()
         plt.subplots_adjust(hspace=.0)
         return self
 
     def show(self):
-        plt.savefig('1.pdf')
+        plt.savefig('1.pdf', bbox_inches='tight')
         plt.show()
 
     def append_max(self):
@@ -66,11 +76,10 @@ class Viewer:
                 ax: matplotlib.axes.Axes
                 lim = ax.get_ylim()
                 ax.fill_between([self.xtick[self.inv_f[st.start]], self.xtick[self.inv_f[st.end]]],
-                                    *lim, color=f'C{c%9+1}', alpha=.2)
+                                *lim, color=f'C{c%9+1}', alpha=.2)
                 ax.set_ylim(*lim)
 
 
 def show_sequences(pm):
     # TODO: add attribute for command line input
     Viewer(pm).plot().show()
-
