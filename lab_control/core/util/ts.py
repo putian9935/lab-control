@@ -1,7 +1,7 @@
 import numpy as np
-from datetime import datetime
 import os
 from ..types import *
+from .. import config
 
 
 def merge_seq(*seqs: Tuple[ts_map]) -> ts_map:
@@ -58,24 +58,26 @@ def square(init_s, n):
 
 def to_plot(init_s, seq):
     x = [0] + list(_ for _ in seq for __ in range(2))
-    y = [init_s] 
+    y = [init_s]
     for _ in seq:
         y.append(y[-1])
-        y.append(y[-1]^1)
+        y.append(y[-1] ^ 1)
     return x, y
+
 
 def merge_plot_maps(*pms: plot_map) -> plot_map:
     ret: plot_map = dict()
     for pm in pms:
-        if pm is None: continue
+        if pm is None:
+            continue
         for k, (x, y) in pm.items():
             if k in ret:
                 # don't use +=, error with tuples
-                ret[k][0].extend(x) 
-                ret[k][1].extend(y) 
+                ret[k][0].extend(x)
+                ret[k][1].extend(y)
             else:
                 ret[k] = x, y
-    return ret 
+    return ret
 
 
 def save_sequences(sequences: ts_map, fname: str):
@@ -118,7 +120,7 @@ def save_sequences(sequences: ts_map, fname: str):
 
     if not os.path.exists('saved_sequences'):
         os.mkdir('saved_sequences')
-    np.savetxt(f'saved_sequences/{datetime.now():%Y%m%d%H%M%S}.csv', np.array(full_ch).T, delimiter=",",
+    np.savetxt(f'saved_sequences/{config.time_stamp:%Y%m%d%H%M%S}.csv', np.array(full_ch).T, delimiter=",",
                fmt="%i", header='\n'.join(headers), comments='')
 
     # save out

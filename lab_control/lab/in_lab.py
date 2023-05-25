@@ -12,4 +12,5 @@ aio_326intensityServo = AIO(
     ts_mapping={ramp:14, hsp:15}
 )
 
+camera = CameraSolis()
 # fname_gen = FileNameGenerator()
