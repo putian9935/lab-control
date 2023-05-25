@@ -3,7 +3,7 @@ from lab_control.core import Target, ActionMeta, PreconditionFail, Postcondition
 import asyncio
 from lab_control.core.run_experiment import *
 import traceback
-
+from lab_control.core.config import config
 
 async def main(lab_name):
     spec = importlib.util.find_spec('lab_control.lab.'+lab_name)
@@ -53,6 +53,9 @@ async def main(lab_name):
                             f'Unknown action type {name}. Did you include the correpsonding target type in the lab file? ')
                     else:
                         get_action_usage(act)
+                elif exp_name.startswith('!config'):
+                    cmd = exp_name[7:].strip()
+                    config.update(cmd)
                 else:
                     print('Unrecognized command!')
             else:
@@ -72,7 +75,7 @@ async def main(lab_name):
     print('[INFO] Target(s) closed normally. Bye!')
 
 if __name__ == '__main__':
-    asyncio.run(main('in_lab'))
-    # asyncio.run(main('offline_lab'))
+    # asyncio.run(main('in_lab'))
+    asyncio.run(main('offline_lab'))
     # asyncio.run(main('remote_test'))
     # asyncio.run(main('remote'))

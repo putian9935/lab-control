@@ -2,9 +2,20 @@ from .types import *
 from datetime import datetime
 import os
 from .types import *
+import shlex
+from ast import literal_eval
 
 
-class Configuration:
+class ConfMeta(type):
+    def __init__(cls, *args):
+        cls.writable_property_names = set(
+            attr
+            for attr in cls.__dict__.keys()
+            if isinstance(cls.__getattribute__(cls, attr), property)
+            if cls.__getattribute__(cls, attr).fset is not None)
+
+
+class Configuration(metaclass=ConfMeta):
     def __init__(self) -> None:
         # saving options
         self._time_stamp: datetime = None
@@ -32,15 +43,32 @@ class Configuration:
                 ret += 1
         self._cnt = ret
 
+    def update(self, cmd: str):
+        for x in shlex.split(cmd, posix=False):
+            try:
+                k, v = x.split('=', 1)
+            except ValueError as e:
+                raise ValueError(
+                    f"Cannot parse line {x}. Is it in the format of key=value?") from e
+            if (k not in self.__dict__ and
+                    k not in Configuration.writable_property_names):
+                raise KeyError(
+                    f"Cannot find attribute {k}. Did you misspell it?")
+            try:
+                self.__setattr__(k, literal_eval(v))
+            except (ValueError, SyntaxError) as e:
+                raise ValueError(
+                    f"Cannot parse value {v}. Did you forget to add r-prefix for raw strings?") from e
+
     @property
-    def output_dirname(self):
+    def output_dir(self):
         return self._output_dirname
 
-    @output_dirname.setter
-    def output_dirname(self, new_dirname):
+    @output_dir.setter
+    def output_dir(self, new_dirname):
         if not os.path.exists(new_dirname):
             print('Making directory', new_dirname)
-            os.mkdir()
+            os.mkdir(new_dirname)
         self._output_dirname = new_dirname
 
         self._all_fnames = os.path.join(self._output_dirname, 'fnames.txt')
@@ -79,4 +107,4 @@ class Configuration:
 
 
 config = Configuration()
-config.output_dirname = rf'Q:\indium\data\2023\{datetime.now():%y%m%d}'
+config.output_dir = rf'Q:\indium\data\2023\{datetime.now():%y%m%d}'
