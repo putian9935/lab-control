@@ -2,6 +2,9 @@ import matplotlib.pyplot as plt
 import matplotlib.axes
 from ..types import *
 from ..stage import Stage
+from ..run_experiment import all_target_instances
+from .ts import merge_plot_maps
+from ..config import config
 
 
 class Viewer:
@@ -53,7 +56,7 @@ class Viewer:
         fig.suptitle(title)
         plt.tight_layout()
         plt.subplots_adjust(hspace=.0)
-        plt.title('pgcV16')
+        plt.savefig('1.pdf', bbox_inches='tight')
         return self
 
     def remove_middle_spines(self, axes: List[matplotlib.axes.Axes]):
@@ -66,7 +69,6 @@ class Viewer:
         axes[-1].spines['top'].set_visible(False)
 
     def show(self):
-        plt.savefig('1.pdf', bbox_inches='tight')
         plt.show()
 
     def append_max(self):
@@ -93,7 +95,11 @@ class Viewer:
                 ax.set_ylim(*lim)
 
 
-def show_sequences(pm, *, real_time=False, title=None):
-    # TODO: add attribute for command line input
-    # Viewer(pm).plot().show()
-    pass
+def show_sequences():
+    pm = merge_plot_maps(*[tar.to_plot(config.view_raw)
+                           for tar in all_target_instances()])
+    viewer = Viewer(pm, config.view_real_time).plot(config.title)
+
+    if not config.view:
+        return
+    viewer.show()
