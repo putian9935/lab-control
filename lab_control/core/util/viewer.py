@@ -44,7 +44,7 @@ class Viewer:
             ax.margins(0, .1)
             if not self.real_time:
                 for x in self.xtick:
-                    ax.axvline(x, color='k', ls='dashed', lw=1, alpha=.5)
+                    ax.axvline(x, color='k', ls='dashed', lw=0.5, alpha=.3)
         self.annotate_stage(axes)
         ax.set_xticks(self.xtick)
         ax.set_xticklabels(self.xlabel, rotation=90,
@@ -53,6 +53,7 @@ class Viewer:
         fig.suptitle(title)
         plt.tight_layout()
         plt.subplots_adjust(hspace=.0)
+        plt.title('pgcV16')
         return self
 
     def remove_middle_spines(self, axes: List[matplotlib.axes.Axes]):
@@ -88,10 +89,11 @@ class Viewer:
                 ax: matplotlib.axes.Axes
                 lim = ax.get_ylim()
                 ax.fill_between([self.xtick[self.inv_f[st.start]], self.xtick[self.inv_f[st.end]]],
-                                *lim, color=f'C{c%9+1}', alpha=.2)
+                                *lim, color=f'C{c%9+1}', alpha=.15)
                 ax.set_ylim(*lim)
 
 
 def show_sequences(pm, *, real_time=False, title=None):
     # TODO: add attribute for command line input
-    Viewer(pm, real_time).plot(title).show()
+    # Viewer(pm).plot().show()
+    pass
