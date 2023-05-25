@@ -12,13 +12,12 @@ class CameraSolis(Target):
         self.conn = rpyc.connect(hostname, 17733)
 
     async def run_preprocess(self):
-        fname = config.fname
         config.append_param(config.param_str)
-        config.append_fname(fname)
+        config.append_fname(config.fname)
         return await asyncio.get_event_loop().run_in_executor(
             None,
             self.conn.root.emccd_fnAcq,
-            fname)
+            config.fname)
 
     def cleanup(self):
         self.conn.root.emccd_stopAcq()

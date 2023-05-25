@@ -26,6 +26,7 @@ class Experiment:
                 ba.apply_defaults()
                 config._arguments = ba.arguments
                 config._time_stamp = datetime.now()
+                config.update_cnt()
 
             Stage.clear()
             tt = time.perf_counter()

@@ -10,11 +10,27 @@ class Configuration:
         self._time_stamp: datetime = None
         self._arguments: Dict = None
         self._output_dirname: str = None
+        self._cnt = None
 
         # viewing options
         self.view: bool = False
         self.view_raw: bool = False
         self.view_real_time: bool = False
+
+    def append_fname(self, fname: str):
+        with open(self.all_fnames, 'a') as f:
+            f.write(fname+'\n')
+
+    def append_param(self, params: str):
+        with open(self.all_params, 'a') as f:
+            f.write(params+'\n')
+
+    def update_cnt(self):
+        ret = 0
+        with open(self.all_fnames) as f:
+            while f.readline():
+                ret += 1
+        self._cnt = ret
 
     @property
     def output_dirname(self):
@@ -43,21 +59,9 @@ class Configuration:
     def all_params(self):
         return self._all_params
 
-    def append_fname(self, fname: str):
-        with open(self.all_fnames, 'a') as f:
-            f.write(fname+'\n')
-
-    def append_param(self, params: str):
-        with open(self.all_params, 'a') as f:
-            f.write(params+'\n')
-
     @property
     def cnt(self):
-        ret = 0
-        with open(self.all_fnames) as f:
-            while f.readline():
-                ret += 1
-        return ret
+        return self._cnt
 
     @property
     def title(self):
