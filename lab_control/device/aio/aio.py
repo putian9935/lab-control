@@ -111,8 +111,8 @@ class ramp(Action):
 class hsp(Action):
     def __init__(self, *, channel: int, **kwargs) -> None:
         'Hold setpoint action.\n    When the pin 35 is pulled high, the output of the corresponding channel immediately changes to the number set in hsp.\n    The return value must be a list of time for the transition edges of the TTL signal. '
-        super().__init__(**kwargs)
         self.channel = channel
+        super().__init__(**kwargs)
 
     async def run_preprocess(self, target: AIO):
         if hsp not in target.ts_mapping:
