@@ -7,7 +7,8 @@ from . import ports
 from .csv_reader import tv2wfm, p2r
 from ...core.types import *
 from lab_control.core.util.ts import to_plot, pulsify, merge_plot_maps
-from ..time_sequencer import hold
+import traceback
+from serial.serialutil import SerialException 
 
 aio_ts_mapping = Dict[ActionMeta, int]
 
@@ -44,13 +45,18 @@ class AIO(Target):
         super().__init__()
         if not port:
             raise ValueError(f"Must specify a port for {type(self)}")
+        self.ts_mapping = ts_mapping
+        self.minpd = minpd
+        self.maxpd = maxpd
+        self.load(port)
+
+    @Target.disable_if_offline
+    @Target.load_wrapper
+    def load(self, port):
         spec = importlib.util.find_spec('lab_control.device.aio.backend')
         self.backend = importlib.util.module_from_spec(spec)
         self.backend.ser = ports.setup_arduino_port(port)
         spec.loader.exec_module(self.backend)
-        self.ts_mapping = ts_mapping
-        self.minpd = minpd
-        self.maxpd = maxpd
 
 
 def shift_list_by_one(l: list):

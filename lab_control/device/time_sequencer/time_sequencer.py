@@ -1,12 +1,14 @@
 from lab_control.core.target import Target
 from lab_control.core.types import *
-from lab_control.core.util.ts import pulsify, square, to_plot
+from lab_control.core.util.ts import pulsify, to_plot
 from ...core.target import Target
 from ...core.action import Action, set_pulse, ActionMeta
 
 
 class TimeSequencer(Target):
-    pass
+    def __init__(self) -> None:
+        super().__init__()
+        self.loaded = True
 
 
 @TimeSequencer.set_default

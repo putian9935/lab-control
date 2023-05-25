@@ -17,16 +17,22 @@ class ConfMeta(type):
 
 class Configuration(metaclass=ConfMeta):
     def __init__(self) -> None:
-        # saving options
+        # saving
         self._time_stamp: datetime = None
         self._arguments: Dict = None
         self._output_dirname: str = None
         self._cnt = None
+        self._all_fnames: str = None
+        self._all_params: str = None
 
-        # viewing options
+        # viewing
         self.view: bool = False
         self.view_raw: bool = False
         self.view_real_time: bool = False
+
+        # loading and running
+        self.offline: bool = True
+        self.strict: bool = False
 
     def append_fname(self, fname: str):
         with open(self.all_fnames, 'a') as f:
@@ -37,6 +43,8 @@ class Configuration(metaclass=ConfMeta):
             f.write(params+'\n')
 
     def update_cnt(self):
+        if self.all_fnames is None:
+            return
         ret = 0
         with open(self.all_fnames) as f:
             while f.readline():
@@ -80,6 +88,10 @@ class Configuration(metaclass=ConfMeta):
             open(self._all_params, 'w').close()
 
     @property
+    def time_stamp(self):
+        return self._time_stamp
+
+    @property
     def all_fnames(self):
         return self._all_fnames
 
@@ -107,4 +119,4 @@ class Configuration(metaclass=ConfMeta):
 
 
 config = Configuration()
-config.output_dir = rf'Q:\indium\data\2023\{datetime.now():%y%m%d}'
+# config.output_dir = rf'Q:\indium\data\2023\{datetime.now():%y%m%d}'

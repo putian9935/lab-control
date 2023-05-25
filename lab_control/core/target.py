@@ -5,6 +5,8 @@ import asyncio
 from .action import Action, ActionMeta
 from .util.ts import merge_seq, to_pulse, merge_plot_maps
 from types import *
+from .config import config
+from functools import wraps
 
 
 class PreconditionFail(Exception):
@@ -38,6 +40,7 @@ class TargetMeta(type):
 class Target(metaclass=TargetMeta):
     def __init__(self) -> None:
         self.actions: defaultdict[ActionMeta, list[Action]] = defaultdict(list)
+        self.loaded = False
         self.__name__: Optional[str] = None
         type(self).instances.append(self)
 
@@ -63,12 +66,57 @@ class Target(metaclass=TargetMeta):
                     self.actions[act].append(new_action)
         return ret
 
+    def ensure_loaded(f):
+        if not asyncio.iscoroutinefunction(f):
+            def ret(self, *args, **kwds):
+                if not self.loaded:
+                    if config.strict:
+                        raise RuntimeError(
+                            f'Target {self} of type {type(self).__name__} is not loaded!')
+                    else:
+                        print(
+                            f'[WARNING] Target {self} of type {type(self).__name__} is not loaded!')
+                return f(self, *args, **kwds)
+        else:
+            async def ret(self, *args, **kwds):
+                if not self.loaded:
+                    if config.strict:
+                        raise RuntimeError(
+                            f'Target {self} of type {type(self).__name__} is not loaded!')
+                    else:
+                        print(
+                            f'[WARNING] Target {self} of type {type(self).__name__} is not loaded!')
+                return await f(self, *args, **kwds)
+        return ret
+
+    def disable_if_offline(f):
+        def ret(self, *args, **kwds):
+            if config.offline:
+                if asyncio.iscoroutinefunction(f):
+                    async def empty(): pass
+                    return empty()
+                return
+            return f(self, *args, **kwds)
+        return ret
+
+    def load_wrapper(loader):
+        def ret(self, *args, **kwds):
+            try:
+                loader(self, *args, **kwds)
+            except Exception as e:
+                print(
+                    f'[ERROR] Cannot load {self} of type {type(self).__name__}:', e)
+            else:
+                self.loaded = True
+
     async def wait_until_ready(self):
         pass
 
     def test_precondition(self):
         return True
 
+    @disable_if_offline
+    @ensure_loaded
     async def run_preprocess(self):
         await asyncio.gather(*[act.run_preprocess_cls(self) for act in type(self).supported_actions if act is not None])
 
@@ -81,13 +129,21 @@ class Target(metaclass=TargetMeta):
     def test_postcondition(self):
         return True
 
+    @disable_if_offline
+    @ensure_loaded
     async def run_postprocess(self):
         await asyncio.gather(*[act.run_postprocess_cls(self) for act in type(self).supported_actions if act is not None])
 
     def cleanup(self) -> None:
         self.actions: defaultdict[Action, list[Action]] = defaultdict(list)
 
+    @ensure_loaded
     async def close(self):
+        pass
+
+    @disable_if_offline
+    @load_wrapper
+    def load(self, *args, **kwds):
         pass
 
     def __str__(self) -> str:
