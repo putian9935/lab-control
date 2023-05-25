@@ -12,3 +12,6 @@ class CameraSolis(Target):
 
     async def run_preprocess(self):
         return await asyncio.get_event_loop().run_in_executor(None, self.conn.root.emccd_fnAcq, 'haha')
+
+    def cleanup(self):
+        self.conn.root.emccd_stopAcq()
