@@ -16,6 +16,12 @@ class hold(Action):
         self.channel = channel
         super().__init__(**kwargs)
 
+    async def run_preprocess(self, target: Target):
+        return  
+
+    async def run_postprocess(self, target: Target):
+        return 
+
     def to_time_sequencer(self, target: TimeSequencer) -> Tuple[Dict[int, List[int]], bool]:
         return {self.channel: (self.retv, self.polarity, self.signame)}
 
