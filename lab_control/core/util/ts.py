@@ -1,7 +1,7 @@
 import numpy as np
 import os
 from ..types import *
-from .. import config
+from ..config import config
 
 
 def merge_seq(*seqs: Tuple[ts_map]) -> ts_map:
