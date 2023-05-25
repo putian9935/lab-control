@@ -109,26 +109,27 @@ class ramp(Action):
 
 @AIO.take_note
 class hsp(Action):
-    def __init__(self, *, channel: int, hsp: int, **kwargs) -> None:
+    def __init__(self, *, channel: int, **kwargs) -> None:
         'Hold setpoint action.\n    When the pin 35 is pulled high, the output of the corresponding channel immediately changes to the number set in hsp.\n    The return value must be a list of time for the transition edges of the TTL signal. '
         super().__init__(**kwargs)
         self.channel = channel
-        self.hsp = hsp
 
     async def run_preprocess(self, target: AIO):
         if hsp not in target.ts_mapping:
             raise KeyError(f"hsp is not in ts_mapping of AIO target {target}")
-        target.backend.hsp(self.channel, tv2wfm([1],[self.hsp]))
+        target.backend.hsp(
+            self.channel,
+            tv2wfm([1] * len(self.retv[1]), shift_list_by_one(self.retv[1])))
 
     def to_time_sequencer(self, target: AIO) -> ts_map:
         if hsp not in target.ts_mapping:
             raise KeyError("hsp is not in ts_mapping of AIO target")
-        return {target.ts_mapping[hsp]: (self.retv, self.polarity, f'{target}.hsp')}
+        return {target.ts_mapping[hsp]: (self.retv[0], self.polarity, f'{target}.hsp')}
 
     def to_plot(self, target: AIO, raw: bool, *args, **kwargs) -> plot_map:
-        x, y = to_plot(self.polarity, self.retv)
-        if not raw:
-            y = [_ * self.hsp for _ in y]
+        x, y = to_plot(self.polarity, self.retv[0])
+        # if not raw:
+        #     y = [_ * self.hsp for _ in y]
         return {(target.ts_mapping[hsp], self.signame, 'hsp'): (x, y)}
 
     def __eq__(self, __value: object) -> bool:
