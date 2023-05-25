@@ -1,8 +1,7 @@
 import numpy as np
-from datetime import datetime
 import os
 from ..types import *
-
+from .. import config 
 
 def merge_seq(*seqs: Tuple[ts_map]) -> ts_map:
     tmp: Dict[int, set] = dict()
@@ -118,7 +117,7 @@ def save_sequences(sequences: ts_map, fname: str):
 
     if not os.path.exists('saved_sequences'):
         os.mkdir('saved_sequences')
-    np.savetxt(f'saved_sequences/{datetime.now():%Y%m%d%H%M%S}.csv', np.array(full_ch).T, delimiter=",",
+    np.savetxt(f'saved_sequences/{config.time_stamp:%Y%m%d%H%M%S}.csv', np.array(full_ch).T, delimiter=",",
                fmt="%i", header='\n'.join(headers), comments='')
 
     # save out
