@@ -9,9 +9,11 @@ def param2fname(param: Dict):
     """ Convert parameter dict to k=v string"""
     return f'{config.get_cnt()}_'+'_'.join(f'{v}' for v in param.values()) + f'_{config.time_stamp:%Y%m%d%H%M%S}'
 
+
 def param2str(param: Dict):
     """ Convert parameter dict to k=v string"""
     return f'{config.get_cnt()}, '+', '.join(f'{k}={v}' for k, v in param.items()) + f', {config.time_stamp:%Y%m%d%H%M%S}'
+
 
 class CameraSolis(Target):
     def __init__(self, fname_gen=None) -> None:
