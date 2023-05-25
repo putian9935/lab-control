@@ -36,6 +36,7 @@ class Viewer:
             x, y = self.pm[keys[k]]
             ax.plot(x, y, lw=2)
             ax.get_yaxis().set_label_coords(-.1,.5)
+            ax.set_ylim(bottom=-0.1,top=1.1)
             ax.set_ylabel(f'{name}\n{act_name}@{channel}',
                           rotation=0, ha='left',
                           rotation_mode='anchor', 
@@ -43,13 +44,14 @@ class Viewer:
                           )
             if not self.real_time:
                 for x in self.xtick:
-                    ax.axvline(x, color='k', ls='dashed', lw=1, alpha=.5)
+                    ax.axvline(x, color='k', ls='dashed', lw=0.5, alpha=.3)
         self.annotate_stage(axes)
         ax.set_xticks(self.xtick)
         ax.set_xticklabels(self.xlabel, rotation=90,
                            ha='right', rotation_mode='anchor')
         plt.tight_layout()
         plt.subplots_adjust(hspace=.0)
+        plt.title('pgcV16')
         return self
 
     def show(self):
@@ -76,10 +78,11 @@ class Viewer:
                 ax: matplotlib.axes.Axes
                 lim = ax.get_ylim()
                 ax.fill_between([self.xtick[self.inv_f[st.start]], self.xtick[self.inv_f[st.end]]],
-                                *lim, color=f'C{c%9+1}', alpha=.2)
+                                *lim, color=f'C{c%9+1}', alpha=.15)
                 ax.set_ylim(*lim)
 
 
 def show_sequences(pm):
     # TODO: add attribute for command line input
-    Viewer(pm).plot().show()
+    # Viewer(pm).plot().show()
+    pass
