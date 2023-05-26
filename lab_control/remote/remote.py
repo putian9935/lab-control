@@ -44,6 +44,7 @@ class ToRemote:
                 remote_device.__dict__[cls.__name__], *args, **kwds)
             type(this).instances.append(this)
             this.actions = {}
+            this.loaded = True
 
         async def wait_until_ready(this):
             while not this.result.ready:
