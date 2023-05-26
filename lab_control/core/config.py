@@ -119,4 +119,3 @@ class Configuration(metaclass=ConfMeta):
 
 
 config = Configuration()
-# config.output_dir = rf'Q:\indium\data\2023\{datetime.now():%y%m%d}'

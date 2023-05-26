@@ -96,10 +96,11 @@ class Viewer:
 
 
 def show_sequences():
-    pm = merge_plot_maps(*[tar.to_plot(config.view_raw)
+    pm = merge_plot_maps(*[tar.to_plot(raw=config.view_raw)
                            for tar in all_target_instances()])
     viewer = Viewer(pm, config.view_real_time).plot(config.title)
 
     if not config.view:
+        plt.close()
         return
     viewer.show()
