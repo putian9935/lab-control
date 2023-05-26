@@ -128,15 +128,13 @@ async def run_sequence(fpga, exp_time: int):
     await asyncio.sleep(exp_time * 1e-6 + .5)
 
 
-async def run_exp(module_fname: str, attr: Dict, **exp_param):
+async def run_exp(module_fname: str, **exp_param):
     """ Run an experiment from file. The file is dynamically loaded. """
     spec = importlib.util.find_spec("lab_control.experiments."+module_fname)
     if spec is None:
         raise FileNotFoundError(
             f"Cannot find experiment {module_fname}. Did you forgot to \n1. put it under experiments folder;\n2. use period (e.g. play.exp) instead of slash (e.g. play/exp) to delimit the path?")
     exp = importlib.util.module_from_spec(spec)
-    for k, v in attr.items():
-        exp.__setattr__(k, v)
     spec.loader.exec_module(exp)
 
     if 'main' not in exp.__dict__:
