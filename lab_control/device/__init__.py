@@ -1,6 +1,9 @@
 from . import aio
 from .aio import *
 
+from . import camera_solis
+from .camera_solis import *
+
 from . import camera
 from .camera import *
 
@@ -28,6 +31,7 @@ from .oven_controller import *
 
 __all__ = []
 __all__ += aio.__all__
+__all__ += camera_solis.__all__
 __all__ += camera.__all__
 __all__ += ts_fpga.__all__
 __all__ += fname_gen.__all__ 

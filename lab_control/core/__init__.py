@@ -1,5 +1,6 @@
-__all__ = ["Action", "Target", "ActionMeta", "TargetMeta", "Experiment", "PreconditionFail", "PostconditionFail", "ts_map"]
+__all__ = ["Action", "Target", "ActionMeta", "TargetMeta", "Experiment", "PreconditionFail", "PostconditionFail", "ts_map", "config"]
 
+from . import config
 from .action import Action, ActionMeta  
 from .target import Target, TargetMeta, PreconditionFail, PostconditionFail 
 from .experiment import Experiment
