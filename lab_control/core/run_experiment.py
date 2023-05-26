@@ -32,7 +32,18 @@ def all_tar_act_pairs():
 def list_actions():
     """ Shows supported action types for each target type """
     for cls in all_target_types():
-        print(cls.__name__, ':', ', '.join(map(str, cls.supported_actions)))
+        def print_act(act: ActionMeta):
+            if act is None:
+                return ''
+            if act is cls.default_action:
+                return str(act)+'(*)'
+            return str(act)
+        print(
+            cls.__name__, ':',
+            ', '.join(
+                map(print_act,
+                    filter(lambda _: _ is not None,
+                           cls.supported_actions))))
 
 
 def get_action_usage(act: ActionMeta):
