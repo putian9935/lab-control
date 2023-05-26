@@ -80,7 +80,7 @@ def merge_plot_maps(*pms: plot_map) -> plot_map:
     return ret
 
 
-def save_sequences(sequences: ts_map, fname: str):
+def save_sequences(sequences: ts_map, fname: str) -> float:
     """ Returns the full experiment time """
     s = set()
     names = dict()
@@ -89,8 +89,9 @@ def save_sequences(sequences: ts_map, fname: str):
             s.add(t)
         names[k] = n
     if not len(s):
-        raise ValueError(
-            "Empty sequence detected! Aborted. Did you forgot to set to_fpga=False in the Experiment definition?")
+        print(
+            "[WARNING] Empty sequence detected!")
+        return 0
 
     full_sequence: list[int] = sorted(list(s))
 
@@ -133,6 +134,7 @@ def save_sequences(sequences: ts_map, fname: str):
                 f.write(';'.join(map(str, full_ch[ch_inv[ch]]))+'\n')
             else:
                 f.write(';'.join(map(str, np.zeros_like(full_ch[0])))+'\n')
+    print('[INFO] Time sequencer CSV and OUT file saved.')
     return full_ch[0][-1]
 
 

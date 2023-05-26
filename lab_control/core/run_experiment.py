@@ -130,7 +130,6 @@ def prepare_sequencer_files():
                    for tar in all_target_instances())
     check_channel_clash(*to_seq)
     exp_time = save_sequences(merge_seq(*to_seq), '1')
-    print('[INFO] Time sequencer CSV and OUT file saved.')
     return exp_time
 
 
