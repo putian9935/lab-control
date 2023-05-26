@@ -15,9 +15,13 @@ class Camera(Target):
         super().__init__()
         type(self).backgrounds.append(gui.main())
 
+    @Target.disable_if_offline
     async def wait_until_ready(self):
         await gui.wait_until_cam_initialized()
+        self.loaded = True
 
+    @Target.disable_if_offline
+    @Target.ensure_loaded
     def test_precondition(self):
         is_stabilized = gui.is_temperature_stabilized()
         if not is_stabilized:
@@ -29,6 +33,8 @@ class Camera(Target):
                 return False
         return True
 
+    @Target.disable_if_offline
+    @Target.ensure_loaded
     async def close(self):
         await gui.shutdown_cam()
 
