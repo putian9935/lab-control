@@ -4,7 +4,6 @@ import lab_control
 from functools import cache
 import asyncio
 
-
 class ToRemote:
     uploaded = False
 
@@ -44,6 +43,8 @@ class ToRemote:
             this.result = ainit(
                 remote_device.__dict__[cls.__name__], *args, **kwds)
             type(this).instances.append(this)
+            this.actions = {}
+            this.loaded = True
 
         async def wait_until_ready(this):
             while not this.result.ready:
@@ -66,6 +67,7 @@ class ToRemote:
         d["test_precondition"] = test_precondition
         d["test_postcondition"] = test_postcondition
         d["close"] = close
+
         return type(cls.__name__+'_r', (cls,), d)
 
 

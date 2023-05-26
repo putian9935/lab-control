@@ -2,34 +2,31 @@ from ...core.target import Target
 import asyncio
 import rpyc
 from ...core.types import *
-from ...core import config
-
-
-def param2fname(param: Dict):
-    """ Convert parameter dict to k=v string"""
-    return f'{config.get_cnt()}_'+'_'.join(f'{v}' for v in param.values()) + f'_{config.time_stamp:%Y%m%d%H%M%S}'
-
-
-def param2str(param: Dict):
-    """ Convert parameter dict to k=v string"""
-    return f'{config.get_cnt()}, '+', '.join(f'{k}={v}' for k, v in param.items()) + f', {config.time_stamp:%Y%m%d%H%M%S}'
+from ...core.config import config
 
 
 class CameraSolis(Target):
-    def __init__(self, fname_gen=None) -> None:
+    def __init__(self) -> None:
         super().__init__()
-        hostname = 'CASPERN-6AKOV6A'
-        self.conn = rpyc.connect(hostname, 17733)
-        self.fname_gen = fname_gen
+        self.load()
 
+    @Target.disable_if_offline
+    @Target.ensure_loaded
     async def run_preprocess(self):
-        fname = param2fname(config.arguments)
-        config.append_param(param2str(config.arguments))
-        config.append_fname(fname)
+        config.append_param(config.param_str)
+        config.append_fname(config.fname)
         return await asyncio.get_event_loop().run_in_executor(
             None,
             self.conn.root.emccd_fnAcq,
-            fname)
+            config.fname)
 
+    @Target.disable_if_offline
+    @Target.ensure_loaded
     def cleanup(self):
         self.conn.root.emccd_stopAcq()
+    
+    @Target.disable_if_offline
+    @Target.load_wrapper
+    def load(self, *args, **kwds):
+        hostname = 'CASPERN-6AKOV6A'
+        self.conn = rpyc.connect(hostname, 17733)

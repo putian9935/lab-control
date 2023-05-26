@@ -1,18 +1,12 @@
-from .run_experiment import cleanup, run_preprocess, prepare_sequencer_files, run_sequence, test_postcondition, test_precondition, run_postprocess, all_target_instances
+from .run_experiment import cleanup, run_preprocess, prepare_sequencer_files, run_sequence, test_postcondition, test_precondition, run_postprocess
 from .util.viewer import show_sequences
-from .util.ts import merge_plot_maps
 from .stage import Stage
 import time
 from .target import PostconditionFail, PreconditionFail
 from typing import Callable, Dict
 import inspect
 from datetime import datetime
-from . import config
-
-
-def param2title(param: Dict):
-    """ Convert parameter dict to k=v string"""
-    return ', '.join(f'{k}={v}' for k, v in param.items())
+from .config import config
 
 
 class Experiment:
@@ -27,6 +21,13 @@ class Experiment:
         signature = inspect.signature(f)
 
         async def ret(*args, **kwds):
+            def setup_config():
+                ba = signature.bind(*args, **kwds)
+                ba.apply_defaults()
+                config._arguments = ba.arguments
+                config._time_stamp = datetime.now()
+                config.update_cnt()
+
             Stage.clear()
             tt = time.perf_counter()
             try:
@@ -35,14 +36,11 @@ class Experiment:
                 cleanup()
                 raise type(e)(
                     "Cannot parse the Python file. Did you define everything in the lab file?") from e
-            # Stage.clear()
+
             print(
                 f'[INFO] Experiment {f.__name__} parsed in {time.perf_counter()-tt} second(s)!')
             try:
-                ba = signature.bind(*args, **kwds)
-                ba.apply_defaults()
-                config.arguments = ba.arguments
-                config.time_stamp = datetime.now()
+                setup_config()
                 tt = time.perf_counter()
                 await run_preprocess()
                 print(
@@ -57,10 +55,8 @@ class Experiment:
                 print(
                     f'[INFO] Experiment cycle time: {exp_time/1e6} second(s)')
                 show_sequences(
-                    merge_plot_maps(*[tar.to_plot()
-                                      for tar in all_target_instances()]),
-                    title=param2title(config.arguments))
-                if self.to_fpga:
+                )
+                if self.to_fpga and not config.offline:
                     await run_sequence(self.ts_fpga, exp_time)
                     print(f'[INFO] Experiment {f.__name__} sequence done!')
                 await run_postprocess()

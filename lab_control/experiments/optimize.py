@@ -21,8 +21,9 @@ def main():
 
     @AIO0(action=ramp, channel=2)
     def bfield():
-        return [0], [2000], [.65]
+        return [0], [2*s], [.75]
+        # return [0, 3*s], [1*s, 1*s], [.2, .55]
 
-    @RawTS(channel=8, polarity=1)
+    @RawTS(channel=8, polarity=0)
     def om_zm_shutter():
         return []
