@@ -1,8 +1,12 @@
 from lab_control.device import *
 import numpy as np
+from lab_control.core.config import config
+from datetime import datetime 
+
+config.output_dir = rf'Q:\indium\data\2023\{datetime.now():%y%m%d}'
+config.view_raw = True
 
 TSChannel = TimeSequencer()
-# ts_in = TimeSequencerFPGA('192.168.107.146', 5555)
 ts_in = TimeSequencerFPGA('192.168.107.194', 5555)
 
 aio_326intensityServo = AIO(
@@ -13,4 +17,3 @@ aio_326intensityServo = AIO(
 )
 
 camera = CameraSolis()
-# fname_gen = FileNameGenerator()

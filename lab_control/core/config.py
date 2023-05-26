@@ -26,9 +26,9 @@ class Configuration(metaclass=ConfMeta):
         self._all_params: str = None
 
         # viewing
-        self.view: bool = False
-        self.view_raw: bool = False
-        self.view_real_time: bool = False
+        self.view: bool = False # can save pdf, no show plt
+        self.view_raw: bool = False # trig plot mode
+        self.view_real_time: bool = False # seq plot not equal spacing
 
         # loading and running
         self.offline: bool = True
@@ -119,4 +119,3 @@ class Configuration(metaclass=ConfMeta):
 
 
 config = Configuration()
-# config.output_dir = rf'Q:\indium\data\2023\{datetime.now():%y%m%d}'
