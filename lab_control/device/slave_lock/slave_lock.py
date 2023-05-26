@@ -13,6 +13,8 @@ class SlaveLockMonitor(MonitorProgram):
         self.slave_state = [0, 0]
         self.slave_lock_state = [0, 0]
         self.proc:asyncio.subprocess.Process = None 
+        # TODO 
+        self.loaded = True
 
     async def state_monitor(self):
         while True:

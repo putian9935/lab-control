@@ -31,6 +31,8 @@ class RPyCSlaveDaemon(Target):
         print(f'[INFO] Connection to {addr}:{port} good.')
         self.s.sendall(b'start')
         wait_for(self.s, b'done')
+        # TODO
+        self.loaded = True
 
     async def close(self):
         self.s.close()

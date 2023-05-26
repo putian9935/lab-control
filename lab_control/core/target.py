@@ -108,6 +108,7 @@ class Target(metaclass=TargetMeta):
                     f'[ERROR] Cannot load {self} of type {type(self).__name__}:', e)
             else:
                 self.loaded = True
+        return ret
 
     async def wait_until_ready(self):
         pass
