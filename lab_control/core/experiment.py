@@ -56,7 +56,7 @@ class Experiment:
                     f'[INFO] Experiment cycle time: {exp_time/1e6} second(s)')
                 show_sequences(
                 )
-                if self.to_fpga:
+                if self.to_fpga and not config.offline:
                     await run_sequence(self.ts_fpga, exp_time)
                     print(f'[INFO] Experiment {f.__name__} sequence done!')
                 await run_postprocess()
