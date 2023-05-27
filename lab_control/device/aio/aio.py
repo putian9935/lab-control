@@ -58,6 +58,9 @@ class AIO(Target):
         self.backend.ser = ports.setup_arduino_port(port)
         spec.loader.exec_module(self.backend)
 
+    @Target.ensure_loaded
+    async def close(self):
+        self.backend.stop()
 
 def shift_list_by_one(l: list):
     """ Shift the last element to the front """
