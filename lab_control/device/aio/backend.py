@@ -56,7 +56,7 @@ def show(ch):
     readback()
 
 @arduino_transaction(ser)
-def stop(args):
+def stop():
     ser.write(b'\x00')
 
 if __name__ == '__main__':
