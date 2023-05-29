@@ -11,12 +11,12 @@ from .lab import Lab
 
 
 class Experiment:
-    def __init__(self, to_fpga=False, ts_fpga=None) -> None:
+    def __init__(self, to_fpga=False, ts_fpga: str = None) -> None:
         if to_fpga:
-            if ts_fpga is None:
-                raise ValueError("ts_fpga is None but to_fpga is set!")
+            if ts_fpga not in Lab.lab_in_use.attr:
+                raise ValueError(f"Cannot find instance {ts_fgpa}!")
         self.to_fpga = to_fpga
-        self.ts_fpga = ts_fpga
+        self.ts_fpga = Lab.lab_in_use.attr[ts_fpga]
 
     def __call__(self, f) -> Awaitable:
         signature = inspect.signature(f)

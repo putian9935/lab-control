@@ -11,7 +11,7 @@ class Stage:
     pass
 
 
-@Experiment(True, ts_sr)
+@Experiment(True, 'ts_sr')
 def exp(cam_exposure=5*ms,
         load=4*s,
         mot_mag_delay=600*us,

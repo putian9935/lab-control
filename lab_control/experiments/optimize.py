@@ -5,7 +5,7 @@ if __name__ == '__main__':
 # --- do not change anything above this line ---
 
 
-@Experiment(True, ts_sr)
+@Experiment(True, 'ts_sr')
 def main():
     @AIO0(action=ramp, channel=0)
     def repumper707():
