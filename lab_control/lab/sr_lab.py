@@ -1,7 +1,9 @@
 from lab_control.device import *
 from ..remote.remote import to_sr_remote
-
+from ..core.config import config 
 import numpy as np
+
+config.offline = False
 
 AIO0 = AIO(
     port='COM22',

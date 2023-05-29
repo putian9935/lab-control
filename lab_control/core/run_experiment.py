@@ -32,7 +32,18 @@ def all_tar_act_pairs():
 def list_actions():
     """ Shows supported action types for each target type """
     for cls in all_target_types():
-        print(cls.__name__, ':', ', '.join(map(str, cls.supported_actions)))
+        def print_act(act: ActionMeta):
+            if act is None:
+                return ''
+            if act is cls.default_action:
+                return str(act)+'(*)'
+            return str(act)
+        print(
+            cls.__name__, ':',
+            ', '.join(
+                map(print_act,
+                    filter(lambda _: _ is not None,
+                           cls.supported_actions))))
 
 
 def get_action_usage(act: ActionMeta):
@@ -119,7 +130,6 @@ def prepare_sequencer_files():
                    for tar in all_target_instances())
     check_channel_clash(*to_seq)
     exp_time = save_sequences(merge_seq(*to_seq), '1')
-    print('[INFO] Time sequencer CSV and OUT file saved.')
     return exp_time
 
 
@@ -128,15 +138,13 @@ async def run_sequence(fpga, exp_time: int):
     await asyncio.sleep(exp_time * 1e-6 + .5)
 
 
-async def run_exp(module_fname: str, attr: Dict, **exp_param):
+async def run_exp(module_fname: str, **exp_param):
     """ Run an experiment from file. The file is dynamically loaded. """
     spec = importlib.util.find_spec("lab_control.experiments."+module_fname)
     if spec is None:
         raise FileNotFoundError(
             f"Cannot find experiment {module_fname}. Did you forgot to \n1. put it under experiments folder;\n2. use period (e.g. play.exp) instead of slash (e.g. play/exp) to delimit the path?")
     exp = importlib.util.module_from_spec(spec)
-    for k, v in attr.items():
-        exp.__setattr__(k, v)
     spec.loader.exec_module(exp)
 
     if 'main' not in exp.__dict__:

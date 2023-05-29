@@ -98,6 +98,10 @@ class Viewer:
 def show_sequences():
     pm = merge_plot_maps(*[tar.to_plot(raw=config.view_raw)
                            for tar in all_target_instances()])
+    if not len(pm):
+        print('[WARNING] Empty sequence has nothing to plot')
+        return
+
     viewer = Viewer(pm, config.view_real_time).plot(config.title)
 
     if not config.view:

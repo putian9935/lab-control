@@ -1,4 +1,4 @@
-from typing import Dict, Tuple, List, Union, Optional, Set
+from typing import Dict, Tuple, List, Union, Optional, Set, Awaitable
 
 ts_key = int  # channel
 ts_value = Tuple[List[int], int, str]  # sequence, init_state, signal_name

@@ -3,21 +3,22 @@ from .util.viewer import show_sequences
 from .stage import Stage
 import time
 from .target import PostconditionFail, PreconditionFail
-from typing import Callable, Dict
+from .types import *
 import inspect
 from datetime import datetime
 from .config import config
+from .lab import Lab
 
 
 class Experiment:
-    def __init__(self, to_fpga=False, ts_fpga=None) -> None:
+    def __init__(self, to_fpga=False, ts_fpga: str = None) -> None:
         if to_fpga:
-            if ts_fpga is None:
-                raise ValueError("ts_fpga is None but to_fpga is set!")
+            if ts_fpga not in Lab.lab_in_use.attr:
+                raise ValueError(f"Cannot find instance {ts_fgpa}!")
         self.to_fpga = to_fpga
-        self.ts_fpga = ts_fpga
+        self.ts_fpga = Lab.lab_in_use.attr[ts_fpga]
 
-    def __call__(self, f) -> Callable:
+    def __call__(self, f) -> Awaitable:
         signature = inspect.signature(f)
 
         async def ret(*args, **kwds):
@@ -31,6 +32,9 @@ class Experiment:
             Stage.clear()
             tt = time.perf_counter()
             try:
+                # inject lab names to function
+                for k, v in Lab.lab_in_use.attr.items():
+                    f.__globals__[k] = v
                 ret = f(*args, **kwds)
             except Exception as e:
                 cleanup()
@@ -54,8 +58,7 @@ class Experiment:
                     'second(s)!')
                 print(
                     f'[INFO] Experiment cycle time: {exp_time/1e6} second(s)')
-                show_sequences(
-                )
+                show_sequences()
                 if self.to_fpga and not config.offline:
                     await run_sequence(self.ts_fpga, exp_time)
                     print(f'[INFO] Experiment {f.__name__} sequence done!')
