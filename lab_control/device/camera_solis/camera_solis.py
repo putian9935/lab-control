@@ -13,8 +13,6 @@ class CameraSolis(Target):
     @Target.disable_if_offline
     @Target.ensure_loaded
     async def run_preprocess(self):
-        config.append_param(config.param_str)
-        config.append_fname(config.fname)
         return await asyncio.get_event_loop().run_in_executor(
             None,
             self.conn.root.emccd_fnAcq,

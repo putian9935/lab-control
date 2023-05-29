@@ -3,9 +3,9 @@ import numpy as np
 from lab_control.core.config import config
 from datetime import datetime 
 
-config.offline = False
+config.offline = True
 config.output_dir = rf'Q:\indium\data\2023\{datetime.now():%y%m%d}'
-config.view = False
+config.view = True
 config.view_raw = False
 
 TSChannel = TimeSequencer()

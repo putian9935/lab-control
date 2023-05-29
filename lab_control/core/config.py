@@ -4,7 +4,7 @@ import os
 from .types import *
 import shlex
 from ast import literal_eval
-
+from collections.abc import Iterable
 
 class ConfMeta(type):
     def __init__(cls, *args):
@@ -24,11 +24,12 @@ class Configuration(metaclass=ConfMeta):
         self._cnt = None
         self._all_fnames: str = None
         self._all_params: str = None
+        self.exp_name: str = None
 
         # viewing
-        self.view: bool = False # False = can save pdf, no show plt
-        self.view_raw: bool = False # False = trig plot mode
-        self.view_real_time: bool = False # seq plot not equal spacing
+        self.view: bool = False  # False = can save pdf, no show plt
+        self.view_raw: bool = False  # False = trig plot mode
+        self.view_real_time: bool = False  # seq plot not equal spacing
 
         # loading and running
         self.offline: bool = True
@@ -106,12 +107,17 @@ class Configuration(metaclass=ConfMeta):
     @property
     def title(self):
         """ Convert parameter dict to title"""
-        return ', '.join(f'{k}={v}' for k, v in self._arguments.items())
+        return self.exp_name+', '+', '.join(f'{k}={v}' for k, v in self._arguments.items())
 
     @property
     def fname(self):
         """ Convert parameter dict to fname"""
-        return f'{self.cnt}_'+'_'.join(f'{v}' for v in self._arguments.values()) + f'_{self._time_stamp:%Y%m%d%H%M%S}'
+        def to_str(x):
+            if isinstance(x, Iterable):
+                return '-'.join(str(_) for _ in x)
+            return str(x)
+        
+        return f'{self.cnt}_'+'_'.join(to_str(v) for v in self._arguments.values()) + f'_{self._time_stamp:%Y%m%d%H%M%S}'
 
     @property
     def param_str(self):
