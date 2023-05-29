@@ -12,11 +12,15 @@ from .lab import Lab
 
 class Experiment:
     def __init__(self, to_fpga=False, ts_fpga: str = None) -> None:
+        self.to_fpga = to_fpga
         if to_fpga:
+            if ts_fpga is None:
+                raise ValueError("Please specify time sequencer FPGA instance!")
             if ts_fpga not in Lab.lab_in_use.attr:
                 raise ValueError(f"Cannot find instance {ts_fgpa}!")
-        self.to_fpga = to_fpga
-        self.ts_fpga = Lab.lab_in_use.attr[ts_fpga]
+            self.ts_fpga = Lab.lab_in_use.attr[ts_fpga]
+        else:
+            self.ts_fpga = None 
 
     def __call__(self, f) -> Awaitable:
         signature = inspect.signature(f)
