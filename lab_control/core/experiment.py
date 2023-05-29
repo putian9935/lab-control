@@ -20,7 +20,6 @@ class Experiment:
 
     def __call__(self, f) -> Awaitable:
         signature = inspect.signature(f)
-
         async def ret(*args, **kwds):
             def setup_config():
                 ba = signature.bind(*args, **kwds)
@@ -28,6 +27,9 @@ class Experiment:
                 config._arguments = ba.arguments
                 config._time_stamp = datetime.now()
                 config.update_cnt()
+                config.exp_name = f.__name__
+                config.append_param(config.param_str)
+                config.append_fname(config.fname)
 
             Stage.clear()
             tt = time.perf_counter()
