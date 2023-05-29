@@ -26,8 +26,8 @@ class Configuration(metaclass=ConfMeta):
         self._all_params: str = None
 
         # viewing
-        self.view: bool = False # can save pdf, no show plt
-        self.view_raw: bool = False # trig plot mode
+        self.view: bool = False # False = can save pdf, no show plt
+        self.view_raw: bool = False # False = trig plot mode
         self.view_real_time: bool = False # seq plot not equal spacing
 
         # loading and running

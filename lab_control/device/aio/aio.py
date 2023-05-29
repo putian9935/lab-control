@@ -102,7 +102,7 @@ class ramp(Action):
 
     def to_plot(self, target: AIO, raw: bool, *args, **kwargs) -> plot_map:
         if raw:
-            return {(target.ts_mapping[ramp], self.signame, 'ramp'): to_plot(self.polarity, self.retv[0])}
+            return {(target.ts_mapping[ramp], self.signame, 'ramp'): to_plot(self.polarity, pulsify(self.retv[0], 0))}
         else:
             ret_data: plot_value = [0, ], [self.retv[2][-1]]
             for i, (t, dt, v) in enumerate(zip(*self.retv)):
