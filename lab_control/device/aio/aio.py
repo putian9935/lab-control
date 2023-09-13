@@ -1,4 +1,3 @@
-from lab_control.core.target import Target
 from lab_control.core.types import plot_map
 from ...core.target import Target
 from ...core.action import Action, set_pulse, ActionMeta
@@ -75,7 +74,7 @@ def shift_vdt_by_one(retv: Tuple[list]):
 @AIO.take_note
 class ramp(Action):
     def __init__(self, *, channel: int, **kwargs) -> None:
-        'Ramp action.\n    Changes the servo setpoint by specifying the ramp time and ramp voltage change. \n    The return value must be a tuple of three lists of the trigger start time, ramp time, and ramp voltage change.'
+        'Ramp action.\n    Changes the servo setpoint by specifying the ramp time and ramp voltage change. \n    The return value must be a tuple of three lists of the trigger start time, ramp time, and ramp voltage (in percentage, 0 means min and 1 means max).'
         self.channel = channel
         super().__init__(**kwargs)
         self.retv: Tuple[List[int], List[int], List[reals]]
@@ -87,8 +86,10 @@ class ramp(Action):
 
     @classmethod
     async def run_preprocess_cls(cls, target: AIO):
+        # extra waveform parameters
         extras = []
-        chs: List[int] = []
+        # the channel id of the servo
+        chs: List[int] = [] 
         for act in target.actions[cls]:
             extras.append(act.retv)
             chs.append(act.channel)
@@ -119,7 +120,14 @@ class ramp(Action):
 @AIO.take_note
 class hsp(Action):
     def __init__(self, *, channel: int, **kwargs) -> None:
-        'Hold setpoint action.\n    When the pin 35 is pulled high, the output of the corresponding channel immediately changes to the number set in hsp.\n    The return value must be a list of time for the transition edges of the TTL signal. '
+        '''Hold setpoint action.
+        When the pin 35 is pulled high, the output of the corresponding channel immediately changes to the number set in hsp.
+        The return value must be a pair of lists: 
+        - list1: time of the transition edges of the TTL signal.
+        - list2: the output DAC number corresponding to this TTL signal. 
+
+        For instance, a return value of [1000, 2000], [500] means the DAC output is 500 between 1000 and 2000   
+        '''
         self.channel = channel
         super().__init__(**kwargs)
 

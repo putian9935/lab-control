@@ -79,7 +79,7 @@ class Action(metaclass=ActionMeta):
 
 
     def add_offset(self, l: List):
-        # handle offset
+        """ Handle temporal offset due to Stages """
         cls = type(self)
         if cls.__base__ is object:
             return l
