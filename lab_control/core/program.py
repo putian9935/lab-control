@@ -88,3 +88,13 @@ def kill_proc(pid: str):
     if not pid: return 
     subprocess.run((rf'taskkill /F /PID {pid}'))
     return pid
+
+
+async def wait_for_prompt(cout, prompt='>>> '):
+    while True:
+        line = await cout.readline() 
+        if prompt in line.decode():
+            return 
+        else:
+            pass 
+            # print(line.decode())

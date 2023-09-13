@@ -4,7 +4,9 @@ from ...core.types import *
 from lab_control.core.util.ts import to_plot, pulsify, merge_seq_aio
 
 
-class CoilServo(Program):
+
+
+class VCOController(Program):    
     def __init__(self, args, ts_channel) -> None:
         """ args is the same as the first argument in subprocess.run """
         super().__init__(args)
@@ -14,33 +16,26 @@ class CoilServo(Program):
         await super().wait_until_ready()
         await wait_for_prompt(self.proc.stdout)
 
-    async def close(self):
-        self.proc.stdin.write(b'vref 0\n')
-        await self.proc.stdin.drain()
-        await wait_for_prompt(self.proc.stdout)
-        return await super().close()
-    
 
-@CoilServo.set_default
+@VCOController.set_default
 @set_pulse
-@CoilServo.take_note
+@VCOController.take_note
 class ramp(Action):
     def __init__(self, **kwargs) -> None:
         'Ramp action.\n  First number is the standby value'
         super().__init__(**kwargs)
 
-    def to_time_sequencer(self, target: CoilServo) -> ts_map:
+    def to_time_sequencer(self, target: VCOController) -> ts_map:
         return {target.ts_channel: (self.retv[0], False, f'{target}.ramp_trig')}
 
     @classmethod
-    async def run_preprocess_cls(cls, target: CoilServo):
+    async def run_preprocess_cls(cls, target: VCOController):
         extras = []
         for act in target.actions[cls]:
             extras.append(act.retv)
 
-        # deal with ramp
-        
-        with open('coil_vref_temp', 'w') as f:
+        #  prepare file
+        with open('vco_vref_temp', 'w') as f:
             f.write(
                 '\n'.join(
                     f'{_dt}, {_vref}' 
@@ -48,11 +43,21 @@ class ramp(Action):
                     for _dt, _vref in zip(dt, vref)
                 )
             )
-        
-        await target.write(b'paramVref coil_vref_temp\n')
+        # upload file 
+        await target.write(b'paramDet coil_vref_temp\n')
+        await wait_for_prompt(target.proc.stdout)
+        # start experiment 
+        await target.write(b'exp\n')
+        await wait_for_prompt(target.proc.stdout)
     
-        
-    def to_plot(self, target: CoilServo, raw: bool, *args, **kwargs) -> plot_map:
+    @classmethod
+    async def run_postprocess_cls(cls, target: VCOController):
+        # exit from experiment 
+        await target.write(b'e\n')
+        await wait_for_prompt(target.proc.stdout)
+
+    
+    def to_plot(self, target: VCOController, raw: bool, *args, **kwargs) -> plot_map:
         if raw:
             return {(target.ts_channel, self.signame, 'ramp'): to_plot(self.polarity, pulsify(self.retv[0], 0))}
         else:

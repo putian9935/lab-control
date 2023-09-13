@@ -18,6 +18,8 @@ aio_326intensityServo = AIO(
     ts_mapping={ramp:14, hsp:15}
 )
 
-coil_servo = CoilServo(ts_channel=16)
+# coil_servo = CoilServo(r'python Q:\indium\software\experimental_control_v2\ad5764_io\coil_vref\coil_vref_terminal_v6.py --non-interactive', ts_channel=16)
+
+vco_controller = VCOController(r'python Q:\indium\software\experimental_control_v2\qNimble_vco_control\MOT_vco_sweep18V_v5\vco_terminal_v6.py --non-interactive', ts_channel=13)
 
 # camera = CameraSolis()
