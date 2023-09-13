@@ -1,4 +1,3 @@
-from lab_control.core.target import Target
 from lab_control.core.types import plot_map
 from ...core.target import Target
 from ...core.action import Action, set_pulse, ActionMeta
@@ -6,33 +5,11 @@ import importlib.util
 from . import ports
 from .csv_reader import tv2wfm, p2r
 from ...core.types import *
-from lab_control.core.util.ts import to_plot, pulsify, merge_plot_maps
+from lab_control.core.util.ts import to_plot, pulsify, merge_plot_maps, merge_seq_aio
 import traceback
 from serial.serialutil import SerialException 
 
 aio_ts_mapping = Dict[ActionMeta, int]
-
-
-def merge_seq_aio(ts: List[List[int]] = None, dts: List[list] = None, dvs: List[list] = None):
-    ret = []
-    if ts is None or not len(ts):
-        return ret
-    full_sequence = sorted(set(t for seq in ts for t in seq))
-    for t, dt, dv in zip(ts, dts, dvs):
-        inv_t = {v: k for k, v in enumerate(t)}
-        new_dt, new_dv = [], []
-        for tt in full_sequence:
-            if tt in inv_t:
-                new_dt.append(dt[inv_t[tt]])
-                new_dv.append(dv[inv_t[tt]])
-            else:
-                if len(new_dv):
-                    new_dv.append(new_dv[-1])
-                else:
-                    new_dv.append(dv[-1])
-                new_dt.append(1)
-        ret.append((list(full_sequence), new_dt, new_dv))
-    return ret
 
 
 if __name__ == '__main__':
@@ -75,7 +52,7 @@ def shift_vdt_by_one(retv: Tuple[list]):
 @AIO.take_note
 class ramp(Action):
     def __init__(self, *, channel: int, **kwargs) -> None:
-        'Ramp action.\n    Changes the servo setpoint by specifying the ramp time and ramp voltage change. \n    The return value must be a tuple of three lists of the trigger start time, ramp time, and ramp voltage change.'
+        'Ramp action.\n    Changes the servo setpoint by specifying the ramp time and ramp voltage change. \n    The return value must be a tuple of three lists of the trigger start time, ramp time, and ramp voltage (in percentage, 0 means min and 1 means max).'
         self.channel = channel
         super().__init__(**kwargs)
         self.retv: Tuple[List[int], List[int], List[reals]]
@@ -87,8 +64,10 @@ class ramp(Action):
 
     @classmethod
     async def run_preprocess_cls(cls, target: AIO):
+        # extra waveform parameters
         extras = []
-        chs: List[int] = []
+        # the channel id of the servo
+        chs: List[int] = [] 
         for act in target.actions[cls]:
             extras.append(act.retv)
             chs.append(act.channel)
@@ -119,7 +98,14 @@ class ramp(Action):
 @AIO.take_note
 class hsp(Action):
     def __init__(self, *, channel: int, **kwargs) -> None:
-        'Hold setpoint action.\n    When the pin 35 is pulled high, the output of the corresponding channel immediately changes to the number set in hsp.\n    The return value must be a list of time for the transition edges of the TTL signal. '
+        '''Hold setpoint action.
+        When the pin 35 is pulled high, the output of the corresponding channel immediately changes to the number set in hsp.
+        The return value must be a pair of lists: 
+        - list1: time of the transition edges of the TTL signal.
+        - list2: the output DAC number corresponding to this TTL signal. 
+
+        For instance, a return value of [1000, 2000], [500] means the DAC output is 500 between 1000 and 2000   
+        '''
         self.channel = channel
         super().__init__(**kwargs)
 

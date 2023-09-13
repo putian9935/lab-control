@@ -29,6 +29,12 @@ from . import oven_controller
 from .oven_controller import * 
 
 
+from . import coil_servo 
+from .coil_servo import * 
+
+from . import vco_controller 
+from .vco_controller import * 
+
 __all__ = []
 __all__ += aio.__all__
 __all__ += camera_solis.__all__
@@ -40,3 +46,5 @@ __all__ += slave_lock.__all__
 __all__ += wlm_lock.__all__ 
 __all__ += rpyc_slave_daemon.__all__
 __all__ += oven_controller.__all__
+__all__ += coil_servo.__all__
+__all__ += vco_controller.__all__
