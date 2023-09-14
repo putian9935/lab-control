@@ -8,7 +8,8 @@ def binarise(*args):
     elif len(args) == 1:
         # hsp
         y, = args
-        return int(y).to_bytes(2, 'little', signed=False)
+        print('can be here')
+        return int(1).to_bytes(4, 'little', signed=False)+int(y).to_bytes(2, 'little', signed=False)
 
 def fname2tv(fname):
     with open(fname) as fin:

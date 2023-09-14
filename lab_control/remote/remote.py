@@ -71,4 +71,5 @@ class ToRemote:
         return type(cls.__name__+'_r', (cls,), d)
 
 
-to_sr_remote = ToRemote(lab_control.RPyCSlaveDaemon("192.168.107.200"))
+# to_sr_remote = ToRemote(lab_control.RPyCSlaveDaemon("192.168.107.200"))
+to_in_desktop2 = ToRemote(lab_control.RPyCSlaveDaemon("192.168.107.192"))

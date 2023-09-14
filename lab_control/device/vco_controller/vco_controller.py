@@ -1,7 +1,7 @@
 from ...core.program import Program, wait_for_prompt
 from ...core.action import Action, set_pulse
 from ...core.types import *
-from lab_control.core.util.ts import to_plot, pulsify, merge_seq_aio
+from lab_control.core.util.ts import to_plot, pulsify, merge_seq_aio, shift_list_by_one
 
 
 
@@ -38,13 +38,13 @@ class ramp(Action):
         with open('vco_vref_temp', 'w') as f:
             f.write(
                 '\n'.join(
-                    f'{_dt}, {_vref}' 
+                    f'{_dt},{_vref}' 
                     for _, dt, vref in merge_seq_aio(*(zip(*extras)))
-                    for _dt, _vref in zip(dt, vref)
+                    for _dt, _vref in zip(dt, shift_list_by_one(vref))
                 )
             )
         # upload file 
-        await target.write(b'paramDet coil_vref_temp\n')
+        await target.write(b'paramDet vco_vref_temp\n')
         await wait_for_prompt(target.proc.stdout)
         # start experiment 
         await target.write(b'exp\n')

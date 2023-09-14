@@ -7,6 +7,8 @@ import numpy as np
 import glob
 import os
 
+from .EMCCD_simControl import action_changeFilenameAndStartCamAcq, action_StopCamAcq
+
 
 class MyTk(Tk):
     def __init__(self):
@@ -37,10 +39,12 @@ class MyTk(Tk):
 exported_funcs= {}
 def create():
     global exported_funcs 
-    param_list = ['MOTpower']
-    param_num_list = ['some_number']
-    # param_list =['aom','da']
-    # param_num_list = ['8','3l']
+    param_list = []
+    param_num_list = []
+    # param_list = ['MOTpower', 'MOT-detuning', 'CoilCurrent', 'EMgain', 'Exposuretime', 'Seq'\
+                # ,'TOF(B off)', 'Bx', 'By', 'Bz','CoolMOT-duration','CoolMOT-detuning','CoolMOT-detuning-ramp-time']
+    # param_num_list = ['300mV', '-40MHz', '36A', '2', '3ms', 'CoolMOTv10', '2.5-0.5-6', '-250mA', '-100mA', '220mA','3.5ms','-140MHz','1.5ms']
+
     def initializeVar():
         global count, index, timestamp, index_list, param_box_list1, param_box_list2,fn
         index = 0
@@ -163,6 +167,16 @@ def create():
             add_para()
         B_load.config(state = 'disabled')
 
+    def cam_set_filename_and_start_acq():
+    #     print(event)
+        print('setting camera filename')
+        try:
+            cam_filename = fn
+            print(cam_filename)
+        except:
+            cam_filename = 'exp00'
+        action_changeFilenameAndStartCamAcq( filename=cam_filename)
+
     def on_closing():
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
             root.close()   
@@ -170,6 +184,7 @@ def create():
     exported_funcs['load'] = load_description
     exported_funcs['next'] = next_data
     exported_funcs['gene'] = gene_data
+    exported_funcs['set_cam'] = cam_set_filename_and_start_acq
 
 
     root = MyTk()
@@ -198,6 +213,10 @@ def create():
     B_disc.config(state = 'disabled')
     B_load = Button(frame_func, text = 'Load',command = load_description)
     B_load.grid(row = 0,column = 3, padx = 10,pady = 5)
+
+    B_camFnAcq = Button(frame_func, text = 'cam fn&Acq',command = cam_set_filename_and_start_acq)
+    # B_camFnAcq = Button(frame_func, text = 'cam fn&Acq')
+    B_camFnAcq.grid(row = 0,column = 5, padx = 10,pady = 5)
     ##########################################################################################
     frame_basc = LabelFrame(frame_main, text = 'Basic Info:',padx = 5, pady = 5)
     frame_basc.grid(row=2, column=0,padx = 5,pady = 5, sticky='nw')

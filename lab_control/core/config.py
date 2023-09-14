@@ -113,11 +113,12 @@ class Configuration(metaclass=ConfMeta):
     def fname(self):
         """ Convert parameter dict to fname"""
         def to_str(x):
+            if isinstance(x, str): 
+                return x
             if isinstance(x, Iterable):
                 return '-'.join(str(_) for _ in x)
             return str(x)
-        
-        return f'{self.cnt}_'+'_'.join(to_str(v) for v in self._arguments.values()) + f'_{self._time_stamp:%Y%m%d%H%M%S}'
+        return f'{self.cnt}_'+'_'.join(k+to_str(v) for k, v in self._arguments.items()) + f'_{self._time_stamp:%Y%m%d%H%M%S}'
 
     @property
     def param_str(self):
