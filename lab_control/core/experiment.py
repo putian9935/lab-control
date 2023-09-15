@@ -10,16 +10,26 @@ from .config import config
 from .lab import Lab
 
 
+def inject_lab_into_coroutine(f):
+    """ injection lab information into a coroutine """
+    async def ret(*args, **kwds):
+        for k, v in Lab.lab_in_use.attr.items():
+            f.__globals__[k] = v
+        return await f(*args, **kwds)
+    return ret 
+
+
 class Experiment:
     def __init__(self, to_fpga=False, ts_fpga: str = None) -> None:
         if to_fpga:
             if ts_fpga not in Lab.lab_in_use.attr:
-                raise ValueError(f"Cannot find instance {ts_fgpa}!")
+                raise ValueError(f"Cannot find instance {ts_fpga}!")
         self.to_fpga = to_fpga
         self.ts_fpga = Lab.lab_in_use.attr[ts_fpga]
 
     def __call__(self, f) -> Awaitable:
         signature = inspect.signature(f)
+
         async def ret(*args, **kwds):
             def setup_config():
                 ba = signature.bind(*args, **kwds)

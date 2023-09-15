@@ -2,6 +2,7 @@ import importlib.util
 from .target import Target
 from .action import ActionMeta
 from .run_experiment import *
+from typing import Callable 
 
 class Lab:
     """ Lab loader """
@@ -20,7 +21,7 @@ class Lab:
         self.attr = dict()
         for x in dir(lab):
             obj = lab.__getattribute__(x)
-            if isinstance(obj, (Target, ActionMeta)):
+            if isinstance(obj, (Target, ActionMeta, Callable)):
                 self.attr[x] = obj
             if isinstance(obj, Target):
                 obj.__name__ = x
