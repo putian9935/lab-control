@@ -90,11 +90,10 @@ def kill_proc(pid: str):
     return pid
 
 
-async def wait_for_prompt(cout, prompt='>>> '):
+async def wait_for_prompt(cout, prompt='>>> ', debug=False):
     while True:
         line = await cout.readline() 
         if prompt in line.decode():
             return 
-        else:
-            pass 
-            # print(line.decode())
+        elif debug:
+            print(line.decode())

@@ -63,7 +63,7 @@ def get_action_usage(act: ActionMeta):
         print('>--- Keyword only argument(s):', end=' ')
         print(', '.join(
             code.co_varnames[code.co_argcount+code.co_posonlyargcount:][:code.co_kwonlyargcount]))
-    print('>- Doc string:', act.__init__.__doc__)
+    print('>- Doc string:', act.__doc__)
 
 
 def to_action(s: str) -> ActionMeta:

@@ -103,6 +103,11 @@ def merge_plot_maps(*pms: plot_map) -> plot_map:
     return ret
 
 
+def shift_list_by_one(l: list):
+    """ Shift the last element to the front """
+    return [l[-1]] + l[:-1]
+
+
 def save_sequences(sequences: ts_map, fname: str) -> float:
     """ Returns the full experiment time """
     s = set()

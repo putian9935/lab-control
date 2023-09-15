@@ -1,3 +1,7 @@
+''' Server daemon program 
+
+run this program on slave machines
+'''
 import subprocess
 import asyncio
 import socket
@@ -18,7 +22,8 @@ def check_slave_existence():
 
 
 def kill_proc(pid):
-    if pid is None: return 
+    if pid is None:
+        return
     subprocess.run((rf'taskkill /F /PID {pid}'))
 
 
@@ -44,13 +49,13 @@ class RPyCSlaveDaemon():
                 data = (await self.loop.run_in_executor(None, lambda: conn.recv(100))).strip()
                 if data == b'start':
                     await asyncio.subprocess.create_subprocess_shell(
-                        (rf"C:\Users\strontium_remote1\AppData\Local\Programs\Python\Python39\Python C:\Users\strontium_remote1\Desktop\launch_slave.py --host 0.0.0.0 -p {port}"),
-                                    stdin=asyncio.subprocess.PIPE
-                                    )
+                        (rf"python launch_slave.py --host 0.0.0.0 -p {port}"),
+                        stdin=asyncio.subprocess.PIPE
+                    )
                     conn.sendall(b'done')
-                    return 
+                    return
                 elif not len(data):
-                    return 
+                    return
 
     async def serve(self):
         print('Waiting for connection...')

@@ -113,7 +113,7 @@ class Target(metaclass=TargetMeta):
     async def wait_until_ready(self):
         pass
 
-    def test_precondition(self):
+    def test_precondition(self) -> bool:
         return True
 
     @disable_if_offline
@@ -127,7 +127,7 @@ class Target(metaclass=TargetMeta):
     def to_plot(self, expand_pulse=False, raw=False):
         return merge_plot_maps(*[act_t.to_plot_cls(self, expand_pulse=expand_pulse, raw=raw) for act_t in type(self).supported_actions if act_t is not None])
 
-    def test_postcondition(self):
+    def test_postcondition(self) -> bool:
         return True
 
     @disable_if_offline

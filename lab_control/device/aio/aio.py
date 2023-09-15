@@ -5,7 +5,7 @@ import importlib.util
 from . import ports
 from .csv_reader import tv2wfm, p2r
 from ...core.types import *
-from lab_control.core.util.ts import to_plot, pulsify, merge_plot_maps, merge_seq_aio
+from lab_control.core.util.ts import to_plot, pulsify, merge_plot_maps, merge_seq_aio, shift_list_by_one
 import traceback
 from serial.serialutil import SerialException 
 
@@ -39,10 +39,6 @@ class AIO(Target):
     async def close(self):
         self.backend.stop()
 
-def shift_list_by_one(l: list):
-    """ Shift the last element to the front """
-    return [l[-1]] + l[:-1]
-
 
 def shift_vdt_by_one(retv: Tuple[list]):
     return retv[0], shift_list_by_one(retv[1]), shift_list_by_one(retv[2])
@@ -51,8 +47,13 @@ def shift_vdt_by_one(retv: Tuple[list]):
 @set_pulse
 @AIO.take_note
 class ramp(Action):
+    '''Ramp action 
+       
+    Changes the servo setpoint by specifying the ramp time and ramp voltage change.
+    
+    The return value must be a tuple of three lists of the trigger start time, ramp time, and ramp voltage (in percentage, 0 means min and 1 means max).
+    '''
     def __init__(self, *, channel: int, **kwargs) -> None:
-        'Ramp action.\n    Changes the servo setpoint by specifying the ramp time and ramp voltage change. \n    The return value must be a tuple of three lists of the trigger start time, ramp time, and ramp voltage (in percentage, 0 means min and 1 means max).'
         self.channel = channel
         super().__init__(**kwargs)
         self.retv: Tuple[List[int], List[int], List[reals]]
@@ -60,6 +61,7 @@ class ramp(Action):
     def to_time_sequencer(self, target: AIO) -> ts_map:
         if ramp not in target.ts_mapping:
             raise KeyError(f"ramp is not in ts_mapping of AIO target {target}")
+        print('to_ts', self.retv[0])
         return {target.ts_mapping[ramp]: (self.retv[0], False, f'{target}.ramp_trig')}
 
     @classmethod
@@ -71,7 +73,6 @@ class ramp(Action):
         for act in target.actions[cls]:
             extras.append(act.retv)
             chs.append(act.channel)
-
         # deal with ramp
         for ch, (ts, dt, v) in zip(chs, merge_seq_aio(*(zip(*extras)))):
             ts, dt, v = shift_vdt_by_one((ts, dt, v))
@@ -97,15 +98,20 @@ class ramp(Action):
 
 @AIO.take_note
 class hsp(Action):
-    def __init__(self, *, channel: int, **kwargs) -> None:
-        '''Hold setpoint action.
-        When the pin 35 is pulled high, the output of the corresponding channel immediately changes to the number set in hsp.
-        The return value must be a pair of lists: 
-        - list1: time of the transition edges of the TTL signal.
-        - list2: the output DAC number corresponding to this TTL signal. 
+    '''Hold setpoint action.
 
-        For instance, a return value of [1000, 2000], [500] means the DAC output is 500 between 1000 and 2000   
-        '''
+    When the pin 35 is pulled high, the output of the corresponding channel immediately changes to the number set in hsp.
+    The return value must be a pair of lists: 
+    - list1: time of the transition edges of the TTL signal.
+    - list2: the output DAC number corresponding to this TTL signal. 
+
+    For instance, a return value of [1000, 2000], [500] means the DAC output is 500 between 1000 and 2000   
+
+    Warning
+    ---
+    It is the duty of the user to make sure that the passed HSP waveform is compatible across stages. The total number of edges should be twice the number of set points.  
+    '''
+    def __init__(self, *, channel: int, **kwargs) -> None:
         self.channel = channel
         super().__init__(**kwargs)
 
@@ -119,6 +125,7 @@ class hsp(Action):
     def to_time_sequencer(self, target: AIO) -> ts_map:
         if hsp not in target.ts_mapping:
             raise KeyError("hsp is not in ts_mapping of AIO target")
+        print(self.retv[0])
         return {target.ts_mapping[hsp]: (self.retv[0], self.polarity, f'{target}.hsp')}
 
     def to_plot(self, target: AIO, raw: bool, *args, **kwargs) -> plot_map:

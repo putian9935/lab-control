@@ -1,3 +1,3 @@
-__all__ = ["FileNameGenerator"]
+__all__ = ["FileNameGenerator", 'FileNameGeneratorNoGui']
 
-from .fname_gen import FileNameGenerator 
+from .fname_gen import FileNameGenerator, FileNameGeneratorNoGui
