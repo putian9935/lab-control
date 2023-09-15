@@ -1,7 +1,7 @@
 from ...core.program import Program, wait_for_prompt
 from ...core.action import Action, set_pulse
 from ...core.types import *
-from lab_control.core.util.ts import to_plot, pulsify, merge_seq_aio
+from lab_control.core.util.ts import to_plot, pulsify, merge_seq_aio, shift_list_by_one
 
 
 class CoilServo(Program):
@@ -45,7 +45,7 @@ class ramp(Action):
                 '\n'.join(
                     f'{_dt}, {_vref}' 
                     for _, dt, vref in merge_seq_aio(*(zip(*extras)))
-                    for _dt, _vref in zip(dt, vref)
+                    for _dt, _vref in zip(shift_list_by_one(dt), shift_list_by_one(vref))
                 )
             )
         
