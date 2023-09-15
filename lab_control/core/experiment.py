@@ -11,7 +11,7 @@ from .lab import Lab
 
 
 def inject_lab_into_coroutine(f):
-    """ injection lab information into a coroutine """
+    """ inject lab information into a coroutine """
     async def ret(*args, **kwds):
         for k, v in Lab.lab_in_use.attr.items():
             f.__globals__[k] = v
@@ -56,8 +56,8 @@ class Experiment:
             print(
                 f'[INFO] Experiment {f.__name__} parsed in {time.perf_counter()-tt} second(s)!')
             try:
-                setup_config()
                 tt = time.perf_counter()
+                setup_config()
                 await run_preprocess()
                 print(
                     f'[INFO] Prerequisite done in {time.perf_counter()-tt} second(s)!')

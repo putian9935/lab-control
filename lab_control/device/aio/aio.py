@@ -65,6 +65,7 @@ class ramp(Action):
 
     @classmethod
     async def run_preprocess_cls(cls, target: AIO):
+        from time import perf_counter
         # extra waveform parameters
         extras = []
         # the channel id of the servo
