@@ -61,11 +61,11 @@ class ramp(Action):
     def to_time_sequencer(self, target: AIO) -> ts_map:
         if ramp not in target.ts_mapping:
             raise KeyError(f"ramp is not in ts_mapping of AIO target {target}")
-        print('to_ts', self.retv[0])
         return {target.ts_mapping[ramp]: (self.retv[0], False, f'{target}.ramp_trig')}
 
     @classmethod
     async def run_preprocess_cls(cls, target: AIO):
+        from time import perf_counter
         # extra waveform parameters
         extras = []
         # the channel id of the servo
@@ -125,7 +125,6 @@ class hsp(Action):
     def to_time_sequencer(self, target: AIO) -> ts_map:
         if hsp not in target.ts_mapping:
             raise KeyError("hsp is not in ts_mapping of AIO target")
-        print(self.retv[0])
         return {target.ts_mapping[hsp]: (self.retv[0], self.polarity, f'{target}.hsp')}
 
     def to_plot(self, target: AIO, raw: bool, *args, **kwargs) -> plot_map:

@@ -10,6 +10,15 @@ from .config import config
 from .lab import Lab
 
 
+def inject_lab_into_coroutine(f):
+    """ inject lab information into a coroutine """
+    async def ret(*args, **kwds):
+        for k, v in Lab.lab_in_use.attr.items():
+            f.__globals__[k] = v
+        return await f(*args, **kwds)
+    return ret 
+
+
 class Experiment:
     def __init__(self, to_fpga=False, ts_fpga: str = None) -> None:
         self.to_fpga = to_fpga
@@ -17,13 +26,14 @@ class Experiment:
             if ts_fpga is None:
                 raise ValueError("Please specify time sequencer FPGA instance!")
             if ts_fpga not in Lab.lab_in_use.attr:
-                raise ValueError(f"Cannot find instance {ts_fgpa}!")
-            self.ts_fpga = Lab.lab_in_use.attr[ts_fpga]
-        else:
-            self.ts_fpga = None 
+                raise ValueError(f"Cannot find instance {ts_fpga}!")
+        self.to_fpga = to_fpga
+        self.ts_fpga = Lab.lab_in_use.attr[ts_fpga]
+
 
     def __call__(self, f) -> Awaitable:
         signature = inspect.signature(f)
+
         async def ret(*args, **kwds):
             def setup_config():
                 ba = signature.bind(*args, **kwds)
@@ -50,8 +60,8 @@ class Experiment:
             print(
                 f'[INFO] Experiment {f.__name__} parsed in {time.perf_counter()-tt} second(s)!')
             try:
-                setup_config()
                 tt = time.perf_counter()
+                setup_config()
                 await run_preprocess()
                 print(
                     f'[INFO] Prerequisite done in {time.perf_counter()-tt} second(s)!')

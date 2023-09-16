@@ -12,7 +12,8 @@ class ConfMeta(type):
             attr
             for attr in cls.__dict__.keys()
             if isinstance(cls.__getattribute__(cls, attr), property)
-            if cls.__getattribute__(cls, attr).fset is not None)
+            if cls.__getattribute__(cls, attr).fset is not None
+        )
 
 
 class Configuration(metaclass=ConfMeta):
@@ -118,7 +119,18 @@ class Configuration(metaclass=ConfMeta):
             if isinstance(x, Iterable):
                 return '-'.join(str(_) for _ in x)
             return str(x)
-        return f'{self.cnt}_'+'_'.join(k+to_str(v) for k, v in self._arguments.items()) + f'_{self._time_stamp:%Y%m%d%H%M%S}'
+        return f'{self.cnt}_' +'_'.join(k+to_str(v) for k, v in self._arguments.items()) + f'_{self._time_stamp:%Y%m%d%H%M%S}'
+
+    def gen_fname_from_dict(self, args):
+        """ Convert parameter dict to fname"""
+        def to_str(x):
+            if isinstance(x, str): 
+                return x
+            if isinstance(x, Iterable):
+                return '-'.join(str(_) for _ in x)
+            return str(x)
+        return f'{self.cnt}_' +'_'.join(k+to_str(v) for k, v in args.items()) # + f'_{self._time_stamp:%Y%m%d%H%M%S}'
+
 
     @property
     def param_str(self):

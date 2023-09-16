@@ -17,7 +17,7 @@ defaultLocation = {
 def action_changeFilenameAndStartCamAcq(filename='exp00'):
     # bring window to foreground
     win_handle = pyautogui.getWindowsWithTitle('Andor SOLIS')[0]
-    win_handle.restore()
+    win_handle.minimize()
     win_handle.maximize()
     time.sleep(0.05)
     pyautogui.click(*defaultLocation['camSettingIcon'], clicks=1)
