@@ -5,6 +5,7 @@ import importlib.util
 from .util.ts import save_sequences, merge_seq
 import typing
 from typing import Dict
+import time
 
 
 def all_target_types() -> typing.Generator[TargetMeta, None, None]:
@@ -125,11 +126,27 @@ def check_channel_clash(*to_seq):
                     "Incompatible channel assignment! Same time sequencer channel is assigned to different targets!")
 
 
-def prepare_sequencer_files():
+def prepare_sequencer_files(n_repeat=1):
+    """ prepare the file for FPGA program input 
+    
+    Parameters
+    --- 
+    n_repeat: the repeat time of the parameter  
+
+    Returns
+    --- 
+    The total time of the experiment 
+    """
+    tt = time.perf_counter()
     to_seq = tuple(tar.to_time_sequencer()
                    for tar in all_target_instances())
     check_channel_clash(*to_seq)
     exp_time = save_sequences(merge_seq(*to_seq), '1')
+    print(
+        f'[INFO] Sequence prepared in {time.perf_counter()-tt} '
+        'second(s)!')
+    print(
+        f'[INFO] Experiment cycle time: {exp_time/1e6} second(s)')
     return exp_time
 
 

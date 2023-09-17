@@ -8,7 +8,7 @@ import inspect
 from datetime import datetime
 from .config import config
 from .lab import Lab
-
+from functools import wraps
 
 def inject_lab_into_coroutine(f):
     """ inject lab information into a coroutine """
@@ -18,6 +18,28 @@ def inject_lab_into_coroutine(f):
         return await f(*args, **kwds)
     return ret 
 
+
+def deal_with_condition_fail():
+    """ deal with pre-/post-condition failure 
+    
+    Provides two options (from user input):
+    - a: abort the experiment 
+    - c: continue the experiment 
+    """
+    x = input("""Pre-/post-condition failure detected! Enter [a/c/f]?
+    - a: abort the experiment;  
+    - c: continue the experiment; 
+    - f: force continue the experiment
+            """)
+    
+    while True:
+        if x == 'a':
+            return False 
+        if x == 'c':
+            return 
+        if x == 'f':
+            return True
+        x = input("Enter [a/c/f]?")
 
 class Experiment:
     def __init__(self, to_fpga=False, ts_fpga: str = None) -> None:
@@ -65,15 +87,15 @@ class Experiment:
                 await run_preprocess()
                 print(
                     f'[INFO] Prerequisite done in {time.perf_counter()-tt} second(s)!')
-                if not test_precondition():
-                    raise PreconditionFail()
-                tt = time.perf_counter()
+                while not test_precondition():
+                    action = deal_with_condition_fail() 
+                    if action is True:
+                        break 
+                    if action is False: 
+                        raise PreconditionFail()
+                    # if action is None:
+                    #     continue
                 exp_time = prepare_sequencer_files()
-                print(
-                    f'[INFO] Sequence prepared in {time.perf_counter()-tt} '
-                    'second(s)!')
-                print(
-                    f'[INFO] Experiment cycle time: {exp_time/1e6} second(s)')
                 show_sequences()
                 if self.to_fpga and not config.offline:
                     await run_sequence(self.ts_fpga, exp_time)
