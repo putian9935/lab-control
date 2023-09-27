@@ -5,16 +5,16 @@ from functools import cache
 import asyncio
 
 class ToRemote:
-    uploaded = False
 
     def __init__(self, daemon: lab_control.device.RPyCSlaveDaemon):
         self.conn = rpyc.classic.connect(daemon.addr)
         self.exc_check = None
+        # self.uploaded = False
 
         print(f'[INFO] Connected to RPyC slave at {daemon.addr}')
-        if not ToRemote.uploaded:
-            classic.upload_package(self.conn, lab_control)
-            ToRemote.uploaded = True
+        # if not ToRemote.uploaded:
+        # print('Uploading package')
+        # classic.upload_package(self.conn, lab_control)
         print('[INFO] Waiting slave to spawn all tasks..')
         self.rs = rpyc.classic.redirected_stdio(self.conn)
         self.rs.__enter__()

@@ -6,7 +6,6 @@ from . import ports
 from .csv_reader import tv2wfm, p2r
 from ...core.types import *
 from lab_control.core.util.ts import to_plot, pulsify, merge_plot_maps, merge_seq_aio, shift_list_by_one
-from ...core.util.profiler import measure_time 
 
 from serial.serialutil import SerialException 
 

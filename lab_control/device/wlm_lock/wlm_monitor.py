@@ -3,6 +3,7 @@
 from lab_control.core.target import Target
 from ctypes import cdll
 import ctypes
+from lab_control.core.types import Dict
 
 
 def getWaveLengthAt(ch):
@@ -18,7 +19,7 @@ def getWaveLengthAt(ch):
     return lambda: wm_dll.GetWavelengthNum(ctypes.c_long(ch), ctypes.c_double(0))
 
 
-def check_okay(target_wavelength: dict[int, float]):
+def check_okay(target_wavelength: Dict[int, float]):
     """ check if all channels are locked 
     
     Parameter
