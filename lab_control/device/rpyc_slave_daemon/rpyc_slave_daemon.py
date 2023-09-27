@@ -21,7 +21,7 @@ class RPyCSlaveDaemon(Target):
             port = 18816
         self.addr = addr
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.settimeout(.8)
+        self.s.settimeout(.6)
         try:
             self.s.connect((addr, port))
         except socket.timeout as e:

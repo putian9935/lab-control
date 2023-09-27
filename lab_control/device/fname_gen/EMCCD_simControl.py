@@ -13,12 +13,14 @@ defaultLocation = {
     'camStopAcqIcon':[241,74]
     }
 
-    
-def action_changeFilenameAndStartCamAcq(filename='exp00'):
-    # bring window to foreground
+def bring_andor_to_front():
+    ''' put Andor Solis to foreground '''
     win_handle = pyautogui.getWindowsWithTitle('Andor SOLIS')[0]
     win_handle.minimize()
     win_handle.maximize()
+
+def action_changeFilenameAndStartCamAcq(filename='exp00'):
+    bring_andor_to_front()
     time.sleep(0.05)
     pyautogui.click(*defaultLocation['camSettingIcon'], clicks=1)
     time.sleep(0.05)
@@ -27,17 +29,14 @@ def action_changeFilenameAndStartCamAcq(filename='exp00'):
     pyautogui.click(*defaultLocation['camSettingFilenameEntryBox'])
     with pyautogui.hold('ctrl'):
             pyautogui.press(['A'])
-    pyautogui.write(filename, interval=1e-2)
+    pyautogui.write(filename[:50], interval=1e-2)
     pyautogui.click(*defaultLocation['camSettingOkBtn'])
     time.sleep(0.5)
     pyautogui.click(*defaultLocation['camStartAcqIcon'])
     pyautogui.moveTo(*defaultLocation['nowhere'])
 
-def action_StopCamAcq(filename='exp00'):
-    # bring window to foreground
-    win_handle = pyautogui.getWindowsWithTitle('Andor SOLIS')[0]
-    win_handle.restore()
-    win_handle.maximize()
+def action_StopCamAcq():
+    bring_andor_to_front()
     time.sleep(0.05)
     pyautogui.click(*defaultLocation['camStopAcqIcon'], clicks=1)
     time.sleep(2)
