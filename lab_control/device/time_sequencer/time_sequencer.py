@@ -33,6 +33,9 @@ class hold(Action):
     def __eq__(self, __value: object) -> bool:
         return super().__eq__(__value) and self.channel == __value.channel 
 
+    def weak_equal(self, __value: object) -> bool:
+        return super().weak_equal(__value) and self.channel == __value.channel
+
 
 @set_pulse
 @TimeSequencer.take_note

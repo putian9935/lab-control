@@ -8,7 +8,7 @@ from lab_control.core.lab import Lab
 
 async def main(lab_name):
     async with Lab(lab_name) as lab:
-        print('[INFO] Special commands: !exit, !ls targets, !ls actions, !help <action>, !config <k=v>')
+        print('''[INFO] Special commands: !exit, !ls targets, !ls actions, !help <action>, !config <k=v>''')
         while True:
             try:
                 exp_name = (
@@ -41,7 +41,6 @@ async def main(lab_name):
             except (PreconditionFail, PostconditionFail):
                 print(
                     '[ERROR] Pre- or Post-condiction failed! Please go over through the messages starting with [ERROR] and fix them.')
-                pass
             except Exception:
                 traceback.print_exc()
 

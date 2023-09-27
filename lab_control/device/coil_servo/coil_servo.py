@@ -21,6 +21,10 @@ class CoilServo(Program):
         return await super().close()
     
 
+    async def at_acq_start(self):
+        # clear contents 
+        open('coil_vref_temp', 'w').close()
+
 @CoilServo.set_default
 @set_pulse
 @CoilServo.take_note
@@ -31,23 +35,29 @@ class ramp(Action):
 
     def to_time_sequencer(self, target: CoilServo) -> ts_map:
         return {target.ts_channel: (self.retv[0], False, f'{target}.ramp_trig')}
+    
 
     @classmethod
     async def run_preprocess_cls(cls, target: CoilServo):
         extras = []
         for act in target.actions[cls]:
             extras.append(act.retv)
-
-        # deal with ramp
         
-        with open('coil_vref_temp', 'w') as f:
-            f.write(
-                '\n'.join(
+        # deal with ramp
+        contents = '\n'.join(
                     f'{_dt}, {_vref}' 
                     for _, dt, vref in merge_seq_aio(*(zip(*extras)))
                     for _dt, _vref in zip(shift_list_by_one(dt), shift_list_by_one(vref))
                 )
-            )
+        try:
+            # in case file does not exist
+            if open('coil_vref_temp').read() == contents:
+                return 
+        finally:
+            pass 
+
+        with open('coil_vref_temp', 'w') as f:
+            f.write(contents)
         
         await target.write(b'paramVref coil_vref_temp\n')
     

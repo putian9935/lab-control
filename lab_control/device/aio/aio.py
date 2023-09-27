@@ -6,9 +6,9 @@ from . import ports
 from .csv_reader import tv2wfm, p2r
 from ...core.types import *
 from lab_control.core.util.ts import to_plot, pulsify, merge_plot_maps, merge_seq_aio, shift_list_by_one
+from functools import wraps 
 
-from serial.serialutil import SerialException 
-
+from lab_control.core.util.profiler import measure_time
 aio_ts_mapping = Dict[ActionMeta, int]
 
 
@@ -43,16 +43,47 @@ class AIO(Target):
 def shift_vdt_by_one(retv: Tuple[list]):
     return retv[0], shift_list_by_one(retv[1]), shift_list_by_one(retv[2])
 
+def cache_cls_actions(coro_func):
+    ''' stop uploading if the parameter is the same 
+    
+    Applies for "_cls" suffixed (i.e., classmethod decorated) coroutine functions
+    '''
+    @wraps(coro_func)
+    async def ret(cls, target):
+
+        if target in cls.last_target_actions:
+            if cls.last_target_actions[target] == target.actions[cls]:
+                return
+        else:
+            cls.last_target_actions[target] = target.actions[cls]
+        await coro_func(cls, target) 
+    return ret 
+
+def cache_actions(coro_func):
+    ''' stop uploading if the parameter is the same '''
+    @wraps(coro_func)
+    async def ret(self, target):
+        cls = type(self)
+        if target in cls.last_target_actions:
+            if self in cls.last_target_actions[target] :
+                return
+            else:                
+                cls.last_target_actions[target].append(self)
+        else:
+            cls.last_target_actions[target]= [self]
+        await coro_func(self, target) 
+    return ret 
 
 @set_pulse
 @AIO.take_note
 class ramp(Action):
     '''Ramp action 
-       
+
     Changes the servo setpoint by specifying the ramp time and ramp voltage change.
-    
+
     The return value must be a tuple of three lists of the trigger start time, ramp time, and ramp voltage (in percentage, 0 means min and 1 means max).
     '''
+
     def __init__(self, *, channel: int, **kwargs) -> None:
         self.channel = channel
         super().__init__(**kwargs)
@@ -64,15 +95,16 @@ class ramp(Action):
         return {target.ts_mapping[ramp]: (self.retv[0], False, f'{target}.ramp_trig')}
 
     @classmethod
+    @cache_cls_actions
     async def run_preprocess_cls(cls, target: AIO):
-        from time import perf_counter
         # extra waveform parameters
         extras = []
         # the channel id of the servo
-        chs: List[int] = [] 
+        chs: List[int] = []
         for act in target.actions[cls]:
             extras.append(act.retv)
             chs.append(act.channel)
+
         # deal with ramp
         for ch, (ts, dt, v) in zip(chs, merge_seq_aio(*(zip(*extras)))):
             ts, dt, v = shift_vdt_by_one((ts, dt, v))
@@ -82,6 +114,9 @@ class ramp(Action):
 
     def __eq__(self, __value: object) -> bool:
         return super().__eq__(__value) and self.channel == __value.channel
+
+    def weak_equal(self, __value: object) -> bool:
+        return super().weak_equal(__value) and self.channel == __value.channel
 
     def to_plot(self, target: AIO, raw: bool, *args, **kwargs) -> plot_map:
         if raw:
@@ -111,10 +146,12 @@ class hsp(Action):
     ---
     It is the duty of the user to make sure that the passed HSP waveform is compatible across stages. The total number of edges should be twice the number of set points.  
     '''
+
     def __init__(self, *, channel: int, **kwargs) -> None:
         self.channel = channel
         super().__init__(**kwargs)
 
+    @cache_actions
     async def run_preprocess(self, target: AIO):
         if hsp not in target.ts_mapping:
             raise KeyError(f"hsp is not in ts_mapping of AIO target {target}")
@@ -135,6 +172,9 @@ class hsp(Action):
 
     def __eq__(self, __value: object) -> bool:
         return super().__eq__(__value) and self.channel == __value.channel
+
+    def weak_equal(self, __value: object) -> bool:
+        return super().weak_equal(__value) and self.channel == __value.channel
 
 
 if __name__ == '__main__':
