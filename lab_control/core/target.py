@@ -129,7 +129,9 @@ class Target(metaclass=TargetMeta):
         return True
 
     async def at_acq_start(self):
-        pass 
+        # clear cached actions 
+        for action_cls in type(self).supported_actions:
+            action_cls.last_target_actions = {}
 
     @disable_if_offline
     @ensure_loaded
