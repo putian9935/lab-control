@@ -2,7 +2,7 @@ from lab_control.device import *
 import numpy as np
 from lab_control.core.config import config
 from datetime import datetime 
-from lab_control.remote.remote import to_in_desktop2, to_sr_remote, to_in_remote
+from lab_control.remote.remote import to_in_desktop2# , to_sr_remote, to_in_remote
 
 config.offline = False
 config.output_dir = rf'Q:\indium\data\2023\{datetime.now():%y%m%d}'

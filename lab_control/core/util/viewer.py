@@ -5,7 +5,7 @@ from ..stage import Stage
 from ..run_experiment import all_target_instances
 from .ts import merge_plot_maps
 from ..config import config
-
+import logging 
 
 class Viewer:
     def __init__(self, pm: plot_map, real_time) -> None:
@@ -99,12 +99,8 @@ def show_sequences():
     pm = merge_plot_maps(*[tar.to_plot(raw=config.view_raw)
                            for tar in all_target_instances()])
     if not len(pm):
-        print('[WARNING] Empty sequence has nothing to plot')
+        logging.warning('Empty sequence has nothing to plot')
         return
 
     viewer = Viewer(pm, config.view_real_time).plot(config.title)
-
-    if not config.view:
-        plt.close()
-        return
     viewer.show()

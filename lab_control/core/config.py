@@ -8,6 +8,11 @@ from collections.abc import Iterable
 import logging 
 logging.basicConfig(level=logging.DEBUG)
 
+import logging 
+logging.basicConfig(level=logging.INFO)
+logging.getLogger('matplotlib').disabled = True
+logging.getLogger('matplotlib.font_manager').disabled = True
+logging.getLogger('PIL.PngImagePlugin').disabled = True
 class ConfMeta(type):
     def __init__(cls, *args):
         cls.writable_property_names = set(

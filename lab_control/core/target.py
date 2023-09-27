@@ -6,8 +6,9 @@ from .action import Action, ActionMeta
 from .util.ts import merge_seq, to_pulse, merge_plot_maps
 from types import *
 from .config import config
-from functools import wraps
-
+from lab_control.core.util.profiler import measure_time
+from functools import wraps 
+import logging 
 
 class PreconditionFail(Exception):
     pass
@@ -68,35 +69,45 @@ class Target(metaclass=TargetMeta):
 
     def ensure_loaded(f):
         if not asyncio.iscoroutinefunction(f):
+            @wraps(f)
             def ret(self, *args, **kwds):
                 if not self.loaded:
                     if config.strict:
                         raise RuntimeError(
                             f'Target {self} of type {type(self).__name__} is not loaded!')
                     else:
-                        print(
-                            f'[WARNING] Target {self} of type {type(self).__name__} is not loaded!')
+                        logging.debug(
+                            f'Target {self} of type {type(self).__name__} is not loaded!')
                 return f(self, *args, **kwds)
         else:
+            @wraps(f)
             async def ret(self, *args, **kwds):
                 if not self.loaded:
                     if config.strict:
                         raise RuntimeError(
                             f'Target {self} of type {type(self).__name__} is not loaded!')
                     else:
-                        print(
-                            f'[WARNING] Target {self} of type {type(self).__name__} is not loaded!')
+                        logging.debug(
+                            f'Target {self} of type {type(self).__name__} is not loaded!')
                 return await f(self, *args, **kwds)
         return ret
 
     def disable_if_offline(f):
-        def ret(self, *args, **kwds):
-            if config.offline:
-                if asyncio.iscoroutinefunction(f):
-                    async def empty(): pass
-                    return empty()
-                return
-            return f(self, *args, **kwds)
+        ''' Disable a function if the target is offline '''
+        if asyncio.iscoroutinefunction(f):
+            @wraps(f)
+            async def ret(self, *args, **kwds):
+                if config.offline:
+                    return 
+                else:
+                    return await f(self, *args, **kwds)
+        else:
+            @wraps(f)
+            def ret(self, *args, **kwds):
+                if config.offline:
+                    return 
+                else:
+                    return f(self, *args, **kwds)
         return ret
 
     def load_wrapper(loader):
@@ -111,13 +122,18 @@ class Target(metaclass=TargetMeta):
         return ret
 
     async def wait_until_ready(self):
+        ''' run when a target is created '''
         pass
 
     def test_precondition(self) -> bool:
         return True
 
+    async def at_acq_start(self):
+        pass 
+
     @disable_if_offline
     @ensure_loaded
+    @measure_time
     async def run_preprocess(self):
         await asyncio.gather(*[act.run_preprocess_cls(self) for act in type(self).supported_actions if act is not None])
 
@@ -140,7 +156,12 @@ class Target(metaclass=TargetMeta):
 
     @ensure_loaded
     async def close(self):
+        ''' run when a target is deleted '''
         pass
+
+    async def at_acq_end(self):
+        ''' run after an acquisition '''
+        pass 
 
     @disable_if_offline
     @load_wrapper

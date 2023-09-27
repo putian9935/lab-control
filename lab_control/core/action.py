@@ -6,6 +6,7 @@ from .stage import Stage
 from typing import List, Callable, Optional, Dict, Tuple
 from functools import wraps
 from .types import *
+import logging 
 
 import typing
 if typing.TYPE_CHECKING:
@@ -26,6 +27,7 @@ class ActionMeta(type):
 
     def __init__(cls, new, bases, attr, offset=False):
         cls.instances: list[Action] = []
+        cls.last_target_actions: Dict[Target, List[Action]] = {}
         cls.pulse = False
         cls._offset: bool = offset  # the library writer may override the default behavior
         ActionMeta.instances[cls.__name__] = cls
@@ -71,7 +73,7 @@ class Action(metaclass=ActionMeta):
         if not is_temp:
             self._used = False
             for x in type(self).instances:
-                if self == x:
+                if self.weak_equal(x):
                     self._used = True
                     x.extend(self)
                     return
@@ -90,20 +92,20 @@ class Action(metaclass=ActionMeta):
         return [x + Stage.cur for x in l]
 
     async def run_preprocess(self, target: 'Target'):
-        print(
-            f'[Warning] Action {type(target).__name__}.{type(self).__name__} has no preprocess to run.')
+        logging.debug(
+            f'Action {type(target).__name__}.{type(self).__name__} has no preprocess to run.')
 
     def to_time_sequencer(self, target: 'Target') -> Optional[ts_map]:
-        print(
-            f'[Warning] Action {type(target).__name__}.{type(self).__name__} has nothing to transform to time sequencer.')
+        logging.debug(
+            f'Action {type(target).__name__}.{type(self).__name__} has nothing to transform to time sequencer.')
 
     def to_plot(self, target: 'Target', *args, **kwargs) -> Optional[plot_map]:
-        print(
-            f'[Warning] Action {type(target).__name__}.{type(self).__name__} has nothing to plot.')
+        logging.debug(
+            f'Action {type(target).__name__}.{type(self).__name__} has nothing to plot.')
 
     async def run_postprocess(self, target: 'Target'):
-        print(
-            f'[Warning] Action {type(target).__name__}.{type(self).__name__} has no postprocess to run.')
+        logging.debug(
+            f'Action {type(target).__name__}.{type(self).__name__} has no postprocess to run.')
 
     def extend(self, new):
         if type(self) != type(new):
@@ -115,6 +117,11 @@ class Action(metaclass=ActionMeta):
             self.retv.extend(new.retv)
 
     def __eq__(self, __value: object) -> bool:
+        ''' compare full property  '''
         if type(self) == type(__value):
-            return self.signame == __value.signame
+            return self.signame == __value.signame and self.retv == __value.retv
         raise TypeError("Non-comparable type!")
+    
+    def weak_equal(self, __value: object) -> bool:
+        ''' allow return value to be different, since they are not essential '''
+        return self.signame == __value.signame
