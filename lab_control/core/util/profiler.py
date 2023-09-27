@@ -11,7 +11,11 @@ def measure_time(f):
         tt = time.perf_counter()
         if asyncio.iscoroutinefunction(f):
             ret = await f(*args, **kwargs)
-        else:
+            logging.debug(f"Function {f.__name__} done in {time.perf_counter() - tt} seconds!")
+            return ret 
+    else:
+        def ret_func(*args, **kwargs):
+            tt = time.perf_counter()
             ret = f(*args, **kwargs)
         logging.debug(
             f"Function {f.__qualname__} ({type(args[0])}) done in {time.perf_counter() - tt} seconds!")
