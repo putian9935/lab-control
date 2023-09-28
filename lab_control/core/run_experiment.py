@@ -1,4 +1,5 @@
 from .target import Target, TargetMeta
+from .program import Program 
 from .action import Action, ActionMeta
 import asyncio
 import importlib.util
@@ -10,6 +11,7 @@ import logging
 
 
 class AbortExperiment(Exception):
+    """ Abort an experiment when q is pressed """
     pass
 
 
@@ -82,6 +84,13 @@ def list_targets():
     """ Shows all target types """
     for cls in all_target_types():
         print(cls.__name__, ':', ', '.join(map(str, cls.instances)))
+
+
+def clear_targets():
+    """ removes all targets """
+    for cls in all_target_types():
+        cls.instances = []
+        cls.backgrounds = []
 
 
 async def wait_until_ready():

@@ -14,7 +14,7 @@ def wait_for(sock, word):
             print(data)
 
 
-class RPyCSlaveDaemon(Target):
+class RPyCSlaveDaemon:
     def __init__(self, addr, port=None) -> None:
         super().__init__()
         if port is None:
@@ -33,6 +33,5 @@ class RPyCSlaveDaemon(Target):
         wait_for(self.s, b'done')
         # TODO
         self.loaded = True
-
-    async def close(self):
         self.s.close()
+
