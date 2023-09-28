@@ -45,5 +45,8 @@ class Lab:
                     tsk.cancel()
 
         await asyncio.gather(*[target.close() for target in all_target_instances()])
+        # clear all target instance and background references 
+        clear_targets()
+
         print(f'[INFO] Target(s) in lab {self.name} closed normally. Bye!')
         Lab.lab_in_use = None 

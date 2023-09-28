@@ -5,8 +5,6 @@ from .types import *
 import shlex
 from ast import literal_eval
 from collections.abc import Iterable
-import logging 
-logging.basicConfig(level=logging.DEBUG)
 
 import logging 
 logging.basicConfig(level=logging.INFO)

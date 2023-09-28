@@ -6,18 +6,19 @@ from functools import wraps
 
 def measure_time(f):
     """ Measure the execution time of function `f` """
-    @wraps(f)
-    async def ret_func(*args, **kwargs):
-        tt = time.perf_counter()
-        if asyncio.iscoroutinefunction(f):
+    if asyncio.iscoroutinefunction(f):
+        @wraps(f)
+        async def ret_func(*args, **kwargs):
+            tt = time.perf_counter()
             ret = await f(*args, **kwargs)
-            logging.debug(f"Function {f.__name__} done in {time.perf_counter() - tt} seconds!")
+            logging.debug(f"Function {f.__qualname__} done in {time.perf_counter() - tt} seconds!")
             return ret 
     else:
+        @wraps(f)
         def ret_func(*args, **kwargs):
             tt = time.perf_counter()
             ret = f(*args, **kwargs)
-        logging.debug(
-            f"Function {f.__qualname__} ({type(args[0])}) done in {time.perf_counter() - tt} seconds!")
-        return ret
+            logging.debug(
+                f"Function {f.__qualname__} ({type(args[0])}) done in {time.perf_counter() - tt} seconds!")
+            return ret
     return ret_func
