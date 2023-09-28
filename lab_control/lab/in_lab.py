@@ -15,9 +15,9 @@ TSChannel = TimeSequencer()
 ts_in = TimeSequencerFPGA('192.168.107.194', 5555)
 
 aio_326intensityServo = AIO(
-    maxpd=np.array([34150.,     0.,     0.,     0.]),
-    minpd=np.array([33080.,     0.,     0.,     0.]),
-    port='COM51',
+    maxpd=np.array([33998.,     0.,     0.,     0.]),
+    minpd=np.array([32968.,     0.,     0.,     0.]),
+    port='COM20',
     ts_mapping={ramp:14, hsp:15}
 )
 
