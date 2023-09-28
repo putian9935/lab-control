@@ -34,6 +34,11 @@ async def main(lab_name):
                     elif exp_name.startswith('!config'):
                         cmd = exp_name[7:].strip()
                         config.update(cmd)
+                    elif exp_name == '!reload':
+                        logging.info(f'Reloading lab {lab_name}')
+                        await lab.__aexit__()
+                        lab = Lab(lab_name) 
+                        await lab.__aenter__()
                     else:
                         print('Unrecognized command!')
                 else:

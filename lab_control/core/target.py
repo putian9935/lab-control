@@ -121,6 +121,7 @@ class Target(metaclass=TargetMeta):
                 self.loaded = True
         return ret
 
+    @measure_time
     async def wait_until_ready(self):
         ''' run when a target is created '''
         pass
