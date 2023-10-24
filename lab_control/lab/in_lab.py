@@ -15,18 +15,18 @@ TSChannel = TimeSequencer()
 ts_in = TimeSequencerFPGA('192.168.107.194', 5555)
 
 aio_326intensityServo = AIO(
-    maxpd=np.array([34150.,     0.,     0.,     0.]),
-    minpd=np.array([33080.,     0.,     0.,     0.]),
-    port='COM51',
+    maxpd=np.array([33979.,    0.,     0.,     0.]),
+    minpd=np.array([32895.,     0.,     0.,     0.]),
+    port='COM20',
     ts_mapping={ramp:14, hsp:15}
 )
 
-# aio_1064intensityServo = AIO(
-#     maxpd=np.array([34400.,     0.,     0.,     0.]),
-#     minpd=np.array([32903.,     0.,     0.,     0.]),
-#     port='COM18',
-#     ts_mapping={ramp:20, hsp:21}
-# )
+aio_1064intensityServo = AIO(
+    maxpd=np.array([63571.,     0.,     0.,     0.]),
+    minpd=np.array([33531.,     0.,     0.,     0.]),
+    port='COM21',
+    ts_mapping={ramp:22, hsp:23}
+)
 # missing intensity servo for repumpers 
 # aio_410451Servo = AIO()
 
