@@ -132,5 +132,10 @@ class Experiment:
                 cleanup()
                 await at_acq_end()
                 raise
+            else:
+                for task in keypress_tasks.values():
+                    if not task.cancelled() and not task.done():
+                        task.cancel()
+                cleanup()
 
         return ret
