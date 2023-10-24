@@ -1,4 +1,4 @@
-from .run_experiment import cleanup, run_preprocess, prepare_sequencer_files, run_sequence, test_postcondition, test_precondition, run_postprocess, at_acq_end, AbortExperiment
+from .run_experiment import cleanup, run_preprocess, prepare_sequencer_files, run_sequence, test_postcondition, test_precondition, run_postprocess, at_acq_end, at_acq_start, AbortExperiment
 from .util.viewer import show_sequences
 from .stage import Stage
 import time
@@ -122,21 +122,15 @@ class Experiment:
                 await run_postprocess()
                 if not test_postcondition():
                     raise PostconditionFail()
+                if keypress_tasks['q'].done():
+                    raise AbortExperiment
             except:
                 # any exception aborts the experiment and the acquisition 
-                for task in keypress_tasks.values:
+                for task in keypress_tasks.values():
                     if not task.cancelled() and not task.done():
                         task.cancel()
                 cleanup()
                 await at_acq_end()
                 raise
-            else:
-                if keypress_tasks['q'].done():
-                    raise AbortExperiment
-                for task in keypress_tasks.values():
-                    if not task.cancelled() and not task.done():
-                        task.cancel()
-                cleanup()
-                return ret
 
         return ret
