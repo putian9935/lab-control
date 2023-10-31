@@ -94,7 +94,7 @@ class ramp(Action):
         return {target.ts_mapping[ramp]: (self.retv[0], False, f'{target}.ramp_trig')}
 
     @classmethod
-    @cache_cls_actions
+    # @cache_cls_actions
     async def run_preprocess_cls(cls, target: AIO):
         # extra waveform parameters
         extras = []
@@ -150,7 +150,7 @@ class hsp(Action):
         self.channel = channel
         super().__init__(**kwargs)
 
-    @cache_actions
+    # @cache_actions
     async def run_preprocess(self, target: AIO):
         if hsp not in target.ts_mapping:
             raise KeyError(f"hsp is not in ts_mapping of AIO target {target}")

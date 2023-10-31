@@ -15,15 +15,15 @@ TSChannel = TimeSequencer()
 ts_in = TimeSequencerFPGA('192.168.107.194', 5555)
 
 aio_326intensityServo = AIO(
-    maxpd=np.array([33857.,    0.,     0.,     0.]),
+    maxpd=np.array([33810.,    0.,     0.,     0.]),
     minpd=np.array([32907.,     0.,     0.,     0.]),
     port='COM20',
     ts_mapping={ramp:14, hsp:15}
 )
 
 aio_1064intensityServo = AIO(
-    maxpd=np.array([63571.,     0.,     0.,     0.]),
-    minpd=np.array([33531.,     0.,     0.,     0.]),
+    maxpd=np.array([61421.,     0.,     0.,     38814.]),
+    minpd=np.array([33574.,     0.,     0.,     32821.]),
     port='COM21',
     ts_mapping={ramp:22, hsp:23}
 )
@@ -32,7 +32,7 @@ aio_1064intensityServo = AIO(
 
 coil_servo = CoilServo(r'python Q:\indium\software\experimental_control_v2\ad5764_io\coil_vref\coil_vref_terminal_v6.py --non-interactive', ts_channel=16)
 
-vco_controller = VCOController(r'python Q:\indium\software\experimental_control_v2\qNimble_vco_control\MOT_vco_sweep18V_v5\vco_terminal_v6.py --non-interactive', ts_channel=13)
+# vco_controller = VCOController(r'python Q:\indium\software\experimental_control_v2\qNimble_vco_control\MOT_vco_sweep18V_v5\vco_terminal_v6.py --non-interactive', ts_channel=13)
 
 remote_sim_control = to_in_desktop2.conn.modules.lab_control.device.fname_gen.EMCCD_simControl
 # sr_wlm = WaveLengthMeterLockMonitor(

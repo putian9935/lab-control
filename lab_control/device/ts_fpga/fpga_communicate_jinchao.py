@@ -59,8 +59,8 @@ def read_file(textfile):
     time_interval = np.insert(time_interval, 0, 100)
     f.close()
 
-    read_array2 = np.loadtxt(textfile, dtype='int',
-                             delimiter=';', unpack=True, skiprows=2)
+    read_array2 = np.loadtxt(textfile, 
+                             delimiter=';', unpack=True, skiprows=2).astype(np.int64)
     data_list2 = np.roll(read_array2, 1, 0)
 
     return n_rep, time_interval, data_list2
@@ -123,3 +123,7 @@ def main(textfile):
 
 # takes care of the connection to the FPGA and provides methods to write to it
 sequencer = socket_s()
+
+if __name__ == '__main__':
+    sequencer.connect('192.168.107.194', 5555)
+    main('out')
