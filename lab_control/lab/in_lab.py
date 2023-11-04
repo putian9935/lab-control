@@ -2,7 +2,7 @@ from lab_control.device import *
 import numpy as np
 from lab_control.core.config import config
 from datetime import datetime 
-from lab_control.remote.remote import to_in_desktop2# , to_sr_remote, to_in_remote
+from lab_control.remote.remote import to_in_helm # , to_sr_remote, to_in_remote
 
 config.offline = False
 config.output_dir = rf'Q:\indium\data\2023\{datetime.now():%y%m%d}'
@@ -15,26 +15,36 @@ TSChannel = TimeSequencer()
 ts_in = TimeSequencerFPGA('192.168.107.194', 5555)
 
 aio_326intensityServo = AIO(
-    maxpd=np.array([33810.,    0.,     0.,     0.]),
-    minpd=np.array([32907.,     0.,     0.,     0.]),
+    maxpd=np.array([34500,    0.,     0.,     0.]),
+    minpd=np.array([32872.,     0.,     0.,     0.]),
     port='COM20',
     ts_mapping={ramp:14, hsp:15}
 )
 
 aio_1064intensityServo = AIO(
-    maxpd=np.array([61421.,     0.,     0.,     38814.]),
-    minpd=np.array([33574.,     0.,     0.,     32821.]),
+    maxpd=np.array([58713.,     0.,     0.,     0.]),
+    minpd=np.array([33526.,     0.,     0.,     0.]),
     port='COM21',
     ts_mapping={ramp:22, hsp:23}
+)
+
+# NOTE: 42000 = 3.0V on output = 2.0A of current
+#       34300 = 390mV on output = 260mA of current
+# do not use ramp, only hsp
+aio_zcompServo = AIO(
+    maxpd=np.array([42000.,     0.,     0.,     0.]),
+    minpd=np.array([22000.,     0.,     0.,     0.]),
+    port='COM24',
+    ts_mapping={ramp:28, hsp:27}
 )
 # missing intensity servo for repumpers 
 # aio_410451Servo = AIO()
 
 coil_servo = CoilServo(r'python Q:\indium\software\experimental_control_v2\ad5764_io\coil_vref\coil_vref_terminal_v6.py --non-interactive', ts_channel=16)
 
-# vco_controller = VCOController(r'python Q:\indium\software\experimental_control_v2\qNimble_vco_control\MOT_vco_sweep18V_v5\vco_terminal_v6.py --non-interactive', ts_channel=13)
+vco_controller = VCOController(r'python  Q:\indium\software\experimental_control_v2\sweep_dds\vco_terminal_v7.py --non-interactive', ts_channel=13)
 
-remote_sim_control = to_in_desktop2.conn.modules.lab_control.device.fname_gen.EMCCD_simControl
+remote_sim_control = to_in_helm.conn.modules.lab_control.device.fname_gen.EMCCD_simControl
 # sr_wlm = WaveLengthMeterLockMonitor(
 #     to_sr_remote.conn.modules.lab_control.device.wlm_lock.check_okay(
 #         target_wavelength = {1: 651.40401, 4: 651.40416}

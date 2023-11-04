@@ -35,7 +35,10 @@ class ramp(Action):
         extras = []
         for act in target.actions[cls]:
             extras.append(act.retv)
-
+        if not extras:
+            await target.write(b'exp\n')
+            await wait_for_prompt(target.proc.stdout)
+            return
         contents = '\n'.join(
             f'{_dt},{_vref}'
             for _, dt, vref in merge_seq_aio(*(zip(*extras)))

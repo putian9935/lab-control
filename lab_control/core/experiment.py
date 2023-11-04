@@ -37,6 +37,15 @@ def inject_lab_into_coroutine(f):
         return await f(*args, **kwds)
     return ret 
 
+def inject_lab_into_function(f):
+    """ inject lab information into a function """
+    @wraps(f)
+    def ret(*args, **kwds):
+        for k, v in Lab.lab_in_use.attr.items():
+            f.__globals__[k] = v
+        return f(*args, **kwds)
+    return ret 
+
 
 def deal_with_condition_fail():
     """ deal with pre-/post-condition failure 

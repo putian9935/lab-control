@@ -150,7 +150,7 @@ class hsp(Action):
         self.channel = channel
         super().__init__(**kwargs)
 
-    # @cache_actions
+    @cache_actions
     async def run_preprocess(self, target: AIO):
         if hsp not in target.ts_mapping:
             raise KeyError(f"hsp is not in ts_mapping of AIO target {target}")

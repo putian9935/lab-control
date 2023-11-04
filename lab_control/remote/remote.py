@@ -80,9 +80,11 @@ class ToRemote:
 
 
 # this will make faster start-ups 
-a = lab_control.RPyCSlaveDaemon("192.168.107.200")
-b = lab_control.RPyCSlaveDaemon("192.168.107.192")
+# a = lab_control.RPyCSlaveDaemon("192.168.107.200")
+b = lab_control.RPyCSlaveDaemon("192.168.107.104")
 # c = lab_control.RPyCSlaveDaemon("192.168.107.183")
-to_sr_remote = ToRemote(a)
-to_in_desktop2 = ToRemote(b)
+# to_sr_remote = ToRemote(a)
+# to_sr_desktop2 = ToRemote(b)
+to_in_helm = ToRemote(b)
+# to_in_desktop2 = ToRemote(b)
 # to_in_remote = ToRemote(c)

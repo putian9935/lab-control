@@ -42,6 +42,9 @@ class ramp(Action):
         extras = []
         for act in target.actions[cls]:
             extras.append(act.retv)
+
+        # empty sequence 
+        if not extras: return 
         
         # deal with ramp
         contents = '\n'.join(

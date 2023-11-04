@@ -27,11 +27,11 @@ def sweep_r(ch, lower, upper, step):
     ser.write(struct.pack("<BBhhH", 1, ch, lower, upper, step))
     return readback_val()
 
-@arduino_transaction(ser)
-def servo(ch, fi, g, wfm):
-    ser.write(struct.pack("<BBddd", 2, ch, fi, 0, g))
-    ser.write(wfm)
-    readback()
+# @arduino_transaction(ser)
+# def servo(ch, fi, g, wfm):
+#     ser.write(struct.pack("<BBddd", 2, ch, fi, 0, g))
+#     ser.write(wfm)
+#     readback()
 
 @arduino_transaction(ser)
 def ref(ch, wfm):
