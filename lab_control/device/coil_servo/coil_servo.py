@@ -77,3 +77,5 @@ class ramp(Action):
                 ret_data[1].append(v)
             return {(target.ts_channel, self.signame, 'ramp'): ret_data}
 
+    async def run_postprocess(self, target):
+        return 

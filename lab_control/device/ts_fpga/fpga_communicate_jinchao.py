@@ -8,7 +8,8 @@ Last modified on May 14, 2-23
 """
 import numpy as np
 import socket
-
+from time import perf_counter
+import logging 
 
 class socket_s():
     # initiates connection once called.
@@ -108,6 +109,7 @@ def write_line(nrep):
 
 
 def main(textfile):
+    tt = perf_counter()
     n_rep, time_interval, data_list = read_file(textfile)
     if __name__ == '__main__':
         print('data_list = \n', data_list)
@@ -120,6 +122,7 @@ def main(textfile):
     start_line = write_line(n_rep)
     sequencer.write(start_line)
 
+    logging.debug(f"Send FPGA in {perf_counter()-tt} second(s)")
 
 # takes care of the connection to the FPGA and provides methods to write to it
 sequencer = socket_s()

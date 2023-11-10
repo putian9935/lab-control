@@ -180,7 +180,7 @@ def prepare_sequencer_files(n_repeat=1):
 
 async def run_sequence(fpga, exp_time: int):
     fpga.backend.main('out')
-    await asyncio.sleep(exp_time * 1e-6 + .5)
+    await asyncio.sleep(exp_time * 1e-6 + .05)
 
 
 async def run_exp(module_fname: str, **exp_param):
