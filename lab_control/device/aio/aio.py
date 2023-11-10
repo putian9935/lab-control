@@ -144,8 +144,6 @@ class ramp(Action):
                 ret_data[1].append(v)
             return {(target.ts_mapping[ramp], self.signame, 'ramp'): ret_data}
 
-    async def run_postprocess(self, target: AIO):
-        return 
 
 @AIO.take_note
 class hsp(Action):
@@ -195,9 +193,6 @@ class hsp(Action):
     def weak_equal(self, __value: object) -> bool:
         return super().weak_equal(__value) and self.channel == __value.channel
 
-    # @classmethod
-    async def run_postprocess(self, target: AIO):
-        return 
 
 if __name__ == '__main__':
     import numpy as np

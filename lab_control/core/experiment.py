@@ -12,7 +12,7 @@ from functools import wraps
 import logging 
 import msvcrt 
 import asyncio 
-from .util.inject import inject_dict_into_function
+from .util.inject import inject_dict_into_function 
 
 async def wait_for(char: str):
     ''' wait for user to press `char` '''
@@ -95,7 +95,9 @@ class Experiment:
             tt = time.perf_counter()
             try:
                 # inject lab names to function
-                inject_lab_into_function(f)(*args, **kwds)
+                for k, v in Lab.lab_in_use.attr.items():
+                    f.__globals__[k] = v
+                ret = f(*args, **kwds)
             except Exception as e:
                 cleanup()
                 raise type(e)(
@@ -121,6 +123,7 @@ class Experiment:
                     show_sequences()
                 if self.to_fpga and not config.offline:
                     await run_sequence(self.ts_fpga, exp_time)
+                    logging.info(f'Experiment {f.__name__} sequence done!')
                 await run_postprocess()
                 if not test_postcondition():
                     raise PostconditionFail()
@@ -139,6 +142,5 @@ class Experiment:
                     if not task.cancelled() and not task.done():
                         task.cancel()
                 cleanup()
-            logging.info(f"Cycle done in {time.perf_counter()-tt:.3f} seconds(s)!")
 
         return ret
