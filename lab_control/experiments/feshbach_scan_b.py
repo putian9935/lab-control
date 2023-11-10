@@ -1,5 +1,5 @@
 from lab_control.core.util.unit import *
-from lab_control.core.experiment import Experiment, Stage, inject_lab_into_coroutine, inject_lab_into_function
+from lab_control.core.experiment import Experiment, Stage, inject_lab_into_coroutine, inject_lab_into_function, inject_dict_into_function
 if __name__ == '__main__':
     from ..lab.in_lab import *
 # --- do not change anything above this line ---
@@ -51,7 +51,7 @@ def single_shot(
 
     from .common_stages import prepare
     
-    Stage(duration=prepare_time)(partial(inject_lab_into_function(prepare), prepare_time,))
+    Stage(duration=prepare_time)(inject_dict_into_function(prepare, locals()))
     
     @Stage(duration=2*s)
     def load_mot():

@@ -28,7 +28,9 @@ def merge_seq(*seqs: Tuple[ts_map]) -> ts_map:
         ret[k] = (sorted(tmp[k]), pols[k], names[k])
     return ret
 
-
+def check_equal_length(t, dt, dv):
+    if not len(t) == len(dt) or not len(t) == len(dv) or not len(dt) == len(dv):
+        raise ValueError("The return value of AIO ramp action must have the same size!")
 
 def merge_seq_aio(ts: List[List[int]] = None, dts: List[list] = None, dvs: List[list] = None):
     ret = []
@@ -36,6 +38,7 @@ def merge_seq_aio(ts: List[List[int]] = None, dts: List[list] = None, dvs: List[
         return ret
     full_sequence = sorted(set(t for seq in ts for t in seq))
     for t, dt, dv in zip(ts, dts, dvs):
+        check_equal_length(t, dt, dv)
         inv_t = {v: k for k, v in enumerate(t)}
         new_dt, new_dv = [], []
         for tt in full_sequence:

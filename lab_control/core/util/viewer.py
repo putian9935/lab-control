@@ -6,6 +6,7 @@ from ..run_experiment import all_target_instances
 from .ts import merge_plot_maps
 from ..config import config
 import logging 
+from functools import partial 
 
 class Viewer:
     def __init__(self, pm: plot_map, real_time) -> None:
@@ -24,12 +25,12 @@ class Viewer:
             self.xtick = self.all_x
         else:
             self.xtick = list(range(len(self.all_x)))
-        self.xlabel = list(map(str, self.all_x))
+        # comma-separated integer 
+        self.xlabel = list(map(lambda _: f'{_:,.0f}', self.all_x))
 
     def plot(self, title):
         fig, axes = plt.subplots(
-            len(self.pm.keys()), 1, sharex=True, figsize=(20, 13), squeeze=False)
-        axes = axes[:, 0]
+            len(self.pm.keys()), 1, sharex=True, figsize=(20, 13))
         self.normalize_x()
         keys = list(self.pm.keys())
         order = sorted(range(len(self.pm)), key=lambda _: keys[_])
@@ -37,7 +38,7 @@ class Viewer:
             ax: matplotlib.axes.Axes
             channel, name, act_name = keys[k]
             x, y = self.pm[keys[k]]
-            ax.plot(x, y, lw=2)
+            ax.plot(x, y, lw=2, scalex=False, scaley=False)
             ax.get_yaxis().set_label_coords(-.1, .5)
             ax.set_ylabel(f'{name}\n{act_name}@{channel}',
                           rotation=0, ha='left',
@@ -54,9 +55,8 @@ class Viewer:
                            ha='right', rotation_mode='anchor')
         self.remove_middle_spines(axes)
         fig.suptitle(title)
-        plt.tight_layout()
-        plt.subplots_adjust(hspace=.0)
-        plt.savefig('1.pdf', bbox_inches='tight')
+        plt.subplots_adjust(hspace=.0, wspace=.2, left=0.1, right=0.98, bottom=0.12, top=0.96)
+        # plt.savefig('1.pdf', bbox_inches='tight')
         return self
 
     def remove_middle_spines(self, axes: List[matplotlib.axes.Axes]):
@@ -84,9 +84,13 @@ class Viewer:
 
     def annotate_stage(self, axes):
         for c, st in enumerate(Stage.stages):
+            if isinstance(st, partial):
+                name = st.func.__name__ 
+            else:
+                name = st.__name__ 
             self.xlabel[self.inv_f[st.start]] += '\n' + \
-                '%s.start' % (st.__name__)
-            self.xlabel[self.inv_f[st.end]] += '\n'+'%s.end' % (st.__name__)
+                '%s.start' % (name)
+            self.xlabel[self.inv_f[st.end]] += '\n'+'%s.end' % (name)
             for ax in axes:
                 ax: matplotlib.axes.Axes
                 lim = ax.get_ylim()

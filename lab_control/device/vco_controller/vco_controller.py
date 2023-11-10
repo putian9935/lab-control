@@ -42,7 +42,7 @@ class ramp(Action):
         contents = '\n'.join(
             f'{_dt},{_vref}'
             for _, dt, vref in merge_seq_aio(*(zip(*extras)))
-            for _dt, _vref in zip(dt, shift_list_by_one(vref))
+            for _dt, _vref in zip(shift_list_by_one(dt), shift_list_by_one(vref))
         )
         try:
             # in case file does not exist

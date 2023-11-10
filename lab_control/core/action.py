@@ -89,7 +89,8 @@ class Action(metaclass=ActionMeta):
         elif not cls._offset and cls.__base__._offset:
             cls._offset = True
             return l
-        return [x + Stage.cur for x in l]
+        # ensure everything is rounded 
+        return [int(x + Stage.cur) for x in l]
 
     async def run_preprocess(self, target: 'Target'):
         logging.debug(

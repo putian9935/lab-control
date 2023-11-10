@@ -7,6 +7,7 @@ from ast import literal_eval
 from collections.abc import Iterable
 
 import logging 
+# logging.basicConfig(level=logging.DEBUG)
 logging.basicConfig(level=logging.INFO)
 logging.getLogger('matplotlib').disabled = True
 logging.getLogger('matplotlib.font_manager').disabled = True

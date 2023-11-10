@@ -12,6 +12,7 @@ from functools import wraps
 import logging 
 import msvcrt 
 import asyncio 
+from .util.inject import inject_dict_into_function 
 
 async def wait_for(char: str):
     ''' wait for user to press `char` '''
@@ -39,12 +40,7 @@ def inject_lab_into_coroutine(f):
 
 def inject_lab_into_function(f):
     """ inject lab information into a function """
-    @wraps(f)
-    def ret(*args, **kwds):
-        for k, v in Lab.lab_in_use.attr.items():
-            f.__globals__[k] = v
-        return f(*args, **kwds)
-    return ret 
+    return inject_dict_into_function(f, Lab.lab_in_use.attr)
 
 
 def deal_with_condition_fail():

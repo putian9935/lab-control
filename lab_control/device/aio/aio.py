@@ -43,6 +43,15 @@ class AIO(Target):
 def shift_vdt_by_one(retv: Tuple[list]):
     return retv[0], shift_list_by_one(retv[1]), shift_list_by_one(retv[2])
 
+def is_equal_reference(ref_a, ref_b): 
+    """ compare if two references are equal """
+    if len(ref_a) != len(ref_b):
+        return False 
+    for act_a, act_b in zip(ref_a, ref_b):
+        if act_a.retv[1] != act_b.retv[1] or act_a.retv[2] != act_b.retv[2]:
+            return False 
+    return True 
+ 
 def cache_cls_actions(coro_func):
     ''' stop uploading if the parameter is the same 
     
@@ -51,7 +60,8 @@ def cache_cls_actions(coro_func):
     @wraps(coro_func)
     async def ret(cls, target):
         if target in cls.last_target_actions:
-            if cls.last_target_actions[target] == target.actions[cls]:
+            logging.debug(f'<{target}>: {is_equal_reference(cls.last_target_actions[target], target.actions[cls])}')
+            if is_equal_reference(cls.last_target_actions[target], target.actions[cls]):
                 return
         else:
             cls.last_target_actions[target] = target.actions[cls]
@@ -94,7 +104,7 @@ class ramp(Action):
         return {target.ts_mapping[ramp]: (self.retv[0], False, f'{target}.ramp_trig')}
 
     @classmethod
-    # @cache_cls_actions
+    @cache_cls_actions
     async def run_preprocess_cls(cls, target: AIO):
         # extra waveform parameters
         extras = []
@@ -103,7 +113,12 @@ class ramp(Action):
         for act in target.actions[cls]:
             extras.append(act.retv)
             chs.append(act.channel)
-
+        # empty actions
+        if not chs:
+            return  
+        logging.debug(f'{target}')
+        logging.debug(extras)
+        logging.debug(chs)
         # deal with ramp
         for ch, (ts, dt, v) in zip(chs, merge_seq_aio(*(zip(*extras)))):
             ts, dt, v = shift_vdt_by_one((ts, dt, v))
@@ -154,6 +169,9 @@ class hsp(Action):
     async def run_preprocess(self, target: AIO):
         if hsp not in target.ts_mapping:
             raise KeyError(f"hsp is not in ts_mapping of AIO target {target}")
+        # handle empty sequence
+        if not self.retv[1]:
+            return 
         target.backend.hsp(
             self.channel,
             tv2wfm([1] * len(self.retv[1]), shift_list_by_one(self.retv[1])))
