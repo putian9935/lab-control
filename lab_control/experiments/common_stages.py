@@ -32,8 +32,17 @@ def prepare():
     @aio_zcompServo(channel=0, action=ramp)
     def z_comp_coil_ramp():
         return [50*ms], [200], [.615]
-
-
+    @aio_zcompServo(channel=1, action=ramp)
+    def comp2_coil_ramp():
+        return [0,], [200], [.538]
+    @TSChannel(channel=35, init_state=1)
+    def stirap_410():
+        return []
+    
+    @TSChannel(channel=33, init_state=1)
+    def aom_451_34():
+        return []
+    
 def load_mot():
     ''' MOT loading  '''
     @TSChannel(channel=24)
@@ -63,7 +72,7 @@ def cool_mot():
     def coil_vref():
         return [0], [2000], [b_field_low]
     #  410/451 servo???
-
+    
 def cleanup1():
     @TSChannel(channel=1)
     def igbt0():
@@ -91,8 +100,26 @@ def background():
         ''' turn on repumpers '''
         return [2*ms, 2*ms+exposure_time]
 
+
+    @TSChannel(channel=37)
+    def aom_451_master():
+        ''' turn on repumpers '''
+        return [2*ms, 2*ms+exposure_time]
+    
     @TSChannel(channel=20)
     def aom_410_master():
+        return [2*ms, 2*ms+exposure_time]
+    
+    @TSChannel(channel=35, )
+    def stirap_410():
+        return [2*ms, 2*ms+exposure_time]
+    
+    @TSChannel(channel=33, )
+    def aom_451_34():
+        return [2*ms, 2*ms+exposure_time]
+    
+    @TSChannel(channel=36)
+    def aom_410_slave():
         return [2*ms, 2*ms+exposure_time]
     
 def cleanup2(det_ramp, det_mot):

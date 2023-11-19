@@ -2,8 +2,10 @@ import pyvisa
 
 class Synth:
     def __init__(self):
-        # to be determined 
-        self.device_name = 'ASRL3::INSTR'
+        # device name on indium desktop 1
+        self.device_name = 'ASRL16::INSTR'
+        # device name on strontium laptop
+        # self.device_name = 'ASRL3::INSTR'
         self.rm = pyvisa.ResourceManager()
         self.rmlist = self.rm.list_resources()
         print(self.rmlist)
@@ -20,15 +22,16 @@ class Synth:
         self.synth.close()
     
     def get_freq(self):
-        # this doesn't work and I don't know why
         self.synth = self.rm.open_resource(self.device_name)
-        reply = self.synth.query('Frequency?')
-        print(reply)
+        # for some reason, we can read one line at a time
+        self.synth.query('FREQ')
+        print(self.synth.read())
         self.synth.close()
         
 if __name__ == '__main__':
     s = Synth()
 
     while(True):
-        freq = input()
+        freq = input('Input frequency in MHz:\n')
         s.set_freq(freq)
+        s.get_freq()

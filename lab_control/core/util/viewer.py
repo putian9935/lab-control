@@ -31,6 +31,9 @@ class Viewer:
     def plot(self, title):
         fig, axes = plt.subplots(
             len(self.pm.keys()), 1, sharex=True, figsize=(20, 13))
+        # size 1 returns the AxesSubplot object
+        if len(self.pm.keys()) == 1:
+            axes = [axes]
         self.normalize_x()
         keys = list(self.pm.keys())
         order = sorted(range(len(self.pm)), key=lambda _: keys[_])

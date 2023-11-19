@@ -64,3 +64,5 @@ remote_sim_control = to_in_helm.conn.modules.lab_control.device.fname_gen.EMCCD_
 # )
 start_acq = remote_sim_control.action_changeFilenameAndStartCamAcq
 end_acq =  remote_sim_control.action_StopCamAcq  
+
+valon_synth = ValonSynthesizer(channel=38, freq=1000)

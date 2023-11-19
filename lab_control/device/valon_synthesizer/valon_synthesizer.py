@@ -8,28 +8,28 @@ from ...device.time_sequencer import hold
 from .valon5019 import Synth 
 
 class ValonSynthesizer(Target):
-    def __init__(self) -> None:
+    def __init__(self, channel, freq) -> None:
         super().__init__()
         self.synth = Synth()
+        self.channel = channel 
+        self.freq = freq 
         self.loaded = True
 
 
 @ValonSynthesizer.set_default
 @ValonSynthesizer.take_note
 class switch(hold):
-    def __init__(self, *, channel, frequency=None, **kwargs) -> None:
-        self.channel = channel
-        if frequency is not None:
-            self.frequency = frequency 
-        super().__init__(**kwargs)
+    def __init__(self, *, target: ValonSynthesizer, **kwargs) -> None:
+        # self.channel = target.channel
+        super().__init__(channel=target.channel, **kwargs)
 
     async def run_preprocess(self, target: Target):
-        if self.frequency is not None:
-            target.synth : Synth 
-            target.synth.set_freq(self.frequency) 
+        target.synth : Synth 
+        target.synth.set_freq(target.freq) 
 
     async def run_postprocess(self, target: Target):
-        return 
+        target.synth.get_freq()
+        # return 
 
     # def to_time_sequencer(self, target) -> Tuple[Dict[int, List[int]], bool]:
     #     return super().to_time_sequencer(target)
