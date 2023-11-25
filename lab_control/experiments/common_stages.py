@@ -5,7 +5,7 @@ if __name__ == '__main__':
 
 
 def prepare():
-    @TSChannel(channel=8)
+    @TSChannel(channel=8, init_state=0)
     def zm_shutter():
         ''' turn on 326 beam for zm '''
         return [0]
@@ -31,10 +31,10 @@ def prepare():
 
     @aio_zcompServo(channel=0, action=ramp)
     def z_comp_coil_ramp():
-        return [50*ms], [200], [.615]
+        return [0], [200], [.615]
     @aio_zcompServo(channel=1, action=ramp)
     def comp2_coil_ramp():
-        return [0,], [200], [.538]
+        return [0,], [200], [.55]
     @TSChannel(channel=35, init_state=1)
     def stirap_410():
         return []
@@ -43,6 +43,9 @@ def prepare():
     def aom_451_34():
         return []
     
+    @aio_326intensityServo(channel=0, action=ramp)
+    def intensity326():
+        return [0], [intensity_ramp], [intensity_high]
 def load_mot():
     ''' MOT loading  '''
     @TSChannel(channel=24)
@@ -160,12 +163,15 @@ def cleanup2(det_ramp, det_mot):
     def aom_410_master():
         return [0]
 
+    @TSChannel(channel=36)
+    def aom_410_slave():
+        return [0]
+
+    @TSChannel(channel=37)
+    def aom_451_master():
+        return [0]
     @TSChannel(channel=6)
     def zm_rp_shutter():
         ''' turn on zeeman repumpers '''
         return [0]
-    
-    @aio_zcompServo(channel=0, action=ramp)
-    def z_comp_coil_ramp():
-        return [0], [200], [.615]
-
+ 
