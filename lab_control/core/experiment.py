@@ -73,8 +73,7 @@ class Experiment:
                 raise ValueError("Please specify time sequencer FPGA instance!")
             if ts_fpga not in Lab.lab_in_use.attr:
                 raise ValueError(f"Cannot find instance {ts_fpga}!")
-        self.to_fpga = to_fpga
-        self.ts_fpga = Lab.lab_in_use.attr[ts_fpga]
+            self.ts_fpga = Lab.lab_in_use.attr[ts_fpga]
 
 
     def __call__(self, f) -> Awaitable:
