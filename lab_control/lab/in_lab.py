@@ -66,3 +66,37 @@ start_acq = remote_sim_control.action_changeFilenameAndStartCamAcq
 end_acq =  remote_sim_control.action_StopCamAcq  
 
 valon_synth = ValonSynthesizer(channel=38, freq=1000)
+
+from lab_control.core.util.unit import s, ms, us
+emccd_trig = TSChannel(pulse, channel=10, delay=2*ms, name='emccd_trig')
+cmos_trig = TSChannel(pulse, channel=24, delay=250, name='emccd_trig')
+
+# All AOM and shutter on in init_state
+mot_aom = TSChannel(channel=7, init_state=1, name='mot_aom')
+aom_451_slave = TSChannel(channel=19, init_state=1, name='aom_451_slave')
+aom_451_master = TSChannel(channel=37, init_state=1, name='aom_451_master')
+aom_410_slave = TSChannel(channel=36, init_state=1, name='aom_410_slave') 
+aom_410_master = TSChannel(channel=20, init_state=1, name='aom_410_master') 
+odt = TSChannel(channel=21, init_state=1, name='odt')
+aom_451_65 = TSChannel(channel=30, init_state=1, name='aom_451_65')
+aom_451_34 = TSChannel(channel=33, init_state=0, name='aom_451_34')
+aom_410_44 = TSChannel(channel=35, init_state=0, name='aom_410_44')
+mw_switch = TSChannel(channel=38, init_state=0, name='mw_switch')
+
+igbt0 = TSChannel(channel=1, init_state=0, name='igbt0')
+igbt1n2 = TSChannel(channel=2, init_state=0, name='igbt1n2')
+igbt3n4 = TSChannel(channel=3, init_state=1, name='igbt3n4')
+field_unlock = TSChannel(channel=5, init_state=1, name='field_unlock')
+
+zm_rp_shutter = TSChannel(channel=6, init_state=0, name='zm_rp_shutter')
+zm_shutter = TSChannel(channel=8, init_state=1, name='zm_shutter')
+mot_shutter = TSChannel(channel=11, init_state=0, name='mot_shutter')
+mot_xy_shutter = TSChannel(channel=27, init_state=1, name='mot_xy_shutter')
+mot_410_shutter = TSChannel(channel=26, init_state=0, name='mot_410_shutter')
+mot_451_shutter = TSChannel(channel=29, init_state=0, name='mot_451_shutter')
+mot_z_shutter = TSChannel(channel=34, init_state=0, name='mot_451_shutter')
+stirap_410_shutter = TSChannel(channel=39, init_state=0, name='stirap_410_shutter')
+
+osc_trig = TSChannel(channel=56, init_state=0, name='osc_trig')
+
+
