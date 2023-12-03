@@ -31,26 +31,52 @@ def prepare():
 
     @aio_zcompServo(channel=0, action=ramp)
     def z_comp_coil_ramp():
+        """old MOT loading z direction b field"""
         return [0], [200], [.615]
     @aio_zcompServo(channel=1, action=ramp)
     def comp2_coil_ramp():
-        return [0,], [200], [.55]
+        """old MOT loading 1 direction b field"""
+        return [0,], [200], [.528]
+    
+    # @aio_zcompServo(channel=0, action=ramp)
+    # def z_comp_coil_ramp():
+    #     """0 MOT loading z direction b field"""
+    #     return [0], [200], [.60]
+    # @aio_zcompServo(channel=1, action=ramp)
+    # def comp2_coil_ramp():
+    #     """0 MOT loading 1 direction b field"""
+    #     return [0,], [200], [.584]
+    
     @TSChannel(channel=35, init_state=1)
     def stirap_410():
         return []
     
-    @TSChannel(channel=33, init_state=1)
+    @TSChannel(channel=33, init_state=0)
     def aom_451_34():
         return []
     
     @aio_326intensityServo(channel=0, action=ramp)
     def intensity326():
         return [0], [intensity_ramp], [intensity_high]
+    
+    @aio_rp(channel=0, action=ramp)
+    def intensity_410_master():
+        return [0], [2], [.95]
+    @aio_rp(channel=1, action=ramp)
+    def intensity_410_slave():
+        return [0], [2], [.95]
+    @aio_rp(channel=2, action=ramp)
+    def intensity_451_master():
+        return [0], [2], [.95]
+    @aio_rp(channel=3, action=ramp)
+    def intensity_451_slave():
+        return [0], [2], [.95]
+    
 def load_mot():
     ''' MOT loading  '''
     @TSChannel(channel=24)
     def cmos_camera():
-        return [load_mot_time-300, load_mot_time + 200]
+        return [load_mot_time-500, load_mot_time-200]
 
 def cool_mot():
     """ ramp to the correct low value """
@@ -90,7 +116,8 @@ def background():
     if take_background:
         @TSChannel(channel=10, action=pulse)
         def emccd_trig():
-            return [0]
+            return [-2*ms]
+
 
     @TSChannel(channel=7)
     def mot_aom():
