@@ -57,7 +57,7 @@ def single_shot(
 
 
     prepare = Stage(duration=prepare_time+.1*s)(prepare, everything)
-
+       
     load_mot = Stage(duration=load_mot_time)(load_mot,everything)
 
     """edit cool MOT for blinking ODT"""
@@ -86,7 +86,7 @@ def single_shot(
         # def intensity326():
         #     return [-500], [intensity_ramp], [intensity_low]
 
-        @coil_servo()
+        @coil_servo
         def coil_vref():
             return [0], [2000], [b_field_low]
         #  410/451 servo???
@@ -111,7 +111,6 @@ def single_shot(
         #     ''' blink the ODT beam,'''
         #     return [-1]+blink_steps +[blink_steps[-1]+1]
 
-
         @aio_326intensityServo(action=ramp, channel=0)
         def intensity326():
             ''' hold atoms '''
@@ -124,22 +123,25 @@ def single_shot(
             ''' shine repumpers '''
             return  blink_steps
         
-        @TSChannel(channel=20, init_state=1)
-        def aom_410_master():
-            return  blink_steps
-        
         @TSChannel(channel=37, init_state=1)
         def aom_451_master():
             ''' turn off repumpers '''
             return  blink_steps
         
+        @TSChannel(channel=20, init_state=1)
+        def aom_410_master():
+            return  blink_steps
+        
+        
         @TSChannel(channel=36, init_state=1)
         def aom_410_slave():
             # shut off 410 slave to let atoms decay to ground state
             return  blink_steps
-        @TSChannel(channel=33, )
-        def aom_451_34():
-            return  blink_steps
+    print('451 34 is 451 repump 5->5')
+
+    @Stage(duration=odt_load_time)
+    def load_odt():
+        ''' Load atoms from cool mot into odt '''
         
     @Stage(duration=odt_hold_time)
     def hold_odt():
@@ -170,7 +172,7 @@ def single_shot(
                 ''' disengage the coil servo '''
                 return [700]
             
-            @coil_servo()
+            @coil_servo
             def coil_vref():
                 return [0, 150, 400], [150, 300, 300], [40,25, -3]
             
@@ -223,9 +225,9 @@ def single_shot(
         @TSChannel(channel=36, init_state=1)
         def aom_410_slave():
             return [1]
-        @TSChannel(channel=33, )
-        def aom_451_34():
-            return [1]
+        # @TSChannel(channel=33, )
+        # def aom_451_34():
+        #     return [1]
 
         @TSChannel(channel=19, init_state=1)
         def aom_rf_switch_410_451():
@@ -369,9 +371,9 @@ def single_shot(
         def aom_410_slave():
             # shut off 410 slave to let atoms decay to ground state
             return [0, exposure_time]
-        @TSChannel(channel=33, )
-        def aom_451_34():
-            return [0, exposure_time]
+        # @TSChannel(channel=33, )
+        # def aom_451_34():
+        #     return [0, exposure_time]
         @TSChannel(channel=24)
         def cmos_camera():
             return [-250, 500]
@@ -416,7 +418,7 @@ async def main():
         # 'odt_load_time': 3000, 
         'odt_load_mot_time': 1, 
         'odt_start_time': -1000*us,
-        'odt_blink_time':10*ms,
+        'odt_blink_time':12*ms,
         'odt_blink_freq' : 3e3,
         'odt_duty_cycle' : 0.8,
 

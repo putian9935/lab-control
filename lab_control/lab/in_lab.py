@@ -15,8 +15,8 @@ TSChannel = TimeSequencer()
 ts_in = TimeSequencerFPGA('192.168.107.194', 5555)
 
 aio_326intensityServo = AIO(
-    maxpd=np.array([34060,    0.,     0.,     0.]),
-    minpd=np.array([32887.,     0.,     0.,     0.]),
+    maxpd=np.array([33790,    0.,     0.,     0.]),
+    minpd=np.array([32817.,     0.,     0.,     0.]),
     port='COM20',
     ts_mapping={ramp:14, hsp:15}
 )
@@ -24,7 +24,7 @@ aio_326intensityServo = AIO(
 # hsp is disabled for channel 1
 # 0.5 is VCO@80MHz 
 aio_1064intensityServo = AIO(
-    maxpd=np.array([58200.,    19065.,     0.,     0.]),
+    maxpd=np.array([58900.,    19065.,     0.,     0.]),
     minpd=np.array([33640.,    17445.,     0.,     0.]),
     port='COM21',
     ts_mapping={ramp:22, hsp:23}
@@ -34,15 +34,35 @@ aio_1064intensityServo = AIO(
 #       34300 = 390mV on output = 260mA of current
 # do not use ramp, only hsp
 aio_zcompServo = AIO(
-    maxpd=np.array([42000.,     42000.,     0.,     0.]),
-    minpd=np.array([22000.,     22000.,     0.,     0.]),
+    maxpd=np.array([42000.,     42000.,     42000.,     0.]),
+    minpd=np.array([22000.,     22000.,     22000.,     0.]),
     port='COM24',
     ts_mapping={ramp:28, hsp:27}
 )
-# missing intensity servo for repumpers 
-# aio_410451Servo = AIO()
 
-coil_servo = CoilServo(r'python Q:\indium\software\experimental_control_v2\ad5764_io\coil_vref\coil_vref_terminal_v6.py --non-interactive', ts_channel=16)
+comp_coil1 = aio_zcompServo(action=ramp, channel=2)
+
+# missing intensity servo for repumpers 
+aio_rp = AIO(
+    port='COM27',
+    # r'python C:\Users\indium_desktop1\Desktop\rp_servo\terminal\terminal_vanilla.py --non-interactive',
+    maxpd=np.array([33691., 33451., 33046., 34412.]),
+    minpd=np.array([32810., 32777., 32940., 32846.]),
+    ts_mapping={ramp:17, hsp:18},
+    # name='aio_rp'
+)
+
+aio_coil_vref = AIO(
+    port='COM14',
+    # r'python C:\Users\indium_desktop1\Desktop\rp_servo\terminal\terminal_vanilla.py --non-interactive',
+    maxpd=np.array([327.68, 0, 0, 0,]),
+    minpd=np.array([0, 0, 0, 0]),
+    ts_mapping={ramp:16},
+)
+
+coil_servo = aio_coil_vref(action=ramp, channel=0)
+
+# coil_servo = CoilServo(r'python Q:\indium\software\experimental_control_v2\ad5764_io\coil_vref\coil_vref_terminal_v6.py --non-interactive', ts_channel=16)
 
 vco_controller = VCOController(r'python  Q:\indium\software\experimental_control_v2\sweep_dds\vco_terminal_v7.py --non-interactive', ts_channel=13)
 
@@ -65,4 +85,4 @@ remote_sim_control = to_in_helm.conn.modules.lab_control.device.fname_gen.EMCCD_
 start_acq = remote_sim_control.action_changeFilenameAndStartCamAcq
 end_acq =  remote_sim_control.action_StopCamAcq  
 
-valon_synth = ValonSynthesizer(channel=38, freq=1000)
+# valon_synth = ValonSynthesizer(channel=38, freq=1000)

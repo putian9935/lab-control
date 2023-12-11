@@ -5,14 +5,14 @@ import struct
 
 def readback():
     while not ser.in_waiting:
-        time.sleep(.1)
+        time.sleep(.05)
     while ser.in_waiting:
         print(ser.readline())
 
 def readback_val():
     mess_buffer = []
     while not ser.in_waiting:
-        time.sleep(.1)
+        time.sleep(.05)
     while ser.in_waiting:
         mess_buffer += [ser.readline()]
     return mess_buffer
