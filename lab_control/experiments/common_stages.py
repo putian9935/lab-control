@@ -58,9 +58,9 @@ def prepare():
     def stirap_410():
         return []
     
-    @TSChannel(channel=33, init_state=1)
+    @TSChannel(channel=33, init_state=0)
     def aom_451_34():
-        print('451 34 is 451 repump, do you want to edit common stages? ')
+        print('451 34 is !!!NOT!! 451 repump, do you want to edit common stages? ')
         return []
     
     @aio_326intensityServo(channel=0, action=ramp)
