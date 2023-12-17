@@ -50,7 +50,7 @@ async def main(lab_name):
                 traceback.print_exc()
 
 if __name__ == '__main__':
-    asyncio.run(main('in_lab'))
-    # asyncio.run(main('offline_lab'))
+    # asyncio.run(main('in_lab'))
+    asyncio.run(main('offline_lab'))
     # asyncio.run(main('remote_test'))
     # asyncio.run(main('remote'))
