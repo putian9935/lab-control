@@ -59,12 +59,16 @@ aio_coil_vref = AIO(
     minpd=np.array([0, 0, 0, 0]),
     ts_mapping={ramp:16},
 )
-
 coil_servo = aio_coil_vref(action=ramp, channel=0)
 
 # coil_servo = CoilServo(r'python Q:\indium\software\experimental_control_v2\ad5764_io\coil_vref\coil_vref_terminal_v6.py --non-interactive', ts_channel=16)
 
 vco_controller = VCOController(r'python  Q:\indium\software\experimental_control_v2\sweep_dds\vco_terminal_v7.py --non-interactive', ts_channel=13)
+
+
+rf_knife_board = VCOController(r'python  Q:\indium\software\experimental_control_v2\rf_knife\vco_terminal_v7.py --non-interactive', ts_channel=44)
+rf_knife_freq = rf_knife_board()
+rf_knife_switch = TSChannel(channel=43, init_state=0, name='rf_knife_switch')
 
 remote_sim_control = to_in_helm.conn.modules.lab_control.device.fname_gen.EMCCD_simControl
 # sr_wlm = WaveLengthMeterLockMonitor(
