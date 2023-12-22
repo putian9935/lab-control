@@ -143,17 +143,16 @@ def single_shot(
     def load_odt():
         ''' Load atoms from cool mot into odt '''
         
-    @Stage(duration=odt_hold_time)
-    def hold_odt():
-        @aio_zcompServo(channel=1, action=ramp)
-        def comp2_coil_ramp():
-            return [20,], [200], [.536]
-        @aio_zcompServo(channel=0, action=ramp)
-        def z_comp_coil_ramp():
-            return [20,], [200], [.596]
+    @Stage(duration=6*ms)
+    def shutdown_mot_coil():
         if shutdown == 'fast':
             @TSChannel(channel=1)
             def igbt0():
+                ''' shutdown the magnetic field '''
+                return [0]
+
+            @TSChannel(channel=3)
+            def igbt3n4():
                 ''' shutdown the magnetic field '''
                 return [0]
 
@@ -176,6 +175,36 @@ def single_shot(
             def coil_vref():
                 return [0, 150, 400], [150, 300, 300], [40,25, -3]
             
+        @TSChannel(channel=20, init_state=1)
+        def aom_410_master():
+            return [1]
+        
+        @TSChannel(channel=37, init_state=1)
+        def aom_451_master():
+            ''' turn off repumpers '''
+            return [1]
+        
+        @TSChannel(channel=36, init_state=1)
+        def aom_410_slave():
+            return [1]
+        # @TSChannel(channel=33, )
+        # def aom_451_34():
+        #     return [1]
+
+        @TSChannel(channel=19, init_state=1)
+        def aom_rf_switch_410_451():
+            ''' turn off repumpers '''
+            return [1]
+  
+    @Stage(duration=odt_hold_time)
+    def hold_odt():
+        @aio_zcompServo(channel=1, action=ramp)
+        def comp2_coil_ramp():
+            return [20,], [200], [.578]
+            # return [20,], [200], [.536]
+        @aio_zcompServo(channel=0, action=ramp)
+        def z_comp_coil_ramp():
+            return [20,], [200], [.596]
         @TSChannel(channel=7, init_state=1)
         def mot_aom():
             return [-2]
@@ -212,32 +241,12 @@ def single_shot(
         @aio_326intensityServo(channel=0, action=ramp)
         def intensity326():
             return [1*ms], [1], [-0.05]
-        
-        @TSChannel(channel=20, init_state=1)
-        def aom_410_master():
-            return [1]
-        
-        @TSChannel(channel=37, init_state=1)
-        def aom_451_master():
-            ''' turn off repumpers '''
-            return [1]
-        
-        @TSChannel(channel=36, init_state=1)
-        def aom_410_slave():
-            return [1]
-        # @TSChannel(channel=33, )
-        # def aom_451_34():
-        #     return [1]
-
-        @TSChannel(channel=19, init_state=1)
-        def aom_rf_switch_410_451():
-            ''' turn off repumpers '''
-            return [1]
+     
     
         @vco_controller()
         def vco_651_trig():
             ''' move to on-resonance '''
-            return [10*ms], [det_ramp], [det_img]
+            return [10*ms], [10*ms], [det_img]
 
     optical_pumping_time = 40
     optical_pumping_duration=50 
@@ -390,9 +399,10 @@ def single_shot(
 async def main():
     config_dict = {
         'cool_mot_time': 4.2*ms,
-        'tof_time': 2*ms,
+        'tof_time': 1*ms,
         # vco detuning
-        'det_mot': -50,
+        'det_mot': -45,
+        # 'det_low': -45,
         'det_low': -70,
         # 'det_low': -170,
         'det_ramp': 3*ms,
@@ -412,14 +422,16 @@ async def main():
         # odt 
         'shutoff_410': 0*ms,
         'odt_ramp_time': 2000,
+        # 'odt_hold_time':250*ms, 
         'odt_hold_time':250*ms, 
         # 'odt_load_time': 8000, 
         'odt_load_time': 3, 
         # 'odt_load_time': 3000, 
         'odt_load_mot_time': 1, 
         'odt_start_time': -1000*us,
-        'odt_blink_time':12*ms,
-        'odt_blink_freq' : 3e3,
+        'odt_blink_time':10*ms,
+        # 'odt_blink_time':12*ms,
+        'odt_blink_freq' : 3.3e3,
         'odt_duty_cycle' : 0.8,
 
         'odt_high': 0.6,  
