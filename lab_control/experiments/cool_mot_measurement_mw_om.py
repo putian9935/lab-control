@@ -108,21 +108,21 @@ def single_shot(
 
         @vco_controller()
         def vco_651_trig():
-            return [0], [det_ramp], [det_low]
+            return [0], [2*ms], [det_low]
 
         @aio_zcompServo(channel=0, action=ramp)
         def z_comp_coil_ramp():
             # ramp z-comp coil to 5G = 35373 DAC number
-            return [-6*ms], [4*ms], [0.66]
+            return [1*ms], [1*ms], [bias_b_field]
         
         @aio_zcompServo(channel=1, action=ramp)
         def comp2_coil_ramp():
-            return [-6*ms], [4*ms], [bias_b_field2]
+            return [1*ms], [1*ms], [bias_b_field2]
 
 
         @comp_coil1
         def _():
-            return [-6*ms], [4*ms], [bias_b_field1]
+            return [1*ms], [1*ms], [bias_b_field1]
             
         @coil_servo
         def coil_vref():
@@ -183,12 +183,17 @@ def single_shot(
         @aio_zcompServo(channel=0, action=ramp)
         def z_comp_coil_ramp():
             # ramp z-comp coil to 5G = 35373 DAC number
-            return [0*ms], [3*ms], [bias_b_field]
+            return [0*ms], [2*ms], [0.655]
+        
+        # @aio_zcompServo(channel=0, action=ramp)
+        # def z_comp_coil_ramp():
+        #     # ramp z-comp coil to 5G = 35373 DAC number
+        #     return [*ms], [2*ms], [bias_b_field]
         
         @vco_controller()
         def vco_651_trig():
             ''' move to on-resonance '''
-            return [cool_mot_time], [1*ms], [det_img]
+            return [cool_mot_time], [0.9*ms], [det_img]
         
         @TSChannel(channel=19, init_state=1)
         def aom_rf_switch_410_451():
@@ -265,11 +270,11 @@ async def main():
     end_acq()
     
     for _ in range(80):
-        # for bias_b_field in [.65, .6505, .651, .6515]:
-        for bias_b_field in [.66]:
+        for bias_b_field in [.65, .6505, .651, .6515]:
+        # for bias_b_field in [.66]:
             for bias_b_field1 in [.482]:
                 for bias_b_field2 in [.504,]:
-                    config_dict['bef_mw_time'] = 6000
+                    config_dict['bef_mw_time'] = 3000
                     config_dict['bias_b_field'] = bias_b_field
                     # config_dict['bias_b_field'] = bias_b_field
                     config_dict['bias_b_field1'] = bias_b_field1
@@ -277,13 +282,17 @@ async def main():
                     start_acq(config.gen_fname_from_dict(config_dict))
                     
                     # config_dict['mw_time'] = mw_time
-                    for tof_time in np.arange(3, 26, 1)*ms:
+                    # for bias_b_field in tqdm(np.arange(0.68, .75, .002)):
+                    for tof_time in np.arange(1, 15, 1)*ms:
                     # for rp_intensity_low in np.arange(0.05, .8, .05):
                     # for intensity_low in np.arange(0.05, .8, .05):
                     # for det_low in np.arange(-80, -250, -5):
                     # for cool_mot_time in np.arange(0.1, 3, .1)*ms:
-                        config_dict['cool_mot_time'] = 3*ms
+                        config_dict['cool_mot_time'] = 5*ms
                         config_dict['tof_time'] = tof_time
+                        # config_dict['bias_b_field'] = 0.655
+                        config_dict['bias_b_field'] = .69
+                        # config_dict['bias_b_field'] = .666
                         # config_dict['tof_time'] = 15*ms
                         config_dict['intensity_low'] = .97
                         config_dict['rp_intensity_low'] = 0.2
