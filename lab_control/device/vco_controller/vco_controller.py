@@ -13,10 +13,12 @@ class VCOController(Program):
     async def wait_until_ready(self):
         await super().wait_until_ready()
         await wait_for_prompt(self.proc.stdout)
-
+        self.buffer_filename = f'vco_vref_temp_{self.proc.pid}'
+        open(self.buffer_filename, 'w').close()
+        
     async def at_acq_start(self):
         # clear contents
-        open('vco_vref_temp', 'w').close()
+        open(self.buffer_filename, 'w').close()
 
 
 @VCOController.set_default
@@ -46,7 +48,7 @@ class ramp(Action):
         )
         try:
             # in case file does not exist
-            if open('vco_vref_temp').read() == contents:
+            if open(target.buffer_filename).read() == contents:
                 # start experiment
                 await target.write(b'exp\n')
                 await wait_for_prompt(target.proc.stdout)
@@ -55,14 +57,19 @@ class ramp(Action):
             pass
 
         #  prepare file
-        with open('vco_vref_temp', 'w') as f:
+        with open(target.buffer_filename, 'w') as f:
             f.write(contents)
         # upload file
-        await target.write(b'paramDet vco_vref_temp\n')
+        from time import perf_counter
+        tt = perf_counter()
+        await target.write(f'paramDet {target.buffer_filename}\n'.encode())
         await wait_for_prompt(target.proc.stdout)
+        print(perf_counter()-tt)
         # start experiment
         await target.write(b'exp\n')
         await wait_for_prompt(target.proc.stdout)
+        print(perf_counter()-tt)
+
 
     @classmethod
     async def run_postprocess_cls(cls, target: VCOController):

@@ -10,7 +10,7 @@ from functools import wraps
 import logging 
 from lab_control.core.util.profiler import measure_time
 aio_ts_mapping = Dict[ActionMeta, int]
-
+import asyncio
 
 if __name__ == '__main__':
     print(merge_seq_aio([[1, 2, 3], [2, 3, 10]], [

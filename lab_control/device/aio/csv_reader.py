@@ -4,12 +4,10 @@ def binarise(*args):
     if len(args) == 2:
         # ramp 
         x, y = args
-        print(x ,y)
         return int(x).to_bytes(4, 'little', signed=False)+int(y).to_bytes(2, 'little', signed=False)
     elif len(args) == 1:
         # hsp
         y, = args
-        print('can be here')
         return int(1).to_bytes(4, 'little', signed=False)+int(y).to_bytes(2, 'little', signed=False)
 
 def fname2tv(fname):
