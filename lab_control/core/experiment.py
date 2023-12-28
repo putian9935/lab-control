@@ -111,21 +111,38 @@ class Experiment:
                 await run_preprocess()
                 logging.debug(
                     f'Prerequisite done in {time.perf_counter()-tt} second(s)!')
+                tt = time.perf_counter()
                 while not test_precondition():
                     action = deal_with_condition_fail() 
                     if action is True:
                         break 
                     if action is False: 
                         raise PreconditionFail()
+                logging.debug(
+                    f'Precondition done in {time.perf_counter()-tt} second(s)!')
+                tt = time.perf_counter()
                 exp_time = prepare_sequencer_files()
                 if config.view:
                     show_sequences()
+                logging.debug(
+                    f'Sequence prepared in {time.perf_counter()-tt} second(s)!')
+                tt = time.perf_counter()
+
+                await asyncio.sleep(exp_time * 1e-6 + .05)
                 if self.to_fpga and not config.offline:
                     await run_sequence(self.ts_fpga, exp_time)
                     logging.info(f'Experiment {f.__name__} sequence done!')
+                logging.debug(
+                    f'Sequence done in {time.perf_counter()-tt} second(s)!')
+                tt = time.perf_counter()
                 await run_postprocess()
+                logging.debug(
+                    f'Postprocess done in {time.perf_counter()-tt} second(s)!')
+                tt = time.perf_counter()
                 if not test_postcondition():
                     raise PostconditionFail()
+                logging.debug(
+                    f'Postcondition done in {time.perf_counter()-tt} second(s)!')
                 if keypress_tasks['q'].done():
                     raise AbortExperiment
             except:
