@@ -5,8 +5,6 @@ from datetime import datetime
 from lab_control.remote.remote import to_in_helm # , to_sr_remote, to_in_remote
 
 config.offline = False
-config.output_dir = rf'Q:\indium\data\2023\{datetime.now():%y%m%d}'
-print(f'[INFO] Output directory is {config.output_dir}. ')
 config.view = False
 config.view_raw = False
 
@@ -71,6 +69,10 @@ rf_knife_freq = rf_knife_board()
 rf_knife_switch = TSChannel(channel=43, init_state=0, name='rf_knife_switch')
 
 remote_sim_control = to_in_helm.conn.modules.lab_control.device.fname_gen.EMCCD_simControl
+
+remote_config = to_in_helm.conn.modules.lab_control.core.config.config 
+remote_config.output_dir = rf'd:\{datetime.now():%y%m%d}'
+print(f'[INFO] Output directory is {remote_config.output_dir}. ')
 # sr_wlm = WaveLengthMeterLockMonitor(
 #     to_sr_remote.conn.modules.lab_control.device.wlm_lock.check_okay(
 #         target_wavelength = {1: 651.40401, 4: 651.40416}

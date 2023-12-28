@@ -66,7 +66,7 @@ def deal_with_condition_fail():
         x = input("Enter [a/c/f]?")
 
 class Experiment:
-    def __init__(self, to_fpga=False, ts_fpga: str = None) -> None:
+    def __init__(self, to_fpga=False, ts_fpga: str = None, config_: str =None) -> None:
         self.to_fpga = to_fpga
         if to_fpga:
             if ts_fpga is None:
@@ -74,7 +74,9 @@ class Experiment:
             if ts_fpga not in Lab.lab_in_use.attr:
                 raise ValueError(f"Cannot find instance {ts_fpga}!")
             self.ts_fpga = Lab.lab_in_use.attr[ts_fpga]
-
+        if config_ is None:
+            config_ = 'config' 
+        self.config =  Lab.lab_in_use.attr[config_]
 
     def __call__(self, f) -> Awaitable:
         signature = inspect.signature(f)
@@ -83,12 +85,13 @@ class Experiment:
             def setup_config():
                 ba = signature.bind(*args, **kwds)
                 ba.apply_defaults()
-                config._arguments = ba.arguments
-                config._time_stamp = datetime.now()
-                config.update_cnt()
-                config.exp_name = f.__name__
-                config.append_param(config.param_str)
-                config.append_fname(config.fname)
+                self.config._arguments = ba.arguments
+                self.config._time_stamp = datetime.now()
+                config._time_stamp = self.config._time_stamp 
+                self.config.update_cnt()
+                self.config.exp_name = f.__name__
+                self.config.append_param(self.config.param_str)
+                self.config.append_fname(self.config.fname)
             
             Stage.clear()
             tt = time.perf_counter()
