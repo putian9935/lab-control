@@ -6,4 +6,4 @@ from .target import Target, TargetMeta, PreconditionFail, PostconditionFail
 from .experiment import Experiment
 from .stage import Stage
 from .types import ts_key, ts_map, ts_value
-from . import img 
+from .util import img 
