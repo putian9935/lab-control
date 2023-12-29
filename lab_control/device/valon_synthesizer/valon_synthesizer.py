@@ -9,11 +9,21 @@ from functools import wraps
 from .valon5019 import Synth 
 
 class ValonSynthesizer(Target):
-    def __init__(self, channel, freq) -> None:
+    """ Valon Synthesizer 
+    
+    Parameters 
+    --- 
+    - device_name: the VISA device name; 
+    - channel: time sequencer channel; 
+    - freq: initial output frequency in MHz;  
+    - power: output power in dBm. 
+    """
+    def __init__(self, *, device_name, channel, freq, power=+1) -> None:
         super().__init__()
-        self.synth = Synth()
+        self.synth = Synth(device_name)
         self.channel = channel 
         self.freq = freq 
+        self.synth.set_power(power)
         self.loaded = True
 
 

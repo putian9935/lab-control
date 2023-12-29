@@ -11,7 +11,7 @@ from lab_control.core.config import config
 prepare_time = 100*ms
 
 
-@Experiment(True, 'ts_in')
+@Experiment(True, 'ts_in','remote_config')
 def single_shot(
     load_mot_time=1*s, 
     cool_mot_time=3.5*ms,
@@ -401,15 +401,15 @@ async def main():
         'cool_mot_time': 4.2*ms,
         'tof_time': 1*ms,
         # vco detuning
-        'det_mot': -45,
+        'det_mot': -40,
         # 'det_low': -45,
-        'det_low': -70,
+        'det_low': -170,
         # 'det_low': -170,
         'det_ramp': 3*ms,
         # 'det_ramp': 8*ms,
         'det_img': -11,
         # 326 intensity
-        'intensity_high': .99,
+        'intensity_high': .97,
         'intensity_low': .95,
         # 'intensity_high': .7,
         # 'intensity_low': .7,
@@ -423,7 +423,7 @@ async def main():
         'shutoff_410': 0*ms,
         'odt_ramp_time': 2000,
         # 'odt_hold_time':250*ms, 
-        'odt_hold_time':250*ms, 
+        'odt_hold_time':150*ms, 
         # 'odt_load_time': 8000, 
         'odt_load_time': 3, 
         # 'odt_load_time': 3000, 
@@ -445,7 +445,7 @@ async def main():
         'shutdown':'fast',
         'take_background': False,
     }
-    config.update_cnt()
+    remote_config.update_cnt()
     await at_acq_start()
     # config.gen_fname_from_dict(config_dict)
     # start_acq(config.gen_fname_from_dict(config_dict))
@@ -457,7 +457,16 @@ async def main():
     #             config_dict['odt_blink_freq'] = odt_blink_freq
     #             await single_shot(**config_dict)
     while True:
-        config_dict['odt_high'] = .9
+        await at_acq_start()
+        # for bk_time in np.arange(2,14,1)*ms:
+        # for det_low in np.arange(-70, -200, -10):
+        # for freq in np.arange(1.5,3.5,0.2)*1e3:
+        #     print(bk_time)
+        config_dict['det_low'] = -170
+        config_dict['odt_hold_time'] = 150*ms
+        config_dict['odt_blink_time'] = 5*ms
+        config_dict['odt_high'] = .97
+        # config_dict['odt_blink_freq'] = freq
         await single_shot(**config_dict)
 
 

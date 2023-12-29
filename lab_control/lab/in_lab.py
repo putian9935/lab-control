@@ -22,7 +22,7 @@ aio_326intensityServo = AIO(
 # hsp is disabled for channel 1
 # 0.5 is VCO@80MHz 
 aio_1064intensityServo = AIO(
-    maxpd=np.array([58900.,    19065.,     0.,     0.]),
+    maxpd=np.array([62600.,    19065.,     0.,     0.]),
     minpd=np.array([33640.,    17445.,     0.,     0.]),
     port='COM21',
     ts_mapping={ramp:22, hsp:23}
@@ -91,7 +91,10 @@ print(f'[INFO] Output directory is {remote_config.output_dir}. ')
 start_acq = remote_sim_control.action_changeFilenameAndStartCamAcq
 end_acq =  remote_sim_control.action_StopCamAcq  
 
-valon_synth = ValonSynthesizer(channel=38, freq=1000)
+valon_synth = ValonSynthesizer(device_name='ASRL16::INSTR', channel=38, freq=1000)
+
+valon_synth_56 = ValonSynthesizer(device_name='ASRL9::INSTR', channel=45, freq=1753)
+gm_switch = valon_synth_56(target=valon_synth_56, init_state=1)
 
 from lab_control.core.util.unit import s, ms, us
 emccd_trig = TSChannel(pulse, channel=10, delay=2*ms, name='emccd_trig')
