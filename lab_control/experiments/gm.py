@@ -14,14 +14,14 @@ def turn_off_repumpers():
     def aom_rf_switch_410_451():
         ''' turn off repumpers '''
         return [-10]
-    @TSChannel(channel=20, init_state=1)
-    def aom_410_master():
-        return [-10,]
     @TSChannel(channel=37, init_state=1)
     def aom_451_master():
         return [-10,]
     @TSChannel(channel=36, init_state=1)
     def aom_410_slave():
+        return [-10,]
+    @TSChannel(channel=20, init_state=1)
+    def aom_410_master():
         return [-10,]
 
 def rp_intensity(intensity):
@@ -48,6 +48,7 @@ def single_shot(
     det_low=150,
     det_ramp=1.5*ms,
     det_img=-11,
+    det_gm=-900,
     # 326 intensity
     intensity_high=.85,
     intensity_low=.45,
@@ -81,7 +82,7 @@ def single_shot(
     @Stage(duration=bef_mw_time)
     def shutdown():
         turn_off_repumpers()
-        rp_intensity(0.01)
+        # rp_intensity(0.01)
 
         @TSChannel(channel=8)
         def zm_shutter():
@@ -92,12 +93,6 @@ def single_shot(
         def zm_rp_shutter():
             return [-1*ms]
 
-
-        @aio_zcompServo(channel=0, action=ramp)
-        def z_comp_coil_ramp():
-            # ramp z-comp coil to 5G = 35373 DAC number
-            return [1*ms], [1*ms], [.66]
-        
         @aio_zcompServo(channel=1, action=ramp)
         def comp2_coil_ramp():
             return [1*ms], [1*ms], [bias_b_field2]
@@ -131,7 +126,7 @@ def single_shot(
     
         @vco_controller()
         def vco_651_trig():
-            return [0*ms], [4.5*ms], [-1070]
+            return [0*ms], [4.5*ms], [det_gm]
         
 
     @Stage(duration=gm_time)
@@ -148,22 +143,29 @@ def single_shot(
 
         @aio_326intensityServo(channel=0, action=ramp)
         def intensity326():
-            return [-500,0], [1, 2], [-0.01, intensity_low]
+            return [-500,0, ], [1, 2,], [-0.01, intensity_low]
+
 
         @aio_zcompServo(channel=0, action=ramp)
         def z_comp_coil_ramp():
             # ramp z-comp coil to 5G = 35373 DAC number
-            return [0*ms], [2*ms], [0.655]
+            return [-2*ms], [1*ms], [.655]
+        
+        # @aio_zcompServo(channel=0, action=ramp)
+        # def z_comp_coil_ramp():
+        #     # ramp z-comp coil to 5G = 35373 DAC number
+        #     return [0*ms], [2*ms], [0.67]
         
         @gm_switch
         def _():
             return [0, gm_time]
         
-        @aio_zcompServo(channel=0, action=ramp)
-        def z_comp_coil_ramp():
-            # ramp z-comp coil to 5G = 35373 DAC number
-            return [5*ms], [2*ms], [0.64]
-        
+        @TSChannel(channel=36, init_state=1)
+        def aom_410_slave():
+            return [0,gm_time]
+        @TSChannel(channel=20, init_state=1)
+        def aom_410_master():
+            return [0,gm_time]
         
     
     @Stage(duration=exposure_time, start_at=gm.end+tof_time)
@@ -172,9 +174,6 @@ def single_shot(
         def vco_651_trig():
             ''' move to on-resonance '''
             return [-6*ms], [4.5*ms], [det_img]
-        @TSChannel(channel=56, action=pulse)
-        def test_trig():
-            return [0]
         @TSChannel(channel=10, action=pulse)
         def emccd_trig():
             return [-2*ms]
@@ -224,19 +223,22 @@ async def main():
     remote_config.update_cnt()
     await at_acq_start()
     from tqdm import tqdm 
-    end_acq()
+    # end_acq()
     
     for _ in range(80):
-        config_dict['bef_mw_time'] = 6000
+        config_dict['bef_mw_time'] = 8000
         config_dict['bias_b_field1'] = .482
         config_dict['bias_b_field2'] = .504
         fname = remote_config.gen_fname_from_dict(config_dict)
-        start_acq(fname)
+        # start_acq(fname)
         
-        for freq in tqdm(np.arange(1749, 1758, .16)):
-            for _ in range(3):
-                valon_synth_56.freq = freq
+        for det_gm in tqdm(np.arange(-1100, -780, 20)):
+            for _ in range(6):
+                valon_synth_56.freq = 1753
+                # valon_synth_56.freq = 1752.7
                 config_dict['gm_time'] = 1*ms
+                config_dict['det_gm'] = -960
+                # config_dict['det_gm'] = det_gm
                 config_dict['tof_time'] = 10*ms
                 config_dict['intensity_low'] = .9
                 await single_shot(**config_dict)
