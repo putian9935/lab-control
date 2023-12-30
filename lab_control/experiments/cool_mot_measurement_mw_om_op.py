@@ -205,19 +205,18 @@ def single_shot(
             ''' turn off the shutter '''
             return [cool_mot_time]
         
-    @Stage(duration=4.2*ms) 
+    @Stage(duration=2.8*ms) 
     # @Stage(duration=5.5*ms) 
     def ramp_down():
         @vco_controller()
         def vco_651_trig():
             ''' move to on-resonance '''
-            return [0], [4*ms], [-1180]
+            return [0], [2.5*ms], [-1055]
     
-    @Stage(duration=op_time)
+    @Stage(duration=op_time,)
     def optical_pumping():
         @aio_zcompServo(channel=0, action=ramp)
         def z_comp_coil_ramp():
-            # ramp z-comp coil to 5G = 35373 DAC number
             return [-4*ms], [4*ms], [0.45]
         
         @TSChannel(channel=7, init_state=1)
@@ -229,32 +228,34 @@ def single_shot(
         def intensity326():
             # return [-500,], [1, ], [-0.01, ]
             return [-500,0], [1, 2], [-0.01, .9]
-
-        @TSChannel(channel=19, init_state=1)
-        def aom_rf_switch_410_451():
-            ''' turn on repumpers '''
-            return [0,op_time]
-        @TSChannel(channel=20, init_state=1)
-        def aom_410_master():
-            return [0,op_time]
-        @TSChannel(channel=37, init_state=1)
-        def aom_451_master():
-            return [0,op_time]
-        @TSChannel(channel=36, init_state=1)
-        def aom_410_slave():
-            return [0,op_time]
+        @gm_switch
+        def _():
+            return [-100, op_time]
+        # @TSChannel(channel=19, init_state=1)
+        # def aom_rf_switch_410_451():
+        #     ''' turn on repumpers '''
+        #     return [0,op_time]
+        # @TSChannel(channel=20, init_state=1)
+        # def aom_410_master():
+        #     return [0,op_time]
+        # @TSChannel(channel=37, init_state=1)
+        # def aom_451_master():
+        #     return [0,op_time]
+        # @TSChannel(channel=36, init_state=1)
+        # def aom_410_slave():
+        #     return [0,op_time]
 
     @Stage(duration=5.8*ms) 
     def ramp_up():
         @vco_controller()
         def vco_651_trig():
             ''' move to on-resonance '''
-            return [0], [4.8*ms], [det_img]
+            return [10*ms], [4.8*ms], [det_img]
                
         @aio_zcompServo(channel=0, action=ramp)
         def z_comp_coil_ramp():
             # ramp z-comp coil to 5G = 35373 DAC number
-            return [0], [4*ms], [0.65]
+            return [0], [4*ms], [0.66]
         @TSChannel(channel=1)
         def igbt0():
             ''' shutdown the magnetic field '''
@@ -270,10 +271,10 @@ def single_shot(
             return [0]
     @Stage(duration=200*ms)
     def mtrap():
-        pass 
-        # @coil_servo
-        # def coil_vref():
-        #     return [50*ms], [50*ms], [15]
+        # return 
+        @coil_servo
+        def coil_vref():
+            return [50*ms], [50*ms], [15]
     @Stage()
     def shutdown_b(): 
         @TSChannel(channel=1)

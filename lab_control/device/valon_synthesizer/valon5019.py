@@ -1,4 +1,5 @@
 import pyvisa
+from functools import lru_cache 
 
 class Synth:
     def __init__(self, device_name):
@@ -9,7 +10,9 @@ class Synth:
             raise ValueError(
                 f'Could not find valon synthesizer {device_name};\nAvailable devices are {rmlist}.'
             )
-
+        # stops uploading if the frequency does not change 
+        self.set_freq = lru_cache(maxsize=1)(self.set_freq)
+        
     def set_freq(self, freq):
         self.synth = self.rm.open_resource(self.device_name)
         # set frequency in MHz
