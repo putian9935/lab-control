@@ -40,15 +40,6 @@ def single_shot(
     # b-field
     b_field_mot=34,
     b_field_low=34,
-    # SG experiment
-    sg_field=35, 
-    # odt 
-    shutoff_410=1*ms,
-    odt_load_time=10*ms, 
-    odt_load_mot_time=3*ms,
-    odt_hold_time=40*ms, 
-    odt_ramp_time=3*ms,
-    odt_start_time=0,
     optical_pumping_time=0*us, 
     optical_pumping_duration=250*us, 
     optical_pumping_f_state=-4, 
@@ -190,7 +181,7 @@ def single_shot(
             # return [3.5*ms, 4*ms]
             # return [3.5*ms, 4*ms]
         
-    @Stage(duration=500, start_at=cool_mot.end+10*ms)
+    @Stage(duration=500, start_at=cool_mot.end+19.5*ms)
     def depump():
         @TSChannel(channel=36)
         def aom_410_slave():
@@ -253,31 +244,34 @@ async def main():
     remote_config.update_cnt()
     await at_acq_start()
     from tqdm import tqdm 
-    # end_acq()
+    end_acq()
     
     for _ in range(8):
         # for bias_b_field in [.65, .6505, .651, .6515]:
         # for bias_b_field in [.65]:
-        for bias_b_field in [.66]:
+        for bef_mw_time, bias_b_field in [
+            # (16*ms, .625), (16*ms, .635), (16*ms, .645), 
+             (10*ms, .6477),  
+            # (12*ms, .645), (12*ms, .655), 
+            # (13*ms, .635), (10*ms, .645), (10*ms, .655)
+        ]:
         # for bias_b_field in np.arange(.63,.7,0.01):
         # for bias_b_field in np.arange(.652,.658,0.001):
         # for bias_b_field in [ .63]:
             # for bias_b_field1 in [.475,.478,.481,.484,.487,.49]:
-            for bias_b_field1 in [.482]:
-                for bias_b_field2 in [.504,]:
-                # for bias_b_field2 in [.502, .504, .506, .508,]:
-                    config_dict['bef_mw_time'] = 6000
-                    config_dict['bias_b_field'] = bias_b_field
-                    config_dict['bias_b_field1'] = bias_b_field1
-                    config_dict['bias_b_field2'] = bias_b_field2
-                    # start_acq(remote_config.gen_fname_from_dict(config_dict))
-                    # for mw_time in tqdm(np.arange(0, 1500, 30)):
-                    for freq in tqdm(np.arange(11409.4, 11409.9, 0.012)):
-                    # for freq in tqdm(np.arange(11409.6, 11409.9, 0.008)):
-                    # for freq in tqdm(np.arange(11409.2, 11409.9, 0.0025)):
-                        valon_synth.freq = freq
-                        # valon_synth.freq = 11409.7531
-                        config_dict['mw_time'] = 500
-                        # config_dict['mw_time'] = mw_time 
-                        await single_shot(**config_dict)
-                    end_acq()
+                for bias_b_field2 in [ .508]:
+                    for bias_b_field1 in [.480, .481, .482]:
+                        config_dict['bef_mw_time'] = bef_mw_time
+                        config_dict['bias_b_field'] = bias_b_field
+                        config_dict['bias_b_field1'] = bias_b_field1
+                        config_dict['bias_b_field2'] = bias_b_field2
+                        start_acq(remote_config.gen_fname_from_dict(config_dict))
+                        # for mw_time in tqdm(np.arange(0, 1500, 30)):
+                        for freq in tqdm(np.arange(11409.7, 11409.8, 0.004)):
+                        # for freq in tqdm(np.arange(11409.55, 11409.95, 0.003)):
+                            valon_synth.freq = freq
+                            # valon_synth.freq = 11409.7531
+                            config_dict['mw_time'] = 150
+                            # config_dict['mw_time'] = mw_time 
+                            await single_shot(**config_dict)
+                        end_acq()
