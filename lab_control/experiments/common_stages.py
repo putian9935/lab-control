@@ -33,7 +33,7 @@ def prepare():
     @aio_zcompServo(channel=0, action=ramp)
     def z_comp_coil_ramp():
         """old MOT loading z direction b field"""
-        return [0], [200], [.65]
+        return [0], [200], [.63]
         # return [0], [200], [.615]
 
     @aio_zcompServo(channel=1, action=ramp)

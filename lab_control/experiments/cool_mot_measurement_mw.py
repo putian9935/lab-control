@@ -83,12 +83,7 @@ def single_shot(
         
         @aio_zcompServo(channel=1, action=ramp)
         def comp2_coil_ramp():
-            # return [-8*ms], [4*ms], [.594]
             return [-6*ms], [4*ms], [bias_b_field2]
-
-        # @coil_servo
-        # def coil_vref():
-        #     return [-2*ms], [2000], [45]
 
         @comp_coil1
         def _():
@@ -251,7 +246,8 @@ async def main():
         # for bias_b_field in [.65]:
         for bef_mw_time, bias_b_field in [
             # (16*ms, .625), (16*ms, .635), (16*ms, .645), 
-             (10*ms, .6477),  
+             (9*ms, .660),    (9*ms, .636),    (9*ms, .654),    (9*ms, .642),   
+            #  (10*ms, .6477),  
             # (12*ms, .645), (12*ms, .655), 
             # (13*ms, .635), (10*ms, .645), (10*ms, .655)
         ]:
@@ -260,18 +256,19 @@ async def main():
         # for bias_b_field in [ .63]:
             # for bias_b_field1 in [.475,.478,.481,.484,.487,.49]:
                 for bias_b_field2 in [ .508]:
-                    for bias_b_field1 in [.480, .481, .482]:
+                    for bias_b_field1 in [.480]:
                         config_dict['bef_mw_time'] = bef_mw_time
                         config_dict['bias_b_field'] = bias_b_field
                         config_dict['bias_b_field1'] = bias_b_field1
                         config_dict['bias_b_field2'] = bias_b_field2
                         start_acq(remote_config.gen_fname_from_dict(config_dict))
                         # for mw_time in tqdm(np.arange(0, 1500, 30)):
-                        for freq in tqdm(np.arange(11409.7, 11409.8, 0.004)):
+                        for freq in tqdm(np.arange(11409.2, 11410.3, 0.0025)):
                         # for freq in tqdm(np.arange(11409.55, 11409.95, 0.003)):
                             valon_synth.freq = freq
                             # valon_synth.freq = 11409.7531
-                            config_dict['mw_time'] = 150
+                            config_dict['mw_time'] = 200
+                            # config_dict['mw_time'] = 150
                             # config_dict['mw_time'] = mw_time 
                             await single_shot(**config_dict)
                         end_acq()
