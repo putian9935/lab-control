@@ -30,14 +30,14 @@ class AIO(Target):
     @Target.disable_if_offline
     @Target.load_wrapper
     def load(self, port):
-        spec = importlib.util.find_spec('lab_control.device.aio.backend')
+        spec = importlib.util.find_spec('lab_control.device.aio.aio_backend')
         self.backend = importlib.util.module_from_spec(spec)
         self.backend.ser = ports.setup_arduino_port(port)
         spec.loader.exec_module(self.backend)
 
     @Target.disable_if_offline
     async def close(self):
-        self.backend.stop()
+        await self.backend.stop()
 
 
 def shift_vdt_by_one(retv: Tuple[list]):
@@ -122,7 +122,7 @@ class ramp(Action):
         # deal with ramp
         for ch, (ts, dt, v) in zip(chs, merge_seq_aio(*(zip(*extras)))):
             ts, dt, v = shift_vdt_by_one((ts, dt, v))
-            target.backend.ref(
+            await target.backend.ref(
                 ch,
                 tv2wfm(dt, p2r(v, target.maxpd[ch], target.minpd[ch])))
 
@@ -172,7 +172,7 @@ class hsp(Action):
         # handle empty sequence
         if not self.retv[1]:
             return 
-        target.backend.hsp(
+        await target.backend.hsp(
             self.channel,
             tv2wfm([1] * len(self.retv[1]), shift_list_by_one(self.retv[1])))
 
