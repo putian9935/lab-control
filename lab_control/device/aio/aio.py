@@ -1,11 +1,11 @@
 from lab_control.core.types import plot_map
 from ...core.target import Target
 from ...core.action import Action, set_pulse, ActionMeta
-import importlib.util
 from . import aio_ports
 from .csv_reader import tv2wfm, p2r
 from ...core.types import *
 from lab_control.core.util.ts import to_plot, pulsify, merge_plot_maps, merge_seq_aio, shift_list_by_one
+from lab_control.core.util.loader import load_module 
 from functools import wraps 
 import logging 
 from lab_control.core.util.profiler import measure_time
@@ -30,10 +30,10 @@ class AIO(Target):
     @Target.disable_if_offline
     @Target.load_wrapper
     def load(self, port):
-        spec = importlib.util.find_spec('lab_control.device.aio.aio_backend')
-        self.backend = importlib.util.module_from_spec(spec)
-        self.backend.ser = aio_ports.setup_arduino_port(port)
-        spec.loader.exec_module(self.backend)
+        self.backend = load_module(
+            'lab_control.device.aio.aio_backend',
+            ser=aio_ports.setup_arduino_port(port)
+        )
 
     @Target.disable_if_offline
     async def close(self):

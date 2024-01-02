@@ -3,6 +3,7 @@ from lab_control.core.experiment import Experiment, Stage, inject_lab_into_corou
 from functools import partial
 if __name__ == '__main__':
     from ..lab.in_lab import *
+from lab_control.core.util.loader import load_module 
 # --- do not change anything above this line ---
 
 import numpy as np
@@ -73,9 +74,11 @@ def single_shot(
 
     from .common_stages import prepare, load_mot, cool_mot, cleanup1, background, cleanup2 
     everything = dict(globals(), **locals())
-    prepare = Stage(duration=prepare_time+.1*s)(prepare, everything)
+    common_stages = load_module('lab_control.experiments.common_stages', everything)
 
-    load_mot = Stage(duration=load_mot_time)(load_mot,everything)
+    prepare = Stage(duration=prepare_time+.1*s)(common_stages.prepare)
+
+    load_mot = Stage(duration=load_mot_time)(common_stages.load_mot)
     # everything['det_low']=-40
     # cool_mot = Stage(duration=4.2*ms+100*us)(cool_mot, everything)
     det_low=[-200, -210]
@@ -218,11 +221,11 @@ def single_shot(
             ''' shine the MOT beam '''
             return [0, exposure_time]
 
-    cleanup1 = Stage(start_at=exposure.end + 100*ms, duration=50*ms)(inject_dict_into_function(cleanup1, everything))
+    cleanup1 = Stage(start_at=exposure.end + 100*ms, duration=50*ms)(common_stages.cleanup1)
 
 
     # cleanup2 = Stage(start_at=1250*ms)(partial(cleanup2,det_ramp, det_mot, ))
-    cleanup2 = Stage(start_at=cleanup1.end+50*ms)(partial(cleanup2,det_ramp, det_mot, ))
+    cleanup2 = Stage(start_at=cleanup1.end+50*ms)(common_stages.cleanup2)
   
 @inject_lab_into_coroutine
 async def main():
