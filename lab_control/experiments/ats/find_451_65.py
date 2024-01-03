@@ -2,7 +2,7 @@ from lab_control.core.util.unit import *
 from lab_control.core.experiment import Experiment, Stage, inject_lab_into_coroutine, inject_lab_into_function, inject_dict_into_function, at_acq_end, at_acq_start
 from functools import partial
 if __name__ == '__main__':
-    from ..lab.in_lab import *
+    from ...lab.in_lab import *
 # --- do not change anything above this line ---
 
 import numpy as np
@@ -41,26 +41,15 @@ def single_shot(
     # b-field
     b_field_mot=34,
     b_field_low=34,
-    optical_pumping_time=0*us, 
-    optical_pumping_duration=250*us, 
-    optical_pumping_f_state=-4, 
-    mw_time=1*ms, 
-    bef_mw_time=4*ms,
-    bias_b_field = 0.615,
-    bias_b_field2 = 0.594,
-    bias_b_field1 = 0.488,
-    odt_high=.96,
     exposure_time=200*us,
-    exposure_intensity = .97,
     shutdown='fast',
-    take_background = False,
     comment='',
 ):
     @TSChannel(channel=3, init_state=1)
     def unused3():
         return []
 
-    from .common_stages import prepare, load_mot, cool_mot, cleanup1, background, cleanup2 
+    from ..common_stages import prepare, load_mot, cool_mot, cleanup1, cleanup2 
     everything = dict(globals(), **locals())
     prepare = Stage(duration=prepare_time+.1*s)(prepare, everything)
 
@@ -136,70 +125,6 @@ def single_shot(
         def offset_451_65_trig():
             return [1000]
 
-    # @Stage(duration=optical_pumping_duration) 
-    # def optical_pumping():
-    #     """ shine 451: 6->5', 5->5', 4->5', 3->4'; shine 410: 5->5'"""
-        
-    #     if not optical_pumping_f_state == -5:
-    #         @TSChannel(channel=36)
-    #         def aom_410_slave():
-    #             if optical_pumping_time == 0:
-    #                 return []
-    #             return [0, optical_pumping_time]
-            
-    #     if not optical_pumping_f_state == -4:
-    #         @TSChannel(channel=20)
-    #         def aom_410_master():
-    #             if optical_pumping_time == 0:
-    #                 return []
-    #             return [0, optical_pumping_time]
-        
-    #     if not optical_pumping_f_state == 6:
-    #         @TSChannel(channel=30)
-    #         def stirap_451():
-    #             if optical_pumping_time == 0:
-    #                 return []
-    #             return [0, optical_pumping_time]
-        
-
-    #     if not optical_pumping_f_state == 4:
-    #         @TSChannel(channel=19)
-    #         def aom_rf_switch_410_451():
-    #             ''' shine repumpers '''
-    #             if optical_pumping_time == 0:
-    #                 return []
-    #             return [0, optical_pumping_time]
-        
-    #     if not optical_pumping_f_state == 5:
-    #         @TSChannel(channel=37)
-    #         def aom_451_master():
-    #             ''' shine repumpers '''
-    #             if optical_pumping_time == 0:
-    #                 return []
-    #             return [0, optical_pumping_time]
-        
-    #     if not optical_pumping_f_state == 3:
-    #         @TSChannel(channel=33,)
-    #         def aom_451_34():
-    #             if optical_pumping_time == 0:
-    #                 return []
-    #             return [0, optical_pumping_time]
-
-    # @Stage(duration=500)
-    # def mw():
-    #     @valon_synth(target=valon_synth, init_state=1)
-    #     def mw_switch():
-    #         if mw_time == 0:
-    #             return []
-    #         return [0, mw_time]
-    #         # return [3.5*ms, 4*ms]
-    #         # return [3.5*ms, 4*ms]
-        
-    # @Stage(duration=500, start_at=cool_mot.end+19.5*ms)
-    # def depump():
-    #     @TSChannel(channel=36)
-    #     def aom_410_slave():
-    #         return [0, 500]
         
     @Stage(duration=exposure_time)
     def exposure():
@@ -246,21 +171,18 @@ async def main():
         # b-field
         'b_field_mot': 43,
         'b_field_low': 48,
-        'optical_pumping_time':500,
-        'optical_pumping_duration':550,
         # 'b_field_mot': 34,
         # 'b_field_low': 34,
         'exposure_time': 500*us, 
-        'exposure_intensity': .97,
-        'take_background':False
     }
 
     remote_config.update_cnt()
     await at_acq_start()
-
-    def write_offset_451_65(offset):
-        with open("offset_number_451_65", "w") as f:
-            f.write(f"{offset}")
+    import pyvisa as visa   
+    rm = visa.ResourceManager()
+    inst = rm.open_resource(device_name, timeout=5000, chunk_size=40*1024)
+    def write_aom_451_65_voltage(v):
+        inst.write(f'SOUR2:VOLT:OFFS {v*10.:.3f}V')
 
     from tqdm import tqdm 
     end_acq()
@@ -268,8 +190,8 @@ async def main():
     while True:
         start_acq(remote_config.gen_fname_from_dict(config_dict))
 
-        for offset in tqdm(np.arange(-3000, 3000,150)):
-            write_offset_451_65(offset)
+        for offset in tqdm(np.arange(0, 10,.5)):
+            write_aom_451_65_voltage(offset)
             config_dict['tof_time'] = 1*ms
             await single_shot(**config_dict)
 
