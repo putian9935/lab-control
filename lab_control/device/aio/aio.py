@@ -61,10 +61,11 @@ def cache_cls_actions(coro_func):
     async def ret(cls, target):
         if target in cls.last_target_actions:
             logging.debug(f'<{target}>: {is_equal_reference(cls.last_target_actions[target], target.actions[cls])}')
+            logging.debug(f'<{target}>: {cls.last_target_actions}')
+            logging.debug(f'<{target}>: {target.actions[cls]}')
             if is_equal_reference(cls.last_target_actions[target], target.actions[cls]):
                 return
-        else:
-            cls.last_target_actions[target] = target.actions[cls]
+        cls.last_target_actions[target] = target.actions[cls]
         await coro_func(cls, target) 
     return ret 
 

@@ -246,8 +246,9 @@ async def main():
         # for bias_b_field in [.65]:
         for bef_mw_time, bias_b_field in [
             # (16*ms, .625), (16*ms, .635), (16*ms, .645), 
-             (9*ms, .660),    (9*ms, .636),    (9*ms, .654),    (9*ms, .642),   
-            #  (10*ms, .6477),  
+            #  (9*ms, .678),    (9*ms, .618),    
+            #  (9*ms, .660),    (9*ms, .636),    (9*ms, .654),    (9*ms, .642),   
+             (10*ms, .6477),  
             # (12*ms, .645), (12*ms, .655), 
             # (13*ms, .635), (10*ms, .645), (10*ms, .655)
         ]:
@@ -263,7 +264,7 @@ async def main():
                         config_dict['bias_b_field2'] = bias_b_field2
                         start_acq(remote_config.gen_fname_from_dict(config_dict))
                         # for mw_time in tqdm(np.arange(0, 1500, 30)):
-                        for freq in tqdm(np.arange(11409.2, 11410.3, 0.0025)):
+                        for freq in tqdm(np.arange(11409.0, 11409.5, 0.0025)):
                         # for freq in tqdm(np.arange(11409.55, 11409.95, 0.003)):
                             valon_synth.freq = freq
                             # valon_synth.freq = 11409.7531

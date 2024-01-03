@@ -80,7 +80,10 @@ def prepare():
     @aio_rp(channel=3, action=ramp)
     def intensity_451_slave():
         return [0], [2], [.95]
-    
+    @gm_switch
+    def _():
+        return []
+        
 def load_mot():
     ''' MOT loading  '''
     @TSChannel(channel=24)

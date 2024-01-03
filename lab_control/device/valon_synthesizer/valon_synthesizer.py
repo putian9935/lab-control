@@ -23,7 +23,7 @@ class ValonSynthesizer(Target):
         self.synth = Synth(device_name)
         self.channel = channel 
         self.freq = freq 
-        self.synth.set_power(power)
+        self.power = power 
         self.loaded = True
 
 
@@ -36,6 +36,7 @@ class switch(hold):
     async def run_preprocess(self, target: Target):
         target.synth : Synth 
         target.synth.set_freq(target.freq) 
+        target.synth.set_power(target.power) 
 
     async def run_postprocess(self, target: Target):
         return 
