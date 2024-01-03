@@ -12,6 +12,7 @@ class Synth:
             )
         # stops uploading if the frequency does not change 
         self.set_freq = lru_cache(maxsize=1)(self.set_freq)
+        self.set_power = lru_cache(maxsize=1)(self.set_power)
         
     def set_freq(self, freq):
         self.synth = self.rm.open_resource(self.device_name)
@@ -28,7 +29,7 @@ class Synth:
 
     def set_power(self, new_power):
         """ Set power level; currently the level is +1dBm """ 
-        if new_power > 1 or new_power < -30:
+        if new_power > 8 or new_power < -30:
             raise ValueError("New power must be within +1dBm and -30dBm")
         self.synth = self.rm.open_resource(self.device_name)
         # set power in dBm 

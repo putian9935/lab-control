@@ -93,7 +93,7 @@ end_acq =  remote_sim_control.action_StopCamAcq
 
 valon_synth = ValonSynthesizer(device_name='ASRL16::INSTR', channel=38, freq=1000)
 
-valon_synth_56 = ValonSynthesizer(device_name='ASRL9::INSTR', channel=45, freq=1753)
+valon_synth_56 = ValonSynthesizer(device_name='ASRL9::INSTR', channel=45, freq=1753, power=+7)
 gm_switch = valon_synth_56(target=valon_synth_56, init_state=1)
 
 from lab_control.core.util.unit import s, ms, us
