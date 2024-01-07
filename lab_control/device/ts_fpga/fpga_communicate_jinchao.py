@@ -8,7 +8,7 @@ Last modified on May 14, 2-23
 """
 import numpy as np
 import socket
-
+import logging 
 
 class socket_s():
     # initiates connection once called.
@@ -31,7 +31,7 @@ class socket_s():
         if errcode < 0:
             self.connected = False
         else:
-            print('Sent data successfully.')
+            logging.debug('Sent data successfully.')
         return errcode
 
     def write_trigger(self, data):  # write and trigger wavemeter
@@ -39,7 +39,7 @@ class socket_s():
         if errcode < 0:
             self.connected = False
         else:
-            print('Sent data successfully.')
+            logging.debug('Sent data successfully.')
         return errcode
 
     def close(self):

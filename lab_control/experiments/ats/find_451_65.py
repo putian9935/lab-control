@@ -1,6 +1,8 @@
 from lab_control.core.util.unit import *
 from lab_control.core.experiment import Experiment, Stage, inject_lab_into_coroutine, inject_lab_into_function, inject_dict_into_function, at_acq_end, at_acq_start
 from functools import partial
+import time 
+    
 if __name__ == '__main__':
     from ...lab.in_lab import *
 # --- do not change anything above this line ---
@@ -41,6 +43,8 @@ def single_shot(
     # b-field
     b_field_mot=34,
     b_field_low=34,
+    shine_410=False, 
+    shine_410_master=False, 
     exposure_time=200*us,
     shutdown='fast',
     comment='',
@@ -116,11 +120,15 @@ def single_shot(
     def shine_451_65():
         @TSChannel(channel=30, init_state=0)
         def stirap_451():
-            return [502,998]
-        
-        @TSChannel(channel=35, init_state=0)
-        def stirap_410():
-            return [500,1000]
+            return [502,698]
+        if shine_410:
+            @TSChannel(channel=35, init_state=0)
+            def stirap_410():
+                return [500,700]
+        if shine_410_master:
+            @TSChannel(channel=20, init_state=1)
+            def aom_410_master():
+                return [500,700]
         @TSChannel(channel=42, init_state=0)
         def offset_451_65_trig():
             return [1000]
@@ -147,7 +155,7 @@ def single_shot(
 
     # cleanup2 = Stage(start_at=1250*ms)(partial(cleanup2,det_ramp, det_mot, ))
     cleanup2 = Stage(start_at=cleanup1.end+50*ms)(partial(cleanup2,det_ramp, det_mot, ))
-  
+import asyncio 
 @inject_lab_into_coroutine
 async def main():
     config_dict = {
@@ -179,20 +187,71 @@ async def main():
     remote_config.update_cnt()
     await at_acq_start()
     import pyvisa as visa   
+    from pyvisa.errors import VisaIOError 
     rm = visa.ResourceManager()
-    inst = rm.open_resource(device_name, timeout=5000, chunk_size=40*1024)
     def write_aom_451_65_voltage(v):
-        inst.write(f'SOUR2:VOLT:OFFS {v*10.:.3f}V')
+        good = False 
+        while not good:
+            try:
+                inst = rm.open_resource('USB0::0x5345::0x1235::2237085::INSTR', timeout=5000, chunk_size=40*1024)
+                inst.write(f'SOUR2:VOLT:OFFS {v*10.:.3f}V')
+                inst.close()
+            except VisaIOError:
+                print('VISA IO error captured!')
+                time.sleep(1)
+            else:
+                good = True 
+    
 
     from tqdm import tqdm 
     end_acq()
     
+    with open('set_wavelength', 'w') as f:
+        f.write(f'{410.285252}')
+        # f.write(f'{wl_410}')
+    step = .000_0005
+    print('Changing setpoint...')
+    await asyncio.sleep(2*step/.000_005)
     while True:
-        start_acq(remote_config.gen_fname_from_dict(config_dict))
+        for wl_410 in np.arange(410.285_245, 410.285_257, step):
+            start_acq(remote_config.gen_fname_from_dict(config_dict))
 
-        for offset in tqdm(np.arange(0, 10,.5)):
-            write_aom_451_65_voltage(offset)
-            config_dict['tof_time'] = 1*ms
-            await single_shot(**config_dict)
+            for offset in tqdm(np.arange(0.9, 3.2,.1)):
+                write_aom_451_65_voltage(offset)
+                config_dict['shine_410_master'] = True
+                config_dict['shine_410'] = False
+                for _ in range(3):
+                    config_dict['tof_time'] = 1*ms
+                    await single_shot(**config_dict)
+                config_dict['shine_410_master'] = False
+                config_dict['shine_410'] = True
+                for _ in range(3):
+                    config_dict['tof_time'] = 1*ms
+                    await single_shot(**config_dict)
+                config_dict['shine_410_master'] = False
+                config_dict['shine_410'] = False
+                for _ in range(3):
+                    config_dict['tof_time'] = 1*ms
+                    await single_shot(**config_dict)
 
-        end_acq()
+            end_acq()
+
+            for offset in tqdm(np.arange(3.2, 0.9, -.1)):
+                write_aom_451_65_voltage(offset)
+                await asyncio.sleep(.05)
+            
+        # config_dict['shine_410'] = False 
+        # start_acq(remote_config.gen_fname_from_dict(config_dict))
+
+        # for offset in tqdm(np.arange(0.6, 3.2,.1)):
+        #     write_aom_451_65_voltage(offset)
+        #     for _ in range(5):
+        #         config_dict['tof_time'] = 1*ms
+        #         await single_shot(**config_dict)
+
+        # end_acq()
+
+        # for offset in tqdm(np.arange(3.2, 0.6, -.1)):
+        #     write_aom_451_65_voltage(offset)
+        #     await asyncio.sleep(.02)
+
