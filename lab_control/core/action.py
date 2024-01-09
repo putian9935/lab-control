@@ -126,3 +126,6 @@ class Action(metaclass=ActionMeta):
     def weak_equal(self, __value: object) -> bool:
         ''' allow return value to be different, since they are not essential '''
         return self.signame == __value.signame
+    
+    def __repr__(self) -> str:
+        return f'{type(self).__name__}:[{self.retv}]'

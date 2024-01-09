@@ -1,14 +1,4 @@
-import serial
-import time
-
-
-def get_line_msg(ser):
-    return ser.readline().decode('ansi')
-
-
-def get_msg(ser):
-    return ser.read().decode('ansi')
-
+import aioserial
 
 class CachedPort:
     ports = {}
@@ -26,7 +16,7 @@ class CachedPort:
 @CachedPort
 def setup_arduino_port(port, baud=115200, timeout=1):
     """ Returns an unopened port. """
-    ser = serial.Serial(port, baudrate=baud, timeout=timeout)
+    ser = aioserial.AioSerial(port, baudrate=baud, timeout=timeout)
     ser.close()
     # use this line for the suppression of Arduino auto-restart 
     # ser.dtr = False 
@@ -34,9 +24,9 @@ def setup_arduino_port(port, baud=115200, timeout=1):
 
 def arduino_transaction(ser):
     def ret(f):
-        def _inner(*args, **kwargs):
+        async def _inner(*args, **kwargs):
             ser.open()
-            r = f(*args, **kwargs)
+            r = await f(*args, **kwargs)
             ser.close() 
             return r
         return _inner

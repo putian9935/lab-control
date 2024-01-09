@@ -14,7 +14,8 @@ class VCOController(Program):
         await super().wait_until_ready()
         await wait_for_prompt(self.proc.stdout)
         self.buffer_filename = f'vco_vref_temp_{self.proc.pid}'
-
+        open(self.buffer_filename, 'w').close()
+        
     async def at_acq_start(self):
         # clear contents
         open(self.buffer_filename, 'w').close()

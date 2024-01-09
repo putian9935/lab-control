@@ -1,11 +1,11 @@
 from lab_control.core.types import plot_map
 from ...core.target import Target
 from ...core.action import Action, set_pulse, ActionMeta
-import importlib.util
-from . import ports
+from . import aio_ports
 from .csv_reader import tv2wfm, p2r
 from ...core.types import *
 from lab_control.core.util.ts import to_plot, pulsify, merge_plot_maps, merge_seq_aio, shift_list_by_one
+from lab_control.core.util.loader import load_module 
 from functools import wraps 
 import logging 
 from lab_control.core.util.profiler import measure_time
@@ -30,14 +30,14 @@ class AIO(Target):
     @Target.disable_if_offline
     @Target.load_wrapper
     def load(self, port):
-        spec = importlib.util.find_spec('lab_control.device.aio.backend')
-        self.backend = importlib.util.module_from_spec(spec)
-        self.backend.ser = ports.setup_arduino_port(port)
-        spec.loader.exec_module(self.backend)
+        self.backend = load_module(
+            'lab_control.device.aio.aio_backend',
+            ser=aio_ports.setup_arduino_port(port)
+        )
 
     @Target.disable_if_offline
     async def close(self):
-        self.backend.stop()
+        await self.backend.stop()
 
 
 def shift_vdt_by_one(retv: Tuple[list]):
@@ -61,10 +61,11 @@ def cache_cls_actions(coro_func):
     async def ret(cls, target):
         if target in cls.last_target_actions:
             logging.debug(f'<{target}>: {is_equal_reference(cls.last_target_actions[target], target.actions[cls])}')
+            logging.debug(f'<{target}>: {cls.last_target_actions}')
+            logging.debug(f'<{target}>: {target.actions[cls]}')
             if is_equal_reference(cls.last_target_actions[target], target.actions[cls]):
                 return
-        else:
-            cls.last_target_actions[target] = target.actions[cls]
+        cls.last_target_actions[target] = target.actions[cls]
         await coro_func(cls, target) 
     return ret 
 
@@ -122,7 +123,7 @@ class ramp(Action):
         # deal with ramp
         for ch, (ts, dt, v) in zip(chs, merge_seq_aio(*(zip(*extras)))):
             ts, dt, v = shift_vdt_by_one((ts, dt, v))
-            target.backend.ref(
+            await target.backend.ref(
                 ch,
                 tv2wfm(dt, p2r(v, target.maxpd[ch], target.minpd[ch])))
 
@@ -172,7 +173,7 @@ class hsp(Action):
         # handle empty sequence
         if not self.retv[1]:
             return 
-        target.backend.hsp(
+        await target.backend.hsp(
             self.channel,
             tv2wfm([1] * len(self.retv[1]), shift_list_by_one(self.retv[1])))
 
