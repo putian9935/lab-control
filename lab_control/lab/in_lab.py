@@ -92,9 +92,12 @@ start_acq = remote_sim_control.action_changeFilenameAndStartCamAcq
 end_acq =  remote_sim_control.action_StopCamAcq  
 
 valon_synth = ValonSynthesizer(device_name='ASRL16::INSTR', channel=38, freq=1000)
+mw_switch = valon_synth(target=valon_synth, init_state=1)
 
 valon_synth_56 = ValonSynthesizer(device_name='ASRL9::INSTR', channel=45, freq=1753, power=+7)
 gm_switch = valon_synth_56(target=valon_synth_56, init_state=1)
+
+freq_list_ttl = TSChannel(channel=46)
 
 from lab_control.core.util.unit import s, ms, us
 emccd_trig = TSChannel(pulse, channel=10, delay=2*ms, name='emccd_trig')
@@ -110,7 +113,7 @@ odt = TSChannel(channel=21, init_state=1, name='odt')
 aom_451_65 = TSChannel(channel=30, init_state=1, name='aom_451_65')
 aom_451_34 = TSChannel(channel=33, init_state=0, name='aom_451_34')
 aom_410_44 = TSChannel(channel=35, init_state=0, name='aom_410_44')
-mw_switch = TSChannel(channel=38, init_state=0, name='mw_switch')
+# mw_switch = TSChannel(channel=38, init_state=1, name='mw_switch')
 
 igbt0 = TSChannel(channel=1, init_state=0, name='igbt0')
 igbt1n2 = TSChannel(channel=2, init_state=0, name='igbt1n2')
