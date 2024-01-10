@@ -38,7 +38,13 @@ class AIO(Target):
     @Target.disable_if_offline
     async def close(self):
         await self.backend.stop()
-
+    async def at_acq_start(self):
+        self.backend.ser.open()
+        return await super().at_acq_start()
+    
+    async def at_acq_end(self):
+        self.backend.ser.close()
+        return await super().at_acq_end()
 
 def shift_vdt_by_one(retv: Tuple[list]):
     return retv[0], shift_list_by_one(retv[1]), shift_list_by_one(retv[2])

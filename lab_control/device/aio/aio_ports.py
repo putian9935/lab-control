@@ -22,12 +22,3 @@ def setup_arduino_port(port, baud=115200, timeout=.5):
     # ser.dtr = False 
     return ser
 
-def arduino_transaction(ser):
-    def ret(f):
-        async def _inner(*args, **kwargs):
-            ser.open()
-            r = await f(*args, **kwargs)
-            ser.close() 
-            return r
-        return _inner
-    return ret 
