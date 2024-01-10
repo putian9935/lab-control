@@ -37,7 +37,10 @@ class AIO(Target):
 
     @Target.disable_if_offline
     async def close(self):
+        self.backend.ser.open()
         await self.backend.stop()
+        self.backend.ser.close()
+        
     async def at_acq_start(self):
         self.backend.ser.open()
         return await super().at_acq_start()

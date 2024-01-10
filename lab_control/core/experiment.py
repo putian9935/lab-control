@@ -163,3 +163,17 @@ class Experiment:
                 logging.debug(
                     f'Cleanup done in {time.perf_counter()-tt} second(s)!')
         return ret
+
+from contextlib import asynccontextmanager 
+
+@asynccontextmanager
+async def acquisition(spool_data=None):
+    try:
+        await at_acq_start()
+        if spool_data is not None:
+            raise NotImplementedError("spool_data is not implemented") 
+        yield 
+    finally:
+        await at_acq_end() 
+    
+        
