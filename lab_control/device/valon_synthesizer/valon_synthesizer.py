@@ -13,19 +13,27 @@ class ValonSynthesizer(Target):
     
     Parameters 
     --- 
-    - device_name: the VISA device name; 
+    - port: the COM port 
+    the port number is same as VISA device name, e.g., if the VISA name is ASRL16::INSTR, then the COM port 
+    is COM16
     - channel: time sequencer channel; 
     - freq: initial output frequency in MHz;  
     - power: output power in dBm. 
     """
-    def __init__(self, *, device_name, channel, freq, power=+1) -> None:
+    def __init__(self, *, port, channel, freq, power=+1) -> None:
         super().__init__()
-        self.synth = Synth(device_name)
+        self.synth = Synth(port)
         self.channel = channel 
         self.freq = freq
         self.power = power 
         self.loaded = True
 
+
+    async def at_acq_start(self):
+        self.synth.ser.open()
+
+    async def at_acq_end(self):
+        self.synth.ser.close()
 
 @ValonSynthesizer.set_default
 @ValonSynthesizer.take_note
@@ -36,11 +44,12 @@ class switch(hold):
     async def run_preprocess(self, target: Target):
         target.synth : Synth 
         from numbers import Number  
+        await target.synth.set_power(target.power) 
         if isinstance(target.freq, list):
-            target.synth.set_freq2(target.freq[0], target.freq[1])
+            raise NotImplementedError("set freq2 is not implemented!")
+            # target.synth.set_freq2(target.freq[0], target.freq[1])
         elif isinstance(target.freq, Number):
-            target.synth.set_freq(target.freq)  
-        target.synth.set_power(target.power) 
+            await target.synth.set_freq(target.freq)  
 
     async def run_postprocess(self, target: Target):
         return 

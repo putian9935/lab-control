@@ -165,14 +165,10 @@ def prepare_sequencer_files(n_repeat=1):
     --- 
     The total time of the experiment 
     """
-    tt = time.perf_counter()
     to_seq = tuple(tar.to_time_sequencer()
                    for tar in all_target_instances())
     check_channel_clash(*to_seq)
     exp_time = save_sequences(merge_seq(*to_seq), '1')
-    logging.debug(
-        f'Sequence prepared in {time.perf_counter()-tt} '
-        'second(s)!')
     logging.info(
         f'Experiment cycle time: {exp_time/1e6} second(s)')
     return exp_time
@@ -180,7 +176,7 @@ def prepare_sequencer_files(n_repeat=1):
 
 async def run_sequence(fpga, exp_time: int):
     fpga.backend.main('out')
-    await asyncio.sleep(exp_time * 1e-6 + .1)
+    await asyncio.sleep(exp_time * 1e-6 + .02)
 
 
 async def run_exp(module_fname: str, **exp_param):

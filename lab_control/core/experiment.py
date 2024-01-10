@@ -109,8 +109,8 @@ class Experiment:
             logging.debug(
                 f'Experiment {f.__name__} parsed in {time.perf_counter()-tt} second(s)!')
             try:
-                tt = time.perf_counter()
                 setup_config()
+                tt = time.perf_counter()
                 await run_preprocess()
                 logging.debug(
                     f'Prerequisite done in {time.perf_counter()-tt} second(s)!')
@@ -155,9 +155,11 @@ class Experiment:
                 await at_acq_end()
                 raise
             else:
+                tt = time.perf_counter()
                 for task in keypress_tasks.values():
                     if not task.cancelled() and not task.done():
                         task.cancel()
                 cleanup()
-
+                logging.debug(
+                    f'Cleanup done in {time.perf_counter()-tt} second(s)!')
         return ret

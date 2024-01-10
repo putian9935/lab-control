@@ -61,10 +61,8 @@ coil_servo = aio_coil_vref(action=ramp, channel=0)
 
 # coil_servo = CoilServo(r'python Q:\indium\software\experimental_control_v2\ad5764_io\coil_vref\coil_vref_terminal_v6.py --non-interactive', ts_channel=16)
 
-vco_controller = VCOController(r'python  Q:\indium\software\experimental_control_v2\sweep_dds\vco_terminal_v7.py --non-interactive', ts_channel=13)
-
-
-rf_knife_board = VCOController(r'python  Q:\indium\software\experimental_control_v2\rf_knife\vco_terminal_v7.py --non-interactive', ts_channel=44)
+vco_controller = VCOController(port='COM23', ts_channel=13)
+rf_knife_board = VCOController(port='COM4', ts_channel=44)
 rf_knife_freq = rf_knife_board()
 rf_knife_switch = TSChannel(channel=43, init_state=0, name='rf_knife_switch')
 
@@ -91,10 +89,10 @@ print(f'[INFO] Output directory is {remote_config.output_dir}. ')
 start_acq = remote_sim_control.action_changeFilenameAndStartCamAcq
 end_acq =  remote_sim_control.action_StopCamAcq  
 
-valon_synth = ValonSynthesizer(device_name='ASRL16::INSTR', channel=38, freq=1000)
+valon_synth = ValonSynthesizer(port='COM16', channel=38, freq=1000)
 mw_switch = valon_synth(target=valon_synth, init_state=1)
 
-valon_synth_56 = ValonSynthesizer(device_name='ASRL9::INSTR', channel=45, freq=1753, power=+7)
+valon_synth_56 = ValonSynthesizer(port='COM5', channel=45, freq=1753, power=+7)
 gm_switch = valon_synth_56(target=valon_synth_56, init_state=1)
 
 freq_list_ttl = TSChannel(channel=46)
