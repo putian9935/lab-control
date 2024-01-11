@@ -5,6 +5,12 @@ if __name__ == '__main__':
 
 
 def prepare():
+    
+    @vco_controller()
+    def vco_651_trig():
+        ''' move to MOT detuning '''
+        return [0], [det_ramp], [det_mot]
+    
     @TSChannel(channel=8, init_state=0)
     def zm_shutter():
         ''' turn on 326 beam for zm '''
@@ -170,10 +176,6 @@ def cleanup2(det_ramp, det_mot):
         ''' odt on '''
         return [0]
 
-    @aio_1064intensityServo(action=hsp, channel=0)
-    def odt_hsp():
-        return [0], []
-
     @TSChannel(channel=11)
     def mot_shutter():
         return [0]
@@ -188,10 +190,6 @@ def cleanup2(det_ramp, det_mot):
         ''' turn on the MOT beam'''
         return [0]
 
-    @vco_controller()
-    def vco_651_trig():
-        ''' move to MOT detuning '''
-        return [0], [det_ramp], [det_mot]
 
     @TSChannel(channel=19)
     def aom_rf_switch_410_451():

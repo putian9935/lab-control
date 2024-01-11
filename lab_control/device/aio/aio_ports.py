@@ -14,7 +14,7 @@ class CachedPort:
 
 
 @CachedPort
-def setup_arduino_port(port, baud=115200, timeout=.5):
+def setup_arduino_port(port, baud=115200, timeout=.1):
     """ Returns an unopened port. """
     ser = aioserial.AioSerial(port, baudrate=baud, timeout=timeout)
     ser.close()

@@ -42,7 +42,7 @@ comp_coil1 = aio_zcompServo(action=ramp, channel=2)
 
 # missing intensity servo for repumpers 
 aio_rp = AIO(
-    port='COM27',
+    port='COM9',
     # r'python C:\Users\indium_desktop1\Desktop\rp_servo\terminal\terminal_vanilla.py --non-interactive',
     maxpd=np.array([33691., 33451., 33046., 34412.]),
     minpd=np.array([32810., 32777., 32940., 32846.]),

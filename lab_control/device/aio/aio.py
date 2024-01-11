@@ -25,6 +25,7 @@ class AIO(Target):
         self.ts_mapping = ts_mapping
         self.minpd = minpd
         self.maxpd = maxpd
+        self.port = port 
         self.load(port)
 
     @Target.disable_if_offline
@@ -42,7 +43,13 @@ class AIO(Target):
         self.backend.ser.close()
         
     async def at_acq_start(self):
-        self.backend.ser.open()
+        while not self.backend.ser.is_open:
+            try:
+                self.backend.ser.open()
+            except:
+                logging.error(f'Dead serial {self.__name__}')
+                from subprocess import run 
+                run(rf'C:\Program Files (x86)\TyTools\tycmd.exe reset --board "@{self.port}"')
         return await super().at_acq_start()
     
     async def at_acq_end(self):
