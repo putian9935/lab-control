@@ -12,11 +12,6 @@ from lab_control.core.util.profiler import measure_time
 aio_ts_mapping = Dict[ActionMeta, int]
 import asyncio
 
-if __name__ == '__main__':
-    print(merge_seq_aio([[1, 2, 3], [2, 3, 10]], [
-          [10, 20, 30], [20, 30, 10]], [[1, 2, 3], [1, 2, 3]]))
-
-
 class AIO(Target):
     def __init__(self, *, minpd: List[int], maxpd: List[int], ts_mapping: aio_ts_mapping, port: Optional[str] = None, **kwargs) -> None:
         super().__init__()

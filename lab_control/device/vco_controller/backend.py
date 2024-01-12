@@ -1,11 +1,7 @@
 """ Compatible with lab control """
-import os
 import time
-import sys
 import aioserial
 import numpy as np
-from ast import literal_eval
-import struct
 
 def arduino_transaction(ser):
     """ make arduino calls multi-process safe """
@@ -29,19 +25,14 @@ def readback():
 if __name__ == '__main__':
     com_port = 'COM23'
     # com_port = 'COM10' # on desktop 2
-    ser = serial.AioSerial(baudrate=2000000, timeout=0.05)
+    ser = aioserial.AioSerial(baudrate=2000000, timeout=0.05)
     ser.port = com_port
     ser.dtr = False
     time.sleep(1)
-    send_trig_disable()
 
 @arduino_transaction(ser)
 async def send_trig_disable():
     ser.write(bytes('TDS'+'\n', encoding='ascii'))
-
-
-# interpolatation of relation bewteen DAC and detuning
-Mhz = 1e6
 
 
 def detuning2DDS(detuning):
@@ -63,7 +54,6 @@ def detuning2DDS(detuning):
 
 
 
-# @arduino_transaction(ser)
 async def set_param(dt: list, v: list):
     ser.write(bytes('TDS'+'\n', encoding='ascii'))
     seq_len = len(dt)
@@ -82,33 +72,9 @@ async def set_param(dt: list, v: list):
     readback()
     time.sleep(0.01)
 
-    
-def ensure_vector(arr):
-    ''' ensure arr is at least rank 1 '''
-    if not arr.shape:
-        return arr.reshape(-1)
-    return arr
 
-
-def set_paramDet_action(args):
-    #     f = open(args.fname)
-    #     print(f.readlines())
-    contents = np.loadtxt(args.fname, delimiter=',', unpack=True)
-    if not contents.size: return 
-    dt, dv = contents
-    dt = ensure_vector(dt)
-    dv = ensure_vector(dv)
-    dt = dt.astype(np.uint32)
-    dv = detuning2DDS(dv)
-    arrayToSend = tuple(map(tuple, [dt, dv]))
-    print(arrayToSend)
-    set_param(*arrayToSend)
-
-
-# @arduino_transaction(ser)
 async def exp_action():
     await ser.write_async(bytes('TEN'+'\n', encoding='ascii'))
 
-# @arduino_transaction(ser)
 async def stop():
     await ser.write_async(bytes('TDS'+'\n', encoding='ascii'))
