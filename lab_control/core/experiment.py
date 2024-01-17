@@ -90,8 +90,8 @@ class Experiment:
                 config._time_stamp = self.config._time_stamp 
                 self.config.update_cnt()
                 self.config.exp_name = f.__name__
-                self.config.append_param(self.config.param_str)
-                self.config.append_fname(self.config.fname)
+                self.config.append_param()
+                self.config.append_fname()
             
             Stage.clear()
             tt = time.perf_counter()
