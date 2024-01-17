@@ -7,11 +7,14 @@ from ...core.types import *
 from lab_control.core.util.ts import to_plot, pulsify, merge_plot_maps, merge_seq_aio, shift_list_by_one
 from lab_control.core.util.loader import load_module 
 from functools import wraps 
+
 import logging 
+logger = logging.getLogger('device.aio')
+logger.setLevel(logging.INFO)
+
 from lab_control.core.util.profiler import measure_time
 aio_ts_mapping = Dict[ActionMeta, int]
 import asyncio
-
 class AIO(Target):
     def __init__(self, *, minpd: List[int], maxpd: List[int], ts_mapping: aio_ts_mapping, port: Optional[str] = None, **kwargs) -> None:
         super().__init__()
@@ -33,7 +36,13 @@ class AIO(Target):
 
     @Target.disable_if_offline
     async def close(self):
-        self.backend.ser.open()
+        while not self.backend.ser.is_open:
+            try:
+                self.backend.ser.open()
+            except:
+                logger.error(f'Dead serial {self.__name__}')
+                from subprocess import run 
+                run(rf'C:\Program Files (x86)\TyTools\tycmd.exe reset --board "@{self.port}"')
         await self.backend.stop()
         self.backend.ser.close()
         
@@ -42,7 +51,7 @@ class AIO(Target):
             try:
                 self.backend.ser.open()
             except:
-                logging.error(f'Dead serial {self.__name__}')
+                logger.error(f'Dead serial {self.__name__}')
                 from subprocess import run 
                 run(rf'C:\Program Files (x86)\TyTools\tycmd.exe reset --board "@{self.port}"')
         return await super().at_acq_start()
@@ -71,9 +80,9 @@ def cache_cls_actions(coro_func):
     @wraps(coro_func)
     async def ret(cls, target):
         if target in cls.last_target_actions:
-            logging.debug(f'<{target}>: {is_equal_reference(cls.last_target_actions[target], target.actions[cls])}')
-            logging.debug(f'<{target}>: {cls.last_target_actions}')
-            logging.debug(f'<{target}>: {target.actions[cls]}')
+            logger.debug(f'<{target}>: {is_equal_reference(cls.last_target_actions[target], target.actions[cls])}')
+            logger.debug(f'<{target}>: {cls.last_target_actions}')
+            logger.debug(f'<{target}>: {target.actions[cls]}')
             if is_equal_reference(cls.last_target_actions[target], target.actions[cls]):
                 return
         cls.last_target_actions[target] = target.actions[cls]
@@ -128,9 +137,9 @@ class ramp(Action):
         # empty actions
         if not chs:
             return  
-        logging.debug(f'{target}')
-        logging.debug(extras)
-        logging.debug(chs)
+        logger.debug(f'{target}')
+        logger.debug(extras)
+        logger.debug(chs)
         # deal with ramp
         for ch, (ts, dt, v) in zip(chs, merge_seq_aio(*(zip(*extras)))):
             ts, dt, v = shift_vdt_by_one((ts, dt, v))

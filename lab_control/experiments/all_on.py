@@ -12,13 +12,14 @@ from lab_control.core.config import config
 def turn_on_all():
     
     odt_setpoint = 1500
-    odt_intensity = 0.97
+    odt_intensity = 1.1
+    # odt_intensity = 0.97
     # det_mot = -52
     det_mot = -40
+    # det_mot = -40
     # det_mot = -70
     det_ramp = 3000
-    b_field = 25
-    # b_field = 43
+    b_field = 43
     mot_intensity = 0.97
 
     @vco_controller()
@@ -58,6 +59,10 @@ def turn_on_all():
     @TSChannel(channel=21)
     def odt():
         ''' odt on '''
+        return [0]
+    
+    @TSChannel(pulse, channel=56)
+    def test_trig():
         return [0]
     # @aio_1064intensityServo(action=hsp, channel=0)
     # def odt_hsp():
@@ -174,6 +179,24 @@ def turn_on_all():
     def _():
         return []
     
+    @TSChannel(channel=47, init_state=1)
+    def odt_mod():
+        return []
+    
+    @TSChannel(channel=48, init_state=1)
+    def mot_mod():
+        return []
+
+@inject_lab_into_coroutine
 async def main():
     async with acquisition():
+        
+        modulate_freq = 5.3
+        odt_duty_cycle = 80
+        odt_width = 1 / (modulate_freq*1e3) * odt_duty_cycle * 1e-2
+        await odt_modulator.update_width(odt_width)
+        await odt_modulator.update_delay(-400e-9)
+        await mot_modulator.update_width(odt_width)
+        await mot_modulator.update_delay(0)
+
         await turn_on_all()

@@ -5,7 +5,12 @@ if __name__ == '__main__':
 
 
 def prepare():
-    
+    @TSChannel(channel=47, init_state=1)
+    def odt_mod_trig():
+        return []
+    @TSChannel(channel=48, init_state=1)
+    def mot_mod_trig():
+        return []
     @vco_controller()
     def vco_651_trig():
         ''' move to MOT detuning '''

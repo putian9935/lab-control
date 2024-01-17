@@ -8,6 +8,9 @@ from functools import wraps
 from .types import *
 import logging 
 
+logger = logging.getLogger('core.action')
+logger.setLevel(logging.INFO)
+
 import typing
 if typing.TYPE_CHECKING:
     from .target import Target
@@ -20,7 +23,7 @@ def set_pulse(cls):
 
 class ActionMeta(type):
     instances = {}
-    targets = defaultdict(str)
+    targets = defaultdict(list)
 
     def __new__(cls, name, bases, attr, **kwds):
         return type.__new__(cls, name, bases, attr)
@@ -93,19 +96,19 @@ class Action(metaclass=ActionMeta):
         return [int(x + Stage.cur) for x in l]
 
     async def run_preprocess(self, target: 'Target'):
-        logging.debug(
+        logger.debug(
             f'Action {type(target).__name__}.{type(self).__name__} has no preprocess to run.')
 
     def to_time_sequencer(self, target: 'Target') -> Optional[ts_map]:
-        logging.debug(
+        logger.debug(
             f'Action {type(target).__name__}.{type(self).__name__} has nothing to transform to time sequencer.')
 
     def to_plot(self, target: 'Target', *args, **kwargs) -> Optional[plot_map]:
-        logging.debug(
+        logger.debug(
             f'Action {type(target).__name__}.{type(self).__name__} has nothing to plot.')
 
     async def run_postprocess(self, target: 'Target'):
-        logging.debug(
+        logger.debug(
             f'Action {type(target).__name__}.{type(self).__name__} has no postprocess to run.')
 
     def extend(self, new):

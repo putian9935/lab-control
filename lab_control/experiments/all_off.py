@@ -64,15 +64,18 @@ def main():
     @TSChannel(channel=5)
     def field_unlock():
         ''' engage coil servo '''
-        return [100000, 101000, ]
+        return []
 
+    @TSChannel(pulse, channel=56)
+    def test_trig():
+        return [0]
     @TSChannel(channel=1)
     def igbt0():
         return []
     
     @TSChannel(channel=3)
     def igbt3n4():
-        return [0]
+        return []
 
     @coil_servo
     def coil_vref():

@@ -13,17 +13,18 @@ TSChannel = TimeSequencer()
 ts_in = TimeSequencerFPGA('192.168.107.194', 5555)
 
 aio_326intensityServo = AIO(
-    maxpd=np.array([33790,    0.,     0.,     0.]),
-    minpd=np.array([32817.,     0.,     0.,     0.]),
+    maxpd=np.array([33630,    0.,     0.,     0.]),
+    minpd=np.array([32766.,     0.,     0.,     0.]),
     port='COM20',
     ts_mapping={ramp:14, hsp:15}
 )
 
 # hsp is disabled for channel 1
 # 0.5 is VCO@80MHz 
+# added another ND10 for fast response 
 aio_1064intensityServo = AIO(
-    maxpd=np.array([62600.,    19065.,     0.,     0.]),
-    minpd=np.array([33640.,    17445.,     0.,     0.]),
+    maxpd=np.array([35424.,    19065.,     0.,     0.]),
+    minpd=np.array([33584.,    17445.,     0.,     0.]),
     port='COM21',
     ts_mapping={ramp:22, hsp:23}
 )
@@ -68,6 +69,19 @@ rf_knife_switch = TSChannel(channel=43, init_state=0, name='rf_knife_switch')
 
 remote_sim_control = to_in_helm.conn.modules.lab_control.device.fname_gen.EMCCD_simControl
 
+# odt_modulator = Modulator_33500B(
+    # device_addr='USB0::0x0957::0x2C07::MY59002653::INSTR',
+odt_modulator = Modulator_RSDG5082_Pulse(
+    device_addr='USB0::0xF4ED::0xEE3A::NDG50DAD2R0385::INSTR', 
+    ts_channel=47, 
+    output_channel=2
+)
+
+mot_modulator = Modulator_RSDG5082_Pulse(
+    device_addr='USB0::0xF4ED::0xEE3A::NDG50DAD2R0385::INSTR', 
+    ts_channel=48, 
+    output_channel=1
+)
 remote_config = to_in_helm.conn.modules.lab_control.core.config.config 
 remote_config.output_dir = rf'd:\{datetime.now():%y%m%d}'
 print(f'[INFO] Output directory is {remote_config.output_dir}. ')
@@ -96,6 +110,7 @@ valon_synth_56 = ValonSynthesizer(port='COM5', channel=45, freq=1753, power=+7)
 gm_switch = valon_synth_56(target=valon_synth_56, init_state=1)
 
 freq_list_ttl = TSChannel(channel=46)
+# odt_mod_trig = odt_modulator(action=modulate)
 
 from lab_control.core.util.unit import s, ms, us
 emccd_trig = TSChannel(pulse, channel=10, delay=2*ms, name='emccd_trig')
