@@ -82,19 +82,19 @@ class Experiment:
         signature = inspect.signature(f)
 
         async def ret(*args, **kwds):
+            ttt =  time.perf_counter()
+            tt = time.perf_counter()
             def setup_config():
                 ba = signature.bind(*args, **kwds)
                 ba.apply_defaults()
                 self.config._arguments = ba.arguments
                 self.config._time_stamp = datetime.now()
-                config._time_stamp = self.config._time_stamp 
                 self.config.update_cnt()
                 self.config.exp_name = f.__name__
-                self.config.append_param(self.config.param_str)
-                self.config.append_fname(self.config.fname)
+                self.config.append_param()
+                self.config.append_fname()
             
             Stage.clear()
-            tt = time.perf_counter()
             try:
                 # inject lab names to function
                 for k, v in Lab.lab_in_use.attr.items():
@@ -109,8 +109,10 @@ class Experiment:
             logging.debug(
                 f'Experiment {f.__name__} parsed in {time.perf_counter()-tt} second(s)!')
             try:
-                setup_config()
                 tt = time.perf_counter()
+                config_job = asyncio.to_thread(setup_config)
+                logging.debug(
+                    f'Setup done in {time.perf_counter()-tt} second(s)!')
                 await run_preprocess()
                 logging.debug(
                     f'Prerequisite done in {time.perf_counter()-tt} second(s)!')
@@ -124,14 +126,17 @@ class Experiment:
                 logging.debug(
                     f'Precondition done in {time.perf_counter()-tt} second(s)!')
                 tt = time.perf_counter()
-                exp_time = prepare_sequencer_files()
+                exp_time, ti, dt2 = prepare_sequencer_files()
                 if config.view:
                     show_sequences()
                 logging.debug(
                     f'Sequence prepared in {time.perf_counter()-tt} second(s)!')
                 tt = time.perf_counter()
                 if self.to_fpga and not config.offline:
-                    await run_sequence(self.ts_fpga, exp_time)
+                    await asyncio.gather(
+                        run_sequence(self.ts_fpga, exp_time, ti, dt2),
+                                            config_job
+                    )
                     logging.info(f'Experiment {f.__name__} sequence done!')
                 logging.debug(
                     f'Sequence done in {time.perf_counter()-tt} second(s)!')
@@ -162,6 +167,7 @@ class Experiment:
                 cleanup()
                 logging.debug(
                     f'Cleanup done in {time.perf_counter()-tt} second(s)!')
+            logging.debug(f'experiment done all in {time.perf_counter()-ttt}')
         return ret
 
 from contextlib import asynccontextmanager 
