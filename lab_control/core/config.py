@@ -12,6 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logging.getLogger('matplotlib').disabled = True
 logging.getLogger('matplotlib.font_manager').disabled = True
 logging.getLogger('PIL.PngImagePlugin').disabled = True
+logging.getLogger('pyvisa').disabled = True
 class ConfMeta(type):
     def __init__(cls, *args):
         cls.writable_property_names = set(
@@ -42,13 +43,13 @@ class Configuration(metaclass=ConfMeta):
         self.offline: bool = True
         self.strict: bool = False
 
-    def append_fname(self, fname: str):
+    def append_fname(self,):
         with open(self.all_fnames, 'a') as f:
-            f.write(fname+'\n')
+            f.write(self.fname+'\n')
 
-    def append_param(self, params: str):
+    def append_param(self, ):
         with open(self.all_params, 'a') as f:
-            f.write(params+'\n')
+            f.write(self.param_str+'\n')
 
     def update_cnt(self):
         if self.all_fnames is None:

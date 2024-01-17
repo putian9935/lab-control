@@ -25,3 +25,18 @@ def get_tif_latest_single_image(fp):
 
 def get_roi_count(arr, roi):
     return arr[..., roi[0], roi[1]].sum(axis=-1).sum(axis=-1)
+
+
+def get_counts(arr, rois):
+    return np.array([get_roi_count(arr, roi) for roi in rois])
+    
+def subtract_background(arr):
+    return arr[..., 0] - arr[..., 1]
+    
+def chain(func_list):
+    def wrapper(x):
+        ret = x
+        for f in func_list:
+            ret = f(ret)
+        return ret 
+    return wrapper

@@ -179,7 +179,7 @@ async def run_sequence(fpga, exp_time: int, time_interval, data_list2):
     seq2 = fpga.backend.write_line(1)
     fpga.backend.sequencer.upload_n_rep(seq2)
     # seems that there is a minimal delay between two sequences from the FPGA 
-    await asyncio.sleep(exp_time * 1e-6+.2)
+    await asyncio.sleep(exp_time * 1e-6+.25)
 
 
 async def run_exp(module_fname: str, **exp_param):
