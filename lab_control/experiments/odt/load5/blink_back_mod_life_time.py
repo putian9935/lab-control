@@ -40,15 +40,13 @@ def single_shot(
     odt_ramp_time=3*ms,
     odt_blink_time=5*ms,
     odt_blink_freq=3e3,
-    odt_mw=.97, 
     odt_duty_cycle=0.8,
     bias_b_field=0.6477, 
     odt_start_time=0,
     trap_oscillation_period=1*ms,
+    optical_pumping_f_state=-4, 
     odt_high=.96,
-    mw_freq=11409.7531, 
     exposure_time=200*us,
-    mw_time =0*us, 
     shutdown='fast',
     take_background=False,
     total_atom = True
@@ -173,9 +171,12 @@ def single_shot(
 
     @Stage(duration=odt_hold_time)
     def hold_odt():
+
+            
         @aio_zcompServo(channel=1, action=ramp)
         def comp2_coil_ramp():
             return [50*ms,], [2000], [.504]
+            # return [20,], [200], [.536]
 
         @comp_coil1
         def _():
@@ -228,7 +229,6 @@ def single_shot(
 
     optical_pumping_time = 70
     optical_pumping_duration = 70
-    optical_pumping_f_state = -4
     @Stage(duration=optical_pumping_duration, start_at=hold_odt.start+45*ms)
     def optical_pumping():
         """ shine 451: 6->5', 5->5', 4->5', 3->4'; shine 410: 5->5'"""
@@ -278,12 +278,12 @@ def single_shot(
                     return []
                 return [0, optical_pumping_time]
 
-        if not optical_pumping_f_state == 3:
-            @TSChannel(channel=33,)
-            def aom_451_34():
-                if optical_pumping_time == 0:
-                    return []
-                return [0, optical_pumping_time]
+        # if not optical_pumping_f_state == 3:
+        #     @TSChannel(channel=33,)
+        #     def aom_451_34():
+        #         if optical_pumping_time == 0:
+        #             return []
+        #         return [0, optical_pumping_time]
         @TSChannel(channel=39, init_state=1)
         def stirap_410_shutter():
             '''  '''
@@ -299,27 +299,13 @@ def single_shot(
         @TSChannel(channel=29)
         def mot_451_shutter():
             return [optical_pumping_time]
-
+            
     @Stage(duration=tof_time, start_at=hold_odt.end)
     def tof():
-        
         @aio_zcompServo(channel=0, action=ramp)
         def z_comp_coil_ramp():
-            # return [-40*ms,], [5*ms], [0.64]
-            # return [-40*ms,], [.2*ms], [0.61]
-            return [-40*ms,], [.2*ms], [0.635]
-        # @aio_zcompServo(channel=0, action=ramp)
-        # def z_comp_coil_ramp():
-        #     # return [-25*ms,], [10*ms], [0.634]
-        #     return [-25*ms,], [10*ms], [0.6345]
-        valon_synth.freq = mw_freq
-        @mw_switch
-        def mw():
-            if mw_time == 0:
-                return []
-            return [-10*ms, -10*ms+mw_time]
-            # return [0, mw_time]
-            
+            return [-10*ms,], [200], [0.604]
+        
         @TSChannel(channel=21, )
         def odt():
             ''' free fall atoms '''
@@ -333,10 +319,29 @@ def single_shot(
             return [-3*ms]
             
         if total_atom:
+            
+            @TSChannel(channel=19)
+            def aom_rf_switch_410_451():
+                ''' shine repumpers '''
+                return [200,800]
+
+            @TSChannel(channel=20)
+            def aom_410_master():
+                return [200,800]
+
+            # @TSChannel(channel=35, )
+            # def stirap_410():
+            #     return [0, exposure_time]
+
+            @TSChannel(channel=37)
+            def aom_451_master():
+                ''' turn off repumpers '''
+                return [200,800]
+
             @TSChannel(channel=36)
             def aom_410_slave():
                 # shut off 410 slave to let atoms decay to ground state
-                return [2800,3000]
+                return [200,800]
     
    
 
@@ -368,6 +373,30 @@ def single_shot(
             ''' hold atoms '''
             return [0], [20], [intensity_high]
 
+        @TSChannel(channel=19)
+        def aom_rf_switch_410_451():
+            ''' shine repumpers '''
+            return [0, exposure_time]
+
+        @TSChannel(channel=20)
+        def aom_410_master():
+            return [0, exposure_time]
+
+        # @TSChannel(channel=35, )
+        # def stirap_410():
+        #     return [0, exposure_time]
+
+        @TSChannel(channel=37)
+        def aom_451_master():
+            ''' turn off repumpers '''
+            return [0, exposure_time]
+
+        @TSChannel(channel=36)
+        def aom_410_slave():
+            # shut off 410 slave to let atoms decay to ground state
+            return [0, exposure_time]
+  
+
         @TSChannel(channel=24)
         def cmos_camera():
             return [-250, 500]
@@ -384,7 +413,7 @@ def single_shot(
 async def main():
     config_dict = {
         'cool_mot_time': 4.2*ms,
-        'tof_time': 3*ms,
+        'tof_time': 1*ms,
         # vco detuning
         'det_mot': -40,
         # 'det_low': -45,
@@ -419,7 +448,14 @@ async def main():
         # 'odt_blink_time':12*ms,
         'odt_blink_freq': 3.3e3,
         'odt_duty_cycle': 0.8,
+
         'odt_high': 0.6,
+        'trap_oscillation_period': 1*ms,
+        # SG experiment
+        'sg_field': 0,
+
+        # 'b_field_mot': 34,
+        # 'b_field_low': 34,
         'exposure_time': 500*us,
         'shutdown': 'fast',
         'take_background': False,
@@ -451,39 +487,19 @@ async def main():
             await mot_modulator.update_delay(delay_pi + delay*1e-6)
 
             start_acq(remote_config.gen_fname_from_dict(config_dict))
-            spacing = 0.49535
-            transitions = np.arange(-8,9,2)*spacing
-            
-            for offset in ([0]):
-            # for offset in (0.191*2*np.array([-1, -2])):
-                for tran in transitions:
-                # for mw_freq in tqdm(np.arange(-.1, .1, .006)+0+11409.7531):
-                # for mw_freq in tqdm(np.arange(-1.2, -1, .006)+0+11409.7531):
-                # for mw_freq in tqdm(np.arange(-1, 0.05, .003)+0+11409.7531):
-                    for mw_freq in tqdm(np.arange(-0.02, 0.015, .0008)+tran+11409.7531+0.0028):
-                        
-                        # for mw_time in tqdm(np.arange(0, 1500, 40)):
-                        # for mw_time in tqdm(np.arange(0, 2500, 30)):
-                            for bias_b_field in [.61, 0.55]:
-                            # for bias_b_field in [.61, .55]:
-                                # for _ in range(3):
-                                    config_dict['load_mot_time'] = 1.8*s
-                                    # config_dict['load_mot_time'] = 2*s
-                                    # config_dict['mw_freq'] = tran+11409.7531+0.0028
-                                    # config_dict['mw_time'] = 100
-                                    # config_dict['mw_time'] = 125
-                                    config_dict['mw_time'] = 6000
-                                    # config_dict['mw_time'] = 15*ms
-                                    # config_dict['mw_time'] = mw_time
-                                    config_dict['mw_freq'] = mw_freq
-                                    config_dict['total_atom'] = True
-                                    config_dict['bias_b_field'] = bias_b_field
-                                    config_dict['odt_mw'] = .97
-                                    config_dict['det_low'] = -40
-                                    # config_dict['odt_hold_time'] = 0.2*s
-                                    config_dict['odt_hold_time'] = 0.8*s
-                                    config_dict['odt_high'] = 0.97
-                                    config_dict['odt_blink_time'] = 12*ms
-                                    await single_shot(**config_dict)
+            for bias_b_field in ([0.61]):
+                for odt_hold_time in (np.logspace(1.9,3.8,22)*ms):
+                    for optical_pumping_f_state in [6, -4]:
+                        for _ in range(1):
+                            config_dict['load_mot_time'] = 5*s
+                            config_dict['bias_b_field'] = bias_b_field
+                            config_dict['total_atom'] = True
+                            config_dict['optical_pumping_f_state'] = optical_pumping_f_state
+                            config_dict['det_low'] = -40
+                            # config_dict['odt_hold_time'] = 2*s
+                            config_dict['odt_hold_time'] = odt_hold_time
+                            config_dict['odt_high'] = 0.97
+                            config_dict['odt_blink_time'] = 12*ms
+                            await single_shot(**config_dict)
             end_acq()
     # no rp
