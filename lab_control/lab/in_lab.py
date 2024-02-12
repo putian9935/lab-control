@@ -104,7 +104,9 @@ start_acq = remote_sim_control.action_changeFilenameAndStartCamAcq
 end_acq =  remote_sim_control.action_StopCamAcq  
 
 valon_synth = ValonSynthesizer(port='COM16', channel=38, freq=1000)
-mw_switch = valon_synth(target=valon_synth, init_state=1)
+mw_switch = valon_synth(target=valon_synth, init_state=0)
+# valon_synth = ValonSynthesizer(port='COM16', channel=49, freq=1000)
+# mw_switch = TSChannel(channel=38, init_state=0, name='mw')
 
 valon_synth_56 = ValonSynthesizer(port='COM5', channel=45, freq=1753, power=+7)
 gm_switch = valon_synth_56(target=valon_synth_56, init_state=1)

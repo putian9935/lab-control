@@ -39,29 +39,16 @@ class Synth:
         await self.write_async(f'cw {freq} mhz\r'.encode())
     
 
-    # def set_freq2(self, freq1, freq2):
-    #     """ Set two frequencies, controlled by TTL 
+    async def set_freq2(self, freq1, freq2):
+        """ Set two frequencies, controlled by TTL 
         
-    #     Freq 1: when TTL is low 
-    #     Freq 2: when TTL is high  
-    #     """
-    #     self.set_mode('list')
-    #     self.synth = self.rm.open_resource(self.device_name)
-    #     print(freq1, freq2)
-    #     self.synth.write(f'list 31 {freq1} mhz')
-    #     # print(self.synth.read())
-    #     self.synth.write(f'list 32 {freq2} mhz')
-    #     # print(self.synth.read())
-    #     # self.synth.query('List?')
-    #     # for i in range(32):
-    #     #     print(self.synth.read())
-    #     # self.synth.close()
-    #     # self.synth = self.rm.open_resource(self.device_name)
-            
-    #     # self.synth.query('mod?')
-    #     # print(self.synth.read())
-    #     self.synth.close()
-    
+        Freq 1: when TTL is low 
+        Freq 2: when TTL is high  
+        """
+        print(freq1, freq2)
+        await self.write_async(f'list 31 {freq1} mhz')
+        await self.write_async(f'list 32 {freq2} mhz')
+
     async def get_freq(self):
         # for some reason, we can read one line at a time
         await self.ser.write_async(b'FREQ\r')

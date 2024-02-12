@@ -14,13 +14,13 @@ def turn_on_all():
     odt_setpoint = 1500
     odt_intensity = 1.1
     # odt_intensity = 0.97
-    # det_mot = -52
     det_mot = -40
+    # det_mot = -40
     # det_mot = -40
     # det_mot = -70
     det_ramp = 3000
     b_field = 43
-    mot_intensity = 0.97
+    mot_intensity = 0.9
 
     @vco_controller()
     def vco_651_trig():
@@ -29,8 +29,8 @@ def turn_on_all():
     
     @aio_326intensityServo(channel=0, action=ramp)
     def intensity326():
-        return [0], [20], [0.97]
-        # return [0], [20], [mot_intensity]
+        # return [0], [20], [0.97]
+        return [0], [20], [mot_intensity]
     
     @TSChannel(channel=8)
     def zm_shutter():
@@ -101,8 +101,10 @@ def turn_on_all():
     @aio_zcompServo(channel=1, action=ramp)
     def comp2_coil_ramp():
         return [0,], [200], [.528]
+        # return [0,], [200], [.528]
     @comp_coil1
     def _():
+        # return [0], [200], [.488]
         return [0], [200], [.488]
     
     @TSChannel(channel=19)
@@ -145,10 +147,6 @@ def turn_on_all():
     def absorption_aom():
         return [0]
     
-    @mw_switch
-    def _():
-        return []
-    
     @TSChannel(channel=26, init_state=0)
     def mot_410_shutter():
         ''' turn on zeeman repumpers '''
@@ -179,6 +177,16 @@ def turn_on_all():
     def _():
         return []
     
+    # valon_synth.freq=11409.3
+    valon_synth.freq=11409.7
+    # @mw_switch
+    # def _():
+    #     return [0,]
+
+    @mw_switch
+    def mw():
+        return []
+
     @TSChannel(channel=47, init_state=1)
     def odt_mod():
         return []

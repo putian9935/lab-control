@@ -305,6 +305,8 @@ def single_shot(
         @aio_zcompServo(channel=0, action=ramp)
         def z_comp_coil_ramp():
             return [-10*ms,], [200], [0.604]
+            # return [-10*ms,], [200], [0.61]
+        
         
         @TSChannel(channel=21, )
         def odt():
@@ -342,6 +344,7 @@ def single_shot(
             def aom_410_slave():
                 # shut off 410 slave to let atoms decay to ground state
                 return [200,800]
+            pass
     
    
 
@@ -421,7 +424,7 @@ async def main():
         # 'det_low': -170,
         'det_ramp': 3*ms,
         # 'det_ramp': 8*ms,
-        'det_img': -11,
+        'det_img': -6,
         # 326 intensity
         'intensity_high': .97,
         'intensity_low': .95,
@@ -487,17 +490,19 @@ async def main():
             await mot_modulator.update_delay(delay_pi + delay*1e-6)
 
             start_acq(remote_config.gen_fname_from_dict(config_dict))
-            for bias_b_field in ([0.61]):
-                for odt_hold_time in (np.logspace(1.9,3.8,22)*ms):
-                    for optical_pumping_f_state in [6, -4]:
+            for bias_b_field in ([0.61,0.64]):
+                for odt_hold_time in (tqdm(np.logspace(1.9,3.8,22)*ms)):
+                    for optical_pumping_f_state in [-4]:
+                    # for optical_pumping_f_state in [6, -4]:
                         for _ in range(1):
                             config_dict['load_mot_time'] = 5*s
                             config_dict['bias_b_field'] = bias_b_field
                             config_dict['total_atom'] = True
                             config_dict['optical_pumping_f_state'] = optical_pumping_f_state
-                            config_dict['det_low'] = -40
+                            config_dict['det_low'] = -60
                             # config_dict['odt_hold_time'] = 2*s
                             config_dict['odt_hold_time'] = odt_hold_time
+                            # config_dict['odt_hold_time'] = np.logspace(1.9,3.8,22)[2]*ms
                             config_dict['odt_high'] = 0.97
                             config_dict['odt_blink_time'] = 12*ms
                             await single_shot(**config_dict)

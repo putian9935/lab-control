@@ -175,16 +175,21 @@ def single_shot(
     def hold_odt():
         @aio_zcompServo(channel=1, action=ramp)
         def comp2_coil_ramp():
-            return [50*ms,], [2000], [.504]
+            return [60*ms,], [2000], [.504]
 
         @comp_coil1
         def _():
-            return [50*ms,], [2000], [.482]
+            return [60*ms,], [2000], [.482]
+            
+        
+        @aio_zcompServo(channel=0, action=ramp)
+        def z_comp_coil_ramp():
+            return [0*ms,], [.2*ms], [0.635]
             
         @aio_zcompServo(channel=0, action=ramp)
         def z_comp_coil_ramp():
             # before 0.596
-            return [50*ms,], [2000], [bias_b_field]
+            return [60*ms,], [2000], [bias_b_field]
 
         @aio_1064intensityServo(action=ramp, channel=0)
         def odt_ramp():
@@ -293,13 +298,49 @@ def single_shot(
             if optical_pumping_time == 0:
                 return []
             return [0, optical_pumping_time]
+            
         @TSChannel(channel=26)
         def mot_410_shutter():
             return [optical_pumping_time]
         @TSChannel(channel=29)
         def mot_451_shutter():
             return [optical_pumping_time]
+    # mw1_time = 10*ms
+    # @Stage(duration=mw1_time)
+    # def clean_mw():
+    #     @TSChannel(channel=36)
+    #     def aom_410_slave():
+    #         return [0, mw1_time]
 
+
+    #     @TSChannel(channel=19)
+    #     def aom_rf_switch_410_451():
+    #         ''' shine repumpers '''
+    #         return [0, mw1_time]
+
+    #     @TSChannel(channel=37)
+    #     def aom_451_master():
+    #         ''' shine repumpers '''
+    #         return [0, mw1_time]
+            
+    #     valon_synth.freq = mw_freq
+    #     @mw_switch
+    #     def mw():
+    #         if mw_time == 0:
+    #             return []
+    #         return [0, mw1_time]
+
+    #     @aio_326intensityServo(channel=0, action=ramp)
+    #     def intensity326():
+    #         return [-1], [1], [0.95]
+    #     @aio_326intensityServo(channel=0, action=ramp)
+    #     def intensity326():
+    #         return [mw1_time], [1], [-0.05]
+            
+    #     @TSChannel(channel=7, init_state=1)
+    #     def mot_aom():
+    #         return [0, mw1_time]
+            
     @Stage(duration=tof_time, start_at=hold_odt.end)
     def tof():
         
@@ -456,15 +497,17 @@ async def main():
             
             for offset in ([0]):
             # for offset in (0.191*2*np.array([-1, -2])):
-                for tran in transitions:
+                # for tran in transitions:
                 # for mw_freq in tqdm(np.arange(-.1, .1, .006)+0+11409.7531):
                 # for mw_freq in tqdm(np.arange(-1.2, -1, .006)+0+11409.7531):
                 # for mw_freq in tqdm(np.arange(-1, 0.05, .003)+0+11409.7531):
-                    for mw_freq in tqdm(np.arange(-0.02, 0.015, .0008)+tran+11409.7531+0.0028):
+                # for mw_freq in tqdm(np.arange(-0.02, 0.015, .0008)+tran+11409.7531+0.0028):
+                    for mw_freq in tqdm([11405.7859, 11406.779 , 11407.7713, 11408.7636, 11409.7567]):
                         
+                        for odt_hold_time in tqdm(np.logspace(1.9,3.5,22)*ms):
                         # for mw_time in tqdm(np.arange(0, 1500, 40)):
                         # for mw_time in tqdm(np.arange(0, 2500, 30)):
-                            for bias_b_field in [.61, 0.55]:
+                            for bias_b_field in [.61,]:
                             # for bias_b_field in [.61, .55]:
                                 # for _ in range(3):
                                     config_dict['load_mot_time'] = 1.8*s
@@ -480,8 +523,8 @@ async def main():
                                     config_dict['bias_b_field'] = bias_b_field
                                     config_dict['odt_mw'] = .97
                                     config_dict['det_low'] = -40
-                                    # config_dict['odt_hold_time'] = 0.2*s
-                                    config_dict['odt_hold_time'] = 0.8*s
+                                    config_dict['odt_hold_time'] = odt_hold_time
+                                    # config_dict['odt_hold_time'] = 0.8*s
                                     config_dict['odt_high'] = 0.97
                                     config_dict['odt_blink_time'] = 12*ms
                                     await single_shot(**config_dict)

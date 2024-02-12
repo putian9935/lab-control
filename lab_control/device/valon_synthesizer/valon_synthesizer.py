@@ -28,12 +28,11 @@ class ValonSynthesizer(Target):
         self.power = power 
         self.loaded = True
 
-        print('Valon is disabled!')
-    # async def at_acq_start(self):
-    #     self.synth.ser.open()
+    async def at_acq_start(self):
+        self.synth.ser.open()
 
-    # async def at_acq_end(self):
-    #     self.synth.ser.close()
+    async def at_acq_end(self):
+        self.synth.ser.close()
 
 @ValonSynthesizer.set_default
 @ValonSynthesizer.take_note
@@ -41,15 +40,16 @@ class switch(hold):
     def __init__(self, *, target: ValonSynthesizer, **kwargs) -> None:
         super().__init__(channel=target.channel, **kwargs)
 
-    # async def run_preprocess(self, target: Target):
-    #     target.synth : Synth 
-    #     from numbers import Number  
-    #     await target.synth.set_power(target.power) 
-    #     if isinstance(target.freq, list):
-    #         raise NotImplementedError("set freq2 is not implemented!")
-    #         # target.synth.set_freq2(target.freq[0], target.freq[1])
-    #     elif isinstance(target.freq, Number):
-    #         await target.synth.set_freq(target.freq)  
+    async def run_preprocess(self, target: Target):
+        target.synth : Synth 
+        from numbers import Number  
+        await target.synth.set_power(target.power) 
+        if isinstance(target.freq, list):
+            await target.synth.set_mode('list')
+            await target.synth.set_freq2(target.freq[0], target.freq[1])
+        elif isinstance(target.freq, Number):
+            await target.synth.set_mode('cw')
+            await target.synth.set_freq(target.freq)  
 
     async def run_postprocess(self, target: Target):
         return 
