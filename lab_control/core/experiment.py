@@ -12,6 +12,7 @@ from functools import wraps
 import logging 
 import msvcrt 
 import asyncio 
+from .util.inject import inject_dict_into_function 
 
 async def wait_for(char: str):
     ''' wait for user to press `char` '''
@@ -37,6 +38,10 @@ def inject_lab_into_coroutine(f):
         return await f(*args, **kwds)
     return ret 
 
+def inject_lab_into_function(f):
+    """ inject lab information into a function """
+    return inject_dict_into_function(f, Lab.lab_in_use.attr)
+
 
 def deal_with_condition_fail():
     """ deal with pre-/post-condition failure 
@@ -61,33 +66,35 @@ def deal_with_condition_fail():
         x = input("Enter [a/c/f]?")
 
 class Experiment:
-    def __init__(self, to_fpga=False, ts_fpga: str = None) -> None:
+    def __init__(self, to_fpga=False, ts_fpga: str = None, config_: str =None) -> None:
         self.to_fpga = to_fpga
         if to_fpga:
             if ts_fpga is None:
                 raise ValueError("Please specify time sequencer FPGA instance!")
             if ts_fpga not in Lab.lab_in_use.attr:
                 raise ValueError(f"Cannot find instance {ts_fpga}!")
-        self.to_fpga = to_fpga
-        self.ts_fpga = Lab.lab_in_use.attr[ts_fpga]
-
+            self.ts_fpga = Lab.lab_in_use.attr[ts_fpga]
+        if config_ is None:
+            config_ = 'config' 
+        self.config =  Lab.lab_in_use.attr[config_]
 
     def __call__(self, f) -> Awaitable:
         signature = inspect.signature(f)
 
         async def ret(*args, **kwds):
+            ttt =  time.perf_counter()
+            tt = time.perf_counter()
             def setup_config():
                 ba = signature.bind(*args, **kwds)
                 ba.apply_defaults()
-                config._arguments = ba.arguments
-                config._time_stamp = datetime.now()
-                config.update_cnt()
-                config.exp_name = f.__name__
-                config.append_param(config.param_str)
-                config.append_fname(config.fname)
+                self.config._arguments = ba.arguments
+                self.config._time_stamp = datetime.now()
+                self.config.update_cnt()
+                self.config.exp_name = f.__name__
+                self.config.append_param()
+                self.config.append_fname()
             
             Stage.clear()
-            tt = time.perf_counter()
             try:
                 # inject lab names to function
                 for k, v in Lab.lab_in_use.attr.items():
@@ -103,25 +110,45 @@ class Experiment:
                 f'Experiment {f.__name__} parsed in {time.perf_counter()-tt} second(s)!')
             try:
                 tt = time.perf_counter()
-                setup_config()
+                config_job = asyncio.to_thread(setup_config)
+                logging.debug(
+                    f'Setup done in {time.perf_counter()-tt} second(s)!')
                 await run_preprocess()
                 logging.debug(
                     f'Prerequisite done in {time.perf_counter()-tt} second(s)!')
+                tt = time.perf_counter()
                 while not test_precondition():
                     action = deal_with_condition_fail() 
                     if action is True:
                         break 
                     if action is False: 
                         raise PreconditionFail()
-                exp_time = prepare_sequencer_files()
+                logging.debug(
+                    f'Precondition done in {time.perf_counter()-tt} second(s)!')
+                tt = time.perf_counter()
+                exp_time, ti, dt2 = prepare_sequencer_files()
                 if config.view:
                     show_sequences()
+                logging.debug(
+                    f'Sequence prepared in {time.perf_counter()-tt} second(s)!')
+                tt = time.perf_counter()
                 if self.to_fpga and not config.offline:
-                    await run_sequence(self.ts_fpga, exp_time)
+                    await asyncio.gather(
+                        run_sequence(self.ts_fpga, exp_time, ti, dt2),
+                                            config_job
+                    )
                     logging.info(f'Experiment {f.__name__} sequence done!')
+                logging.debug(
+                    f'Sequence done in {time.perf_counter()-tt} second(s)!')
+                tt = time.perf_counter()
                 await run_postprocess()
+                logging.debug(
+                    f'Postprocess done in {time.perf_counter()-tt} second(s)!')
+                tt = time.perf_counter()
                 if not test_postcondition():
                     raise PostconditionFail()
+                logging.debug(
+                    f'Postcondition done in {time.perf_counter()-tt} second(s)!')
                 if keypress_tasks['q'].done():
                     raise AbortExperiment
             except:
@@ -133,9 +160,26 @@ class Experiment:
                 await at_acq_end()
                 raise
             else:
+                tt = time.perf_counter()
                 for task in keypress_tasks.values():
                     if not task.cancelled() and not task.done():
                         task.cancel()
                 cleanup()
-
+                logging.debug(
+                    f'Cleanup done in {time.perf_counter()-tt} second(s)!')
+            logging.debug(f'experiment done all in {time.perf_counter()-ttt}')
         return ret
+
+from contextlib import asynccontextmanager 
+
+@asynccontextmanager
+async def acquisition(spool_data=None):
+    try:
+        await at_acq_start()
+        if spool_data is not None:
+            raise NotImplementedError("spool_data is not implemented") 
+        yield 
+    finally:
+        await at_acq_end() 
+    
+        

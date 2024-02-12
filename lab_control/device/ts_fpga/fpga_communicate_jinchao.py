@@ -8,13 +8,17 @@ Last modified on May 14, 2-23
 """
 import numpy as np
 import socket
-
+import logging 
 
 class socket_s():
     # initiates connection once called.
     def __init__(self, ):
         self.data = ''
         self.connected = False
+        self.last_data_list = None 
+        self.last_time_interval = None 
+
+        self.upload_n_rep = self.write
 
     def connect(self, host, port):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -31,7 +35,7 @@ class socket_s():
         if errcode < 0:
             self.connected = False
         else:
-            print('Sent data successfully.')
+            logging.debug('Sent data successfully.')
         return errcode
 
     def write_trigger(self, data):  # write and trigger wavemeter
@@ -39,13 +43,25 @@ class socket_s():
         if errcode < 0:
             self.connected = False
         else:
-            print('Sent data successfully.')
+            logging.debug('Sent data successfully.')
         return errcode
+
+    def upload_sequence(self, data_list, time_interval):
+        # if (
+        #     self.last_data_list is not None 
+        #     and self.last_time_interval is not None 
+        #     and np.array_equal(data_list, self.last_data_list) 
+        #     and np.array_equal(time_interval, self.last_time_interval)
+        # ):
+        #     return 
+        self.last_data_list = data_list
+        self.last_time_interval = time_interval
+        self.write(prep_sequence(data_list, time_interval))
+        print('Sent data successfully')
 
     def close(self):
         self.socket.close()
         self.connected = False
-        return
 
 
 def read_file(textfile):
@@ -54,15 +70,14 @@ def read_file(textfile):
     f = open(textfile)
     n_rep = int(f.readline())
     timestamps = np.asarray(
-        list(map(int, f.readline().rstrip().split(';'))), dtype=np.int)
-    time_interval = timestamps[1:] - timestamps[:-1]
-    time_interval = np.insert(time_interval, 0, 100)
+        list(map(int, f.readline().rstrip().split(';'))), dtype=np.int32)
+    # insert 100 to the beginning of the time_interval 
+    time_interval = np.insert(np.diff(timestamps), 0, 100)
     f.close()
 
-    read_array2 = np.loadtxt(textfile, dtype='int',
-                             delimiter=';', unpack=True, skiprows=2)
+    read_array2 = np.loadtxt(textfile, 
+                             delimiter=';', unpack=True, skiprows=2).astype(np.int64)
     data_list2 = np.roll(read_array2, 1, 0)
-
     return n_rep, time_interval, data_list2
 
 
@@ -123,3 +138,10 @@ def main(textfile):
 
 # takes care of the connection to the FPGA and provides methods to write to it
 sequencer = socket_s()
+
+if __name__ == '__main__':
+    sequencer.connect('192.168.107.194', 5555)
+    import time 
+    while True:
+        main('out')
+        time.sleep(2)

@@ -2,6 +2,8 @@ import numpy as np
 import os
 from ..types import *
 from ..config import config
+import asyncio 
+from datetime import datetime
 
 
 def merge_seq(*seqs: Tuple[ts_map]) -> ts_map:
@@ -28,7 +30,9 @@ def merge_seq(*seqs: Tuple[ts_map]) -> ts_map:
         ret[k] = (sorted(tmp[k]), pols[k], names[k])
     return ret
 
-
+def check_equal_length(t, dt, dv):
+    if not len(t) == len(dt) or not len(t) == len(dv) or not len(dt) == len(dv):
+        raise ValueError("The return value of AIO ramp action must have the same size!")
 
 def merge_seq_aio(ts: List[List[int]] = None, dts: List[list] = None, dvs: List[list] = None):
     ret = []
@@ -36,6 +40,7 @@ def merge_seq_aio(ts: List[List[int]] = None, dts: List[list] = None, dvs: List[
         return ret
     full_sequence = sorted(set(t for seq in ts for t in seq))
     for t, dt, dv in zip(ts, dts, dvs):
+        check_equal_length(t, dt, dv)
         inv_t = {v: k for k, v in enumerate(t)}
         new_dt, new_dv = [], []
         for tt in full_sequence:
@@ -107,9 +112,27 @@ def shift_list_by_one(l: list):
     """ Shift the last element to the front """
     return [l[-1]] + l[:-1]
 
+def save_txt(fname, arr, header): 
+    np.savetxt(fname, arr, delimiter=",",
+               fmt="%i", header=header, comments='') 
 
+def get_data_list(sequences, full_ch): 
+    """ For use with FPGA """
+    ch_inv = {ch: i+1 for i, ch in enumerate(sequences.keys())}
+    ret = np.zeros((len(full_ch[0]),  64), dtype=np.int64)
+    for ch in range(1, 65):
+        if ch in ch_inv:
+            ret[:,ch-1] = full_ch[ch_inv[ch]]
+    return np.roll(ret, 1, 0)
+              
 def save_sequences(sequences: ts_map, fname: str) -> float:
-    """ Returns the full experiment time """
+    """ Save the sequence to file 
+    Returns
+    ---
+    - the full experiment time 
+    - time interval 
+    - FPGA data list 
+    """
     s = set()
     names = dict()
     for k, (seq, p, n) in sequences.items():
@@ -139,31 +162,15 @@ def save_sequences(sequences: ts_map, fname: str) -> float:
     )
 
     for seq, init, n in sequences.values():
-        new_row = np.zeros(len(full_sequence), dtype=int)
+        new_row = np.zeros(len(full_sequence), dtype=np.int64)
         if len(seq):
             new_row[inv_f(seq)] = 1
         full_ch.append(init ^ (np.cumsum(new_row) & 1))
     # save csv
-    np.savetxt(fname, np.array(full_ch).T, delimiter=",",
-               fmt="%i", header='\n'.join(headers), comments='')
-
     if not os.path.exists('saved_sequences'):
         os.mkdir('saved_sequences')
-    np.savetxt(f'saved_sequences/{config.time_stamp:%Y%m%d%H%M%S}.csv', np.array(full_ch).T, delimiter=",",
-               fmt="%i", header='\n'.join(headers), comments='')
-
-    # save out
-    ch_inv = {ch: i+1 for i, ch in enumerate(sequences.keys())}
-    with open('out', 'w') as f:
-        f.write('1\n')
-        f.write(';'.join(map(lambda _: str(int(_)), full_ch[0]))+'\n')
-        for ch in range(1, 65):
-            if ch in ch_inv:
-                f.write(';'.join(map(str, full_ch[ch_inv[ch]]))+'\n')
-            else:
-                f.write(';'.join(map(str, np.zeros_like(full_ch[0])))+'\n')
-    print('[INFO] Time sequencer CSV and OUT file saved.')
-    return full_ch[0][-1]
+    asyncio.create_task(asyncio.to_thread(save_txt, f'saved_sequences/{datetime.now():%Y%m%d%H%M%S}.csv', np.array(full_ch).T,'\n'.join(headers)))
+    return full_ch[0][-1], np.diff([full_sequence[0]-300] + full_sequence).astype(np.int32), get_data_list(sequences, full_ch)
 
 
 if __name__ == '__main__':

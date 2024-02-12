@@ -1,22 +1,46 @@
-from ...core.program import Program, wait_for_prompt
+from ...core.target import Target
 from ...core.action import Action, set_pulse
 from ...core.types import *
 from lab_control.core.util.ts import to_plot, pulsify, merge_seq_aio, shift_list_by_one
+from lab_control.core.util.loader import load_module 
+from aioserial import AioSerial
 
 
-class VCOController(Program):
-    def __init__(self, args, ts_channel) -> None:
+def setup_port(com_port):
+    ser = AioSerial(baudrate=2000000, timeout=0.05)
+    ser.port = com_port
+    ser.dtr = False
+    return ser
+
+
+class VCOController(Target):
+    def __init__(self, port, ts_channel) -> None:
         """ args is the same as the first argument in subprocess.run """
-        super().__init__(args)
+        super().__init__()
         self.ts_channel = ts_channel
+        self.port = port
+        self.load(port)
+
+    @Target.disable_if_offline
+    @Target.load_wrapper
+    def load(self, port):
+        self.backend = load_module(
+            'lab_control.device.vco_controller.backend',
+            ser=setup_port(port)
+        )
 
     async def wait_until_ready(self):
-        await super().wait_until_ready()
-        await wait_for_prompt(self.proc.stdout)
+        await self.backend.send_trig_disable()
+        self.buffer_filename = f'vco_vref_temp/{self.port}'
+        open(self.buffer_filename, 'w').close()
 
     async def at_acq_start(self):
         # clear contents
-        open('vco_vref_temp', 'w').close()
+        open(self.buffer_filename, 'w').close()
+        self.backend.ser.open()
+
+    async def at_acq_end(self):
+        self.backend.ser.close()
 
 
 @VCOController.set_default
@@ -35,37 +59,47 @@ class ramp(Action):
         extras = []
         for act in target.actions[cls]:
             extras.append(act.retv)
-
+        if not extras:
+            await target.backend.exp_action()
+            return
         contents = '\n'.join(
             f'{_dt},{_vref}'
             for _, dt, vref in merge_seq_aio(*(zip(*extras)))
-            for _dt, _vref in zip(dt, shift_list_by_one(vref))
+            for _dt, _vref in zip(shift_list_by_one(dt), shift_list_by_one(vref))
         )
         try:
             # in case file does not exist
-            if open('vco_vref_temp').read() == contents:
+            if open(target.buffer_filename).read() == contents:
                 # start experiment
-                await target.write(b'exp\n')
-                await wait_for_prompt(target.proc.stdout)
+                await target.backend.exp_action()
                 return
         finally:
             pass
 
         #  prepare file
-        with open('vco_vref_temp', 'w') as f:
+        with open(target.buffer_filename, 'w') as f:
             f.write(contents)
         # upload file
-        await target.write(b'paramDet vco_vref_temp\n')
-        await wait_for_prompt(target.proc.stdout)
+        from time import perf_counter
+        dt = [
+            _dt
+            for _, dt, vref in merge_seq_aio(*(zip(*extras)))
+            for _dt, _vref in zip(shift_list_by_one(dt), shift_list_by_one(vref))
+        ]
+        vref = [
+            target.backend.detuning2DDS(_vref)
+            for _, dt, vref in merge_seq_aio(*(zip(*extras)))
+            for _dt, _vref in zip(shift_list_by_one(dt), shift_list_by_one(vref))
+        ]
+        await target.backend.set_param(dt, vref)
+        # await wait_for_prompt(target.proc.stdout)
         # start experiment
-        await target.write(b'exp\n')
-        await wait_for_prompt(target.proc.stdout)
+        await target.backend.exp_action()
 
     @classmethod
     async def run_postprocess_cls(cls, target: VCOController):
         # exit from experiment
-        await target.write(b'e\n')
-        await wait_for_prompt(target.proc.stdout)
+        await target.backend.stop()
 
     def to_plot(self, target: VCOController, raw: bool, *args, **kwargs) -> plot_map:
         if raw:

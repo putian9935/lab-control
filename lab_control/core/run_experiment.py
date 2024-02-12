@@ -1,5 +1,5 @@
 from .target import Target, TargetMeta
-from .program import Program 
+from .program import Program
 from .action import Action, ActionMeta
 import asyncio
 import importlib.util
@@ -57,7 +57,7 @@ def list_actions():
 def get_action_usage(act: ActionMeta):
     """ Displays details of actions types """
     print('>- Action name:', act.__name__)
-    print('>- Parent target type:', ActionMeta.targets[act.__name__])
+    print('>- Parent target types:', ActionMeta.targets[act.__name__])
     code = act.__init__.__code__
     print('>- Arguments:')
     if code.co_argcount > 1:
@@ -165,22 +165,21 @@ def prepare_sequencer_files(n_repeat=1):
     --- 
     The total time of the experiment 
     """
-    tt = time.perf_counter()
     to_seq = tuple(tar.to_time_sequencer()
                    for tar in all_target_instances())
     check_channel_clash(*to_seq)
-    exp_time = save_sequences(merge_seq(*to_seq), '1')
-    logging.debug(
-        f'Sequence prepared in {time.perf_counter()-tt} '
-        'second(s)!')
+    exp_time, ti, dt2 = save_sequences(merge_seq(*to_seq), '1')
     logging.info(
         f'Experiment cycle time: {exp_time/1e6} second(s)')
-    return exp_time
+    return exp_time, ti, dt2
 
 
-async def run_sequence(fpga, exp_time: int):
-    fpga.backend.main('out')
-    await asyncio.sleep(exp_time * 1e-6 + .5)
+async def run_sequence(fpga, exp_time: int, time_interval, data_list2):
+    fpga.backend.sequencer.upload_sequence(data_list2, time_interval)
+    seq2 = fpga.backend.write_line(1)
+    fpga.backend.sequencer.upload_n_rep(seq2)
+    # seems that there is a minimal delay between two sequences from the FPGA 
+    await asyncio.sleep(exp_time * 1e-6+.25)
 
 
 async def run_exp(module_fname: str, **exp_param):

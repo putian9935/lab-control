@@ -14,9 +14,15 @@ class TimeSequencer(Target):
 @TimeSequencer.set_default
 @TimeSequencer.take_note
 class hold(Action):
-    def __init__(self, *, channel, **kwargs) -> None:
+    def __init__(self, *, channel, delay=0, name=None, **kwargs) -> None:
+        """ 
+        - delay: if positive, the actual edge will be `delay` microseconds earlier than shown 
+        """
         self.channel = channel
+        self.delay = delay 
         super().__init__(**kwargs)
+        if name is not None:
+            self.signame = name 
 
     async def run_preprocess(self, target: Target):
         return  
@@ -25,7 +31,7 @@ class hold(Action):
         return 
 
     def to_time_sequencer(self, target: TimeSequencer) -> Tuple[Dict[int, List[int]], bool]:
-        return {self.channel: (self.retv, self.polarity, self.signame)}
+        return {self.channel: ([_ - self.delay for _ in self.retv], self.polarity, self.signame)}
 
     def to_plot(self, target: Target = None, *args, **kwargs):
         return {(self.channel, self.signame, 'hold'): to_plot(self.polarity, self.retv)}

@@ -10,6 +10,9 @@ from lab_control.core.util.profiler import measure_time
 from functools import wraps 
 import logging 
 
+logger = logging.getLogger('core.target')
+logger.setLevel(logging.INFO)
+
 class PreconditionFail(Exception):
     pass
 
@@ -30,7 +33,7 @@ class TargetMeta(type):
 
     def take_note(cls, action_cls: ActionMeta):
         cls.supported_actions.add(action_cls)
-        ActionMeta.targets[action_cls.__name__] = cls.__name__
+        ActionMeta.targets[action_cls.__name__].append(cls.__name__)
         return action_cls
 
     def set_default(cls, action_cls: ActionMeta):
@@ -76,7 +79,7 @@ class Target(metaclass=TargetMeta):
                         raise RuntimeError(
                             f'Target {self} of type {type(self).__name__} is not loaded!')
                     else:
-                        logging.debug(
+                        logger.debug(
                             f'Target {self} of type {type(self).__name__} is not loaded!')
                 return f(self, *args, **kwds)
         else:
@@ -87,7 +90,7 @@ class Target(metaclass=TargetMeta):
                         raise RuntimeError(
                             f'Target {self} of type {type(self).__name__} is not loaded!')
                     else:
-                        logging.debug(
+                        logger.debug(
                             f'Target {self} of type {type(self).__name__} is not loaded!')
                 return await f(self, *args, **kwds)
         return ret

@@ -1,22 +1,20 @@
 from lab_control.core.types import plot_map
 from ...core.target import Target
 from ...core.action import Action, set_pulse, ActionMeta
-import importlib.util
-from . import ports
+from . import aio_ports
 from .csv_reader import tv2wfm, p2r
 from ...core.types import *
 from lab_control.core.util.ts import to_plot, pulsify, merge_plot_maps, merge_seq_aio, shift_list_by_one
+from lab_control.core.util.loader import load_module 
 from functools import wraps 
+
 import logging 
+logger = logging.getLogger('device.aio')
+logger.setLevel(logging.INFO)
+
 from lab_control.core.util.profiler import measure_time
 aio_ts_mapping = Dict[ActionMeta, int]
-
-
-if __name__ == '__main__':
-    print(merge_seq_aio([[1, 2, 3], [2, 3, 10]], [
-          [10, 20, 30], [20, 30, 10]], [[1, 2, 3], [1, 2, 3]]))
-
-
+import asyncio
 class AIO(Target):
     def __init__(self, *, minpd: List[int], maxpd: List[int], ts_mapping: aio_ts_mapping, port: Optional[str] = None, **kwargs) -> None:
         super().__init__()
@@ -25,24 +23,55 @@ class AIO(Target):
         self.ts_mapping = ts_mapping
         self.minpd = minpd
         self.maxpd = maxpd
+        self.port = port 
         self.load(port)
 
     @Target.disable_if_offline
     @Target.load_wrapper
     def load(self, port):
-        spec = importlib.util.find_spec('lab_control.device.aio.backend')
-        self.backend = importlib.util.module_from_spec(spec)
-        self.backend.ser = ports.setup_arduino_port(port)
-        spec.loader.exec_module(self.backend)
+        self.backend = load_module(
+            'lab_control.device.aio.aio_backend',
+            ser=aio_ports.setup_arduino_port(port)
+        )
 
     @Target.disable_if_offline
     async def close(self):
-        self.backend.stop()
-
+        while not self.backend.ser.is_open:
+            try:
+                self.backend.ser.open()
+            except:
+                logger.error(f'Dead serial {self.__name__}')
+                from subprocess import run 
+                run(rf'C:\Program Files (x86)\TyTools\tycmd.exe reset --board "@{self.port}"')
+        await self.backend.stop()
+        self.backend.ser.close()
+        
+    async def at_acq_start(self):
+        while not self.backend.ser.is_open:
+            try:
+                self.backend.ser.open()
+            except:
+                logger.error(f'Dead serial {self.__name__}')
+                from subprocess import run 
+                run(rf'C:\Program Files (x86)\TyTools\tycmd.exe reset --board "@{self.port}"')
+        return await super().at_acq_start()
+    
+    async def at_acq_end(self):
+        self.backend.ser.close()
+        return await super().at_acq_end()
 
 def shift_vdt_by_one(retv: Tuple[list]):
     return retv[0], shift_list_by_one(retv[1]), shift_list_by_one(retv[2])
 
+def is_equal_reference(ref_a, ref_b): 
+    """ compare if two references are equal """
+    if len(ref_a) != len(ref_b):
+        return False 
+    for act_a, act_b in zip(ref_a, ref_b):
+        if act_a.retv[1] != act_b.retv[1] or act_a.retv[2] != act_b.retv[2]:
+            return False 
+    return True 
+ 
 def cache_cls_actions(coro_func):
     ''' stop uploading if the parameter is the same 
     
@@ -51,10 +80,12 @@ def cache_cls_actions(coro_func):
     @wraps(coro_func)
     async def ret(cls, target):
         if target in cls.last_target_actions:
-            if cls.last_target_actions[target] == target.actions[cls]:
+            logger.debug(f'<{target}>: {is_equal_reference(cls.last_target_actions[target], target.actions[cls])}')
+            logger.debug(f'<{target}>: {cls.last_target_actions}')
+            logger.debug(f'<{target}>: {target.actions[cls]}')
+            if is_equal_reference(cls.last_target_actions[target], target.actions[cls]):
                 return
-        else:
-            cls.last_target_actions[target] = target.actions[cls]
+        cls.last_target_actions[target] = target.actions[cls]
         await coro_func(cls, target) 
     return ret 
 
@@ -103,11 +134,16 @@ class ramp(Action):
         for act in target.actions[cls]:
             extras.append(act.retv)
             chs.append(act.channel)
-
+        # empty actions
+        if not chs:
+            return  
+        logger.debug(f'{target}')
+        logger.debug(extras)
+        logger.debug(chs)
         # deal with ramp
         for ch, (ts, dt, v) in zip(chs, merge_seq_aio(*(zip(*extras)))):
             ts, dt, v = shift_vdt_by_one((ts, dt, v))
-            target.backend.ref(
+            await target.backend.ref(
                 ch,
                 tv2wfm(dt, p2r(v, target.maxpd[ch], target.minpd[ch])))
 
@@ -154,7 +190,10 @@ class hsp(Action):
     async def run_preprocess(self, target: AIO):
         if hsp not in target.ts_mapping:
             raise KeyError(f"hsp is not in ts_mapping of AIO target {target}")
-        target.backend.hsp(
+        # handle empty sequence
+        if not self.retv[1]:
+            return 
+        await target.backend.hsp(
             self.channel,
             tv2wfm([1] * len(self.retv[1]), shift_list_by_one(self.retv[1])))
 

@@ -1,5 +1,5 @@
 from typing import Any, List, Callable, Optional
-
+from .util.inject import inject_dict_into_function 
 
 class Stage:
     # the start time of the current stage
@@ -20,13 +20,15 @@ class Stage:
             start_at = Stage.cur
         self.start_at = start_at
 
-    def __call__(self, f: Callable) -> Any:
+    def __call__(self, f: Callable, attr=None) -> Any:
         if self.start_at < 0:
             raise ValueError(
                 "Cannot start at a time sequence from negative time! ")
+        if attr is None:
+            attr = {}
         Stage.cur = self.start_at
-        # invoke the function
-        f()
+        # invoke the function with context attr
+        inject_dict_into_function(f, attr)()
         f.start = self.start_at
         f.end = self.start_at + self.duration
         Stage.stages.append(f)
